@@ -49,7 +49,7 @@ def build_return_matrices(us_ohlc: dict, jp_ohlc: dict):
         if not df.empty and "Open" in df.columns
     }).dropna(how="all")
 
-    # JP AM approximation (50% of daily move)
+    # JP AM approximation (50% of daily move): Open → ~11:30
     AM_RATIO = 0.5
     jp_am = pd.DataFrame({
         t: (df["Open"] + AM_RATIO * (df["Close"] - df["Open"])) / df["Open"] - 1
@@ -57,22 +57,32 @@ def build_return_matrices(us_ohlc: dict, jp_ohlc: dict):
         if not df.empty and "Open" in df.columns
     }).dropna(how="all")
 
-    return us_cc, jp_oc, jp_am
+    # JP PM return approximation: ~12:30 → Close
+    # PM_Open ≈ Open + AM_RATIO * (Close - Open)
+    jp_pm = pd.DataFrame({
+        t: df["Close"] / (df["Open"] + AM_RATIO * (df["Close"] - df["Open"])) - 1
+        for t, df in jp_ohlc.items()
+        if not df.empty and "Open" in df.columns
+    }).dropna(how="all")
+
+    return us_cc, jp_oc, jp_am, jp_pm
 
 
 def collect(force: bool = False):
-    """Main collection pipeline. Returns (us_cc, jp_oc, jp_am) DataFrames."""
+    """Main collection pipeline. Returns (us_cc, jp_oc, jp_am, jp_pm) DataFrames."""
     os.makedirs(RAW_DATA_DIR, exist_ok=True)
     us_path = os.path.join(RAW_DATA_DIR, "us_cc_returns.csv")
     jp_path = os.path.join(RAW_DATA_DIR, "jp_oc_returns.csv")
     jp_am_path = os.path.join(RAW_DATA_DIR, "jp_am_returns.csv")
+    jp_pm_path = os.path.join(RAW_DATA_DIR, "jp_pm_returns.csv")
 
-    if not force and all(os.path.exists(p) for p in [us_path, jp_path, jp_am_path]):
+    if not force and all(os.path.exists(p) for p in [us_path, jp_path, jp_am_path, jp_pm_path]):
         print("Loading cached data...")
         return (
             pd.read_csv(us_path, index_col=0, parse_dates=True),
             pd.read_csv(jp_path, index_col=0, parse_dates=True),
             pd.read_csv(jp_am_path, index_col=0, parse_dates=True),
+            pd.read_csv(jp_pm_path, index_col=0, parse_dates=True),
         )
 
     print("Downloading US sector ETFs (Stooq)...")
@@ -87,15 +97,16 @@ def collect(force: bool = False):
         jp_ohlc[t] = _download_jp_etf(t, START_DATE, END_DATE)
 
     print("\nBuilding return matrices...")
-    us_cc, jp_oc, jp_am = build_return_matrices(us_ohlc, jp_ohlc)
+    us_cc, jp_oc, jp_am, jp_pm = build_return_matrices(us_ohlc, jp_ohlc)
 
     us_cc.to_csv(us_path)
     jp_oc.to_csv(jp_path)
     jp_am.to_csv(jp_am_path)
+    jp_pm.to_csv(jp_pm_path)
 
-    print(f"US: {us_cc.shape}, JP full: {jp_oc.shape}, JP AM: {jp_am.shape}")
+    print(f"US: {us_cc.shape}, JP full: {jp_oc.shape}, JP AM: {jp_am.shape}, JP PM: {jp_pm.shape}")
     print(f"Saved to {RAW_DATA_DIR}/")
-    return us_cc, jp_oc, jp_am
+    return us_cc, jp_oc, jp_am, jp_pm
 
 
 if __name__ == "__main__":

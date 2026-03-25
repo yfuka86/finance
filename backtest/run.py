@@ -10,7 +10,7 @@ RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
 
 
 def run_all():
-    us_cc, jp_oc, jp_am = collect()
+    us_cc, jp_oc, jp_am, jp_pm = collect()
 
     print(f"\nUS: {us_cc.shape}, JP full: {jp_oc.shape}, JP AM: {jp_am.shape}")
 
