@@ -1,0 +1,322 @@
+{
+  "ADAUSDT": {
+    "2023": {
+      "total_return_pct": -3.7,
+      "annualized_return_pct": -3.71,
+      "sharpe_ratio": -0.896,
+      "sortino_ratio": -1.135,
+      "max_drawdown_pct": -6.64,
+      "n_trades": 330,
+      "win_rate_pct": 48.5,
+      "profit_factor": 1.08
+    },
+    "2024": {
+      "total_return_pct": -1.97,
+      "annualized_return_pct": -1.97,
+      "sharpe_ratio": -0.462,
+      "sortino_ratio": -0.626,
+      "max_drawdown_pct": -6.03,
+      "n_trades": 314,
+      "win_rate_pct": 49.0,
+      "profit_factor": 1.14
+    },
+    "2025": {
+      "total_return_pct": -6.41,
+      "annualized_return_pct": -23.8,
+      "sharpe_ratio": -3.513,
+      "sortino_ratio": -2.553,
+      "max_drawdown_pct": -8.37,
+      "n_trades": 92,
+      "win_rate_pct": 39.1,
+      "profit_factor": 0.56
+    }
+  },
+  "AVAXUSDT": {
+    "2023": {
+      "total_return_pct": 2.39,
+      "annualized_return_pct": 2.4,
+      "sharpe_ratio": 0.655,
+      "sortino_ratio": 0.817,
+      "max_drawdown_pct": -4.74,
+      "n_trades": 302,
+      "win_rate_pct": 55.6,
+      "profit_factor": 1.41
+    },
+    "2024": {
+      "total_return_pct": 0.96,
+      "annualized_return_pct": 0.96,
+      "sharpe_ratio": 0.237,
+      "sortino_ratio": 0.382,
+      "max_drawdown_pct": -4.05,
+      "n_trades": 336,
+      "win_rate_pct": 50.6,
+      "profit_factor": 1.28
+    },
+    "2025": {
+      "total_return_pct": -0.34,
+      "annualized_return_pct": -1.37,
+      "sharpe_ratio": -0.294,
+      "sortino_ratio": -0.534,
+      "max_drawdown_pct": -2.31,
+      "n_trades": 90,
+      "win_rate_pct": 48.9,
+      "profit_factor": 1.18
+    }
+  },
+  "BNBUSDT": {
+    "2023": {
+      "total_return_pct": 1.46,
+      "annualized_return_pct": 1.47,
+      "sharpe_ratio": 0.445,
+      "sortino_ratio": 0.565,
+      "max_drawdown_pct": -3.67,
+      "n_trades": 326,
+      "win_rate_pct": 54.0,
+      "profit_factor": 1.49
+    },
+    "2024": {
+      "total_return_pct": -5.21,
+      "annualized_return_pct": -5.22,
+      "sharpe_ratio": -1.373,
+      "sortino_ratio": -1.951,
+      "max_drawdown_pct": -6.95,
+      "n_trades": 336,
+      "win_rate_pct": 42.9,
+      "profit_factor": 1.02
+    },
+    "2025": {
+      "total_return_pct": -1.57,
+      "annualized_return_pct": -6.31,
+      "sharpe_ratio": -1.756,
+      "sortino_ratio": -2.768,
+      "max_drawdown_pct": -2.29,
+      "n_trades": 94,
+      "win_rate_pct": 44.7,
+      "profit_factor": 0.99
+    }
+  },
+  "BTCUSDT": {
+    "2023": {
+      "total_return_pct": 1.29,
+      "annualized_return_pct": 1.3,
+      "sharpe_ratio": 0.451,
+      "sortino_ratio": 0.504,
+      "max_drawdown_pct": -3.31,
+      "n_trades": 326,
+      "win_rate_pct": 53.4,
+      "profit_factor": 1.58
+    },
+    "2024": {
+      "total_return_pct": -2.38,
+      "annualized_return_pct": -2.38,
+      "sharpe_ratio": -0.657,
+      "sortino_ratio": -0.902,
+      "max_drawdown_pct": -3.56,
+      "n_trades": 332,
+      "win_rate_pct": 51.8,
+      "profit_factor": 1.16
+    },
+    "2025": {
+      "total_return_pct": -1.67,
+      "annualized_return_pct": -6.66,
+      "sharpe_ratio": -1.849,
+      "sortino_ratio": -2.605,
+      "max_drawdown_pct": -2.55,
+      "n_trades": 82,
+      "win_rate_pct": 41.5,
+      "profit_factor": 0.94
+    }
+  },
+  "DOGEUSDT": {
+    "2023": {
+      "total_return_pct": -5.69,
+      "annualized_return_pct": -5.7,
+      "sharpe_ratio": -1.313,
+      "sortino_ratio": -1.341,
+      "max_drawdown_pct": -7.51,
+      "n_trades": 334,
+      "win_rate_pct": 46.7,
+      "profit_factor": 0.99
+    },
+    "2024": {
+      "total_return_pct": 0.08,
+      "annualized_return_pct": 0.08,
+      "sharpe_ratio": 0.039,
+      "sortino_ratio": 0.054,
+      "max_drawdown_pct": -6.73,
+      "n_trades": 346,
+      "win_rate_pct": 50.9,
+      "profit_factor": 1.24
+    },
+    "2025": {
+      "total_return_pct": 0.01,
+      "annualized_return_pct": 0.06,
+      "sharpe_ratio": 0.036,
+      "sortino_ratio": 0.079,
+      "max_drawdown_pct": -2.01,
+      "n_trades": 86,
+      "win_rate_pct": 48.8,
+      "profit_factor": 1.22
+    }
+  },
+  "DOTUSDT": {
+    "2023": {
+      "total_return_pct": -5.45,
+      "annualized_return_pct": -5.47,
+      "sharpe_ratio": -1.428,
+      "sortino_ratio": -1.659,
+      "max_drawdown_pct": -6.49,
+      "n_trades": 356,
+      "win_rate_pct": 44.9,
+      "profit_factor": 1.02
+    },
+    "2024": {
+      "total_return_pct": -5.55,
+      "annualized_return_pct": -5.55,
+      "sharpe_ratio": -1.385,
+      "sortino_ratio": -2.274,
+      "max_drawdown_pct": -8.57,
+      "n_trades": 348,
+      "win_rate_pct": 44.8,
+      "profit_factor": 1.01
+    },
+    "2025": {
+      "total_return_pct": 2.34,
+      "annualized_return_pct": 9.97,
+      "sharpe_ratio": 2.329,
+      "sortino_ratio": 3.931,
+      "max_drawdown_pct": -1.37,
+      "n_trades": 98,
+      "win_rate_pct": 55.1,
+      "profit_factor": 1.68
+    }
+  },
+  "ETHUSDT": {
+    "2023": {
+      "total_return_pct": 1.37,
+      "annualized_return_pct": 1.37,
+      "sharpe_ratio": 0.436,
+      "sortino_ratio": 0.556,
+      "max_drawdown_pct": -2.97,
+      "n_trades": 338,
+      "win_rate_pct": 56.2,
+      "profit_factor": 1.46
+    },
+    "2024": {
+      "total_return_pct": -4.8,
+      "annualized_return_pct": -4.81,
+      "sharpe_ratio": -1.261,
+      "sortino_ratio": -1.77,
+      "max_drawdown_pct": -9.36,
+      "n_trades": 334,
+      "win_rate_pct": 45.5,
+      "profit_factor": 1.03
+    },
+    "2025": {
+      "total_return_pct": 1.4,
+      "annualized_return_pct": 5.89,
+      "sharpe_ratio": 1.322,
+      "sortino_ratio": 4.222,
+      "max_drawdown_pct": -1.34,
+      "n_trades": 92,
+      "win_rate_pct": 60.9,
+      "profit_factor": 1.63
+    }
+  },
+  "LINKUSDT": {
+    "2023": {
+      "total_return_pct": -1.43,
+      "annualized_return_pct": -1.43,
+      "sharpe_ratio": -0.363,
+      "sortino_ratio": -0.464,
+      "max_drawdown_pct": -4.0,
+      "n_trades": 328,
+      "win_rate_pct": 51.2,
+      "profit_factor": 1.18
+    },
+    "2024": {
+      "total_return_pct": -5.62,
+      "annualized_return_pct": -5.62,
+      "sharpe_ratio": -1.472,
+      "sortino_ratio": -1.871,
+      "max_drawdown_pct": -7.42,
+      "n_trades": 258,
+      "win_rate_pct": 42.6,
+      "profit_factor": 0.93
+    },
+    "2025": {
+      "total_return_pct": 1.35,
+      "annualized_return_pct": 5.64,
+      "sharpe_ratio": 1.305,
+      "sortino_ratio": 2.42,
+      "max_drawdown_pct": -1.91,
+      "n_trades": 68,
+      "win_rate_pct": 55.9,
+      "profit_factor": 1.57
+    }
+  },
+  "SOLUSDT": {
+    "2023": {
+      "total_return_pct": -11.59,
+      "annualized_return_pct": -11.63,
+      "sharpe_ratio": -2.748,
+      "sortino_ratio": -3.166,
+      "max_drawdown_pct": -11.59,
+      "n_trades": 342,
+      "win_rate_pct": 41.5,
+      "profit_factor": 0.79
+    },
+    "2024": {
+      "total_return_pct": -5.19,
+      "annualized_return_pct": -5.19,
+      "sharpe_ratio": -1.193,
+      "sortino_ratio": -1.923,
+      "max_drawdown_pct": -7.44,
+      "n_trades": 330,
+      "win_rate_pct": 46.1,
+      "profit_factor": 1.01
+    },
+    "2025": {
+      "total_return_pct": -2.27,
+      "annualized_return_pct": -9.01,
+      "sharpe_ratio": -2.292,
+      "sortino_ratio": -2.75,
+      "max_drawdown_pct": -3.7,
+      "n_trades": 70,
+      "win_rate_pct": 42.9,
+      "profit_factor": 0.8
+    }
+  },
+  "XRPUSDT": {
+    "2023": {
+      "total_return_pct": -8.95,
+      "annualized_return_pct": -8.98,
+      "sharpe_ratio": -2.295,
+      "sortino_ratio": -2.283,
+      "max_drawdown_pct": -10.88,
+      "n_trades": 324,
+      "win_rate_pct": 44.4,
+      "profit_factor": 0.85
+    },
+    "2024": {
+      "total_return_pct": -8.93,
+      "annualized_return_pct": -8.94,
+      "sharpe_ratio": -2.073,
+      "sortino_ratio": -2.582,
+      "max_drawdown_pct": -10.96,
+      "n_trades": 358,
+      "win_rate_pct": 46.4,
+      "profit_factor": 0.89
+    },
+    "2025": {
+      "total_return_pct": -5.23,
+      "annualized_return_pct": -19.78,
+      "sharpe_ratio": -4.571,
+      "sortino_ratio": -6.149,
+      "max_drawdown_pct": -5.45,
+      "n_trades": 96,
+      "win_rate_pct": 33.3,
+      "profit_factor": 0.58
+    }
+  }
+}

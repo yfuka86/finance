@@ -3,3 +3,7 @@ backtest/results/
 __pycache__/
 *.pyc
 .claude/
+trading/bybit/saved_data/
+trading/bybit/saved_results/
+*.parquet
+=5.8
