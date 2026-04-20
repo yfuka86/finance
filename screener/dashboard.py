@@ -64,6 +64,15 @@ def _parse_list_col(val):
         return []
 
 
+def _load_reports() -> dict:
+    """レポートキャッシュを読み込み."""
+    rpath = os.path.join(os.path.dirname(__file__), "..", "data", "cache", "reports.json")
+    if os.path.exists(rpath):
+        with open(rpath, "r") as f:
+            return json.load(f)
+    return {}
+
+
 def generate_dashboard(csv_path: str) -> str:
     df = pd.read_csv(csv_path, index_col=0)
     date_str = os.path.basename(csv_path).replace("value_reversal_", "").replace(".csv", "")
@@ -71,6 +80,9 @@ def generate_dashboard(csv_path: str) -> str:
         display_date = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
     else:
         display_date = date_str
+
+    # Load reports
+    reports = _load_reports()
 
     # Prepare table rows
     rows_html = []
@@ -88,8 +100,13 @@ def generate_dashboard(csv_path: str) -> str:
         mix = r.get("MIX")
         mcap = r.get("MarketCap_B")
         cash = r.get("CashRatio")
+        net_cash = r.get("NetCashRatio")
         rsi = r.get("RSI")
         tech = r.get("TechScore", 0)
+        rsi_sc = r.get("RSI_sc", 0)
+        macd_sc = r.get("MACD_sc", 0)
+        ma_sc = r.get("MA_sc", 0)
+        bottom_sc = r.get("Bottom_sc", 0)
         vol_ratio = r.get("VolRatio")
         val = r.get("ValueScore", 0)
         score = r.get("Score", 0)
@@ -170,14 +187,89 @@ def generate_dashboard(csv_path: str) -> str:
         # va info text
         va_html = ""
         if pd.notna(va_latest):
-            va_html = f'<span class="va-num">{va_latest:.0f}</span>'
+            va_html = f'<span class="va-num">{va_latest:.1f}</span>'
         va_avg_html = ""
         if pd.notna(va_avg5):
-            va_avg_html = f'<span class="va-sub">5d:{va_avg5:.0f} / 20d:{va_avg20:.0f}</span>'
+            va_avg_html = f'<span class="va-sub">5d:{va_avg5:.1f} / 20d:{va_avg20:.1f}</span>'
+
+        # Report data
+        rpt = reports.get(code, {})
+        rpt_eval = rpt.get("eval", {})
+        rpt_score = rpt_eval.get("total_score", "")
+        rpt_verdict = rpt_eval.get("verdict", "")
+        rpt_stars = rpt_eval.get("stars", 0)
+        rpt_ver = rpt_eval.get("format_version", "")
+        rpt_summary = rpt.get("summary", "")
+        rpt_ir = rpt.get("ir_url", "")
+        rpt_pdf = rpt.get("pdf_url", "")
+        rpt_tdnet = rpt.get("tdnet_url", "")
+        rpt_shikiho = rpt.get("shikiho_url", "")
+        rpt_presentation = rpt.get("presentation_url", "")
+        rpt_bd = rpt_eval.get("breakdown", {})
+
+        # Verdict HTML
+        if rpt_verdict:
+            star_str = "★" * rpt_stars + "☆" * (5 - rpt_stars)
+            verdict_cls = {
+                "Strong Buy": "verdict-sbuy", "Buy": "verdict-buy",
+                "Hold": "verdict-hold", "Sell": "verdict-sell",
+                "Strong Sell": "verdict-ssell",
+            }.get(rpt_verdict, "verdict-hold")
+            verdict_html = f'<span class="{verdict_cls}">{star_str}</span>'
+            rpt_score_html = f'{rpt_score:.1f}' if isinstance(rpt_score, (int, float)) else ''
+        else:
+            verdict_html = '<span class="na">-</span>'
+            rpt_score_html = ''
+
+        # Detail row (hidden by default)
+        detail_html = ""
+        if rpt_summary:
+            ir_links_html = ""
+            if rpt_ir:
+                ir_links_html += f'<a href="{rpt_ir}" target="_blank" class="ir-link">IR情報</a>'
+            if rpt_presentation:
+                ir_links_html += f' <a href="{rpt_presentation}" target="_blank" class="ir-link">決算説明資料</a>'
+            if rpt_pdf:
+                ir_links_html += f' <a href="{rpt_pdf}" target="_blank" class="ir-link pdf-link">決算説明PDF</a>'
+            if rpt_tdnet:
+                ir_links_html += f' <a href="{rpt_tdnet}" target="_blank" class="ir-link">TDnet</a>'
+            if rpt_shikiho:
+                ir_links_html += f' <a href="{rpt_shikiho}" target="_blank" class="ir-link">四季報</a>'
+
+            bd_html = ""
+            if rpt_bd:
+                bd_html = '<div class="bd-bar">'
+                bd_labels = {"valuation": "バリュー", "financial": "財務",
+                             "growth": "成長", "technical": "テクニカル",
+                             "supply": "需給", "catalyst": "カタリスト", "risk": "リスク"}
+                bd_maxes = {"valuation": 20, "financial": 15, "growth": 15,
+                            "technical": 20, "supply": 10, "catalyst": 10, "risk": 10}
+                for k, label in bd_labels.items():
+                    v = rpt_bd.get(k, 0)
+                    mx = bd_maxes.get(k, 10)
+                    pct = min(100, v / mx * 100) if mx > 0 else 0
+                    bd_html += f'<div class="bd-item"><span class="bd-label">{label}</span><div class="bd-track"><div class="bd-fill" style="width:{pct:.0f}%"></div></div><span class="bd-val">{v:.1f}/{mx}</span></div>'
+                bd_html += '</div>'
+
+            summary_escaped = rpt_summary.replace("\n", "<br>")
+            detail_html = f"""
+        <tr class="detail-row" data-parent="{code}" style="display:none">
+          <td colspan="21" class="detail-cell">
+            <div class="detail-content">
+              <div class="detail-header">
+                <span class="detail-verdict {verdict_cls}">{rpt_verdict} ({rpt_score:.1f}pt)</span>
+                <span class="detail-ver">{rpt_ver}</span>
+                {ir_links_html}
+              </div>
+              {bd_html}
+              <div class="detail-summary">{summary_escaped}</div>
+            </div>
+          </td>
+        </tr>"""
 
         rows_html.append(f"""
-        <tr data-sector="{sector}" data-score="{score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}">
-          <td class="code"><a href="https://finance.yahoo.co.jp/quote/{code}.T" target="_blank">{code}</a></td>
+        <tr class="main-row" data-sector="{sector}" data-score="{score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}" data-va-avg5="{va_avg5 if pd.notna(va_avg5) else 0}" data-code="{code}" onclick="toggleDetail(this)">
+          <td class="code"><a href="https://irbank.net/{code}" target="_blank" onclick="event.stopPropagation()">{code}</a></td>
           <td class="name" title="{name_en}">{name}</td>
           <td class="sector">{sector}</td>
           <td class="num">{fmt(close, 0)}</td>
@@ -187,16 +279,19 @@ def generate_dashboard(csv_path: str) -> str:
           <td class="num mix {mix_cls}">{fmt(mix)}</td>
           <td class="num">{fmt(mcap, 0)}</td>
           <td class="num cash">{fmt(cash)}</td>
+          <td class="num {"net-cash-neg" if pd.notna(net_cash) and net_cash < 0 else "net-cash"}">{fmt(net_cash)}</td>
           <td class="num rsi {rsi_cls}">{fmt(rsi)}</td>
-          <td class="num tech {tech_cls}">{fmt(tech, 2)}</td>
+          <td class="num tech {tech_cls}" title="RSI:{rsi_sc:.2f} MACD:{macd_sc:.2f} MA:{ma_sc:.2f} 底値:{bottom_sc:.2f}">{fmt(tech, 2)}<span class="tech-detail"> RSI:{rsi_sc:.1f} MACD:{macd_sc:.1f} MA:{ma_sc:.1f} 底値:{bottom_sc:.1f}</span></td>
           <td class="num vol">{fmt(vol_ratio, 2)}</td>
           <td class="num val {val_cls}">{fmt(val, 2)}</td>
           <td class="num score {score_cls}">{fmt(score, 3)}</td>
+          <td class="verdict-cell">{verdict_html}</td>
+          <td class="num rpt-score">{rpt_score_html}</td>
           <td class="va-cell">{va_html}{va_avg_html}</td>
           <td class="spark-cell">{spark_svg}</td>
           <td class="signals">{sig}</td>
           <td class="catalyst">{earn_html}</td>
-        </tr>""")
+        </tr>{detail_html}""")
 
     table_body = "\n".join(rows_html)
 
@@ -246,7 +341,7 @@ def generate_dashboard(csv_path: str) -> str:
     font-size: 13px;
     line-height: 1.6;
   }}
-  .container {{ max-width: 1680px; margin: 0 auto; padding: 24px; }}
+  .container {{ max-width: 2400px; margin: 0 auto; padding: 24px; }}
 
   /* Header */
   .header {{
@@ -356,6 +451,29 @@ def generate_dashboard(csv_path: str) -> str:
     color: var(--accent);
     min-width: 28px;
   }}
+  .filters .val-input {{
+    width: 52px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px 6px;
+    text-align: center;
+    background: #fff;
+    font-family: inherit;
+  }}
+  .filters .val-input:focus {{
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+  }}
+  .filters .unit {{
+    font-size: 11px;
+    color: var(--dim);
+    font-weight: 400;
+    min-width: 0;
+  }}
 
   /* Table */
   .table-wrap {{
@@ -433,6 +551,8 @@ def generate_dashboard(csv_path: str) -> str:
   .mix.good {{ color: var(--green); font-weight: 700; }}
   .mix.ok {{ color: var(--text); }}
   .cash {{ color: var(--accent); }}
+  .net-cash {{ color: var(--accent); }}
+  .net-cash-neg {{ color: var(--red); }}
 
   /* Volume / turnover */
   .va-cell {{
@@ -455,6 +575,11 @@ def generate_dashboard(csv_path: str) -> str:
   .spark {{ display: block; }}
 
   /* Signals & Catalyst */
+  .tech-detail {{
+    font-size: 10px;
+    color: #888;
+    white-space: nowrap;
+  }}
   .signals {{
     font-size: 11px;
     color: var(--orange);
@@ -501,6 +626,81 @@ def generate_dashboard(csv_path: str) -> str:
     text-decoration: line-through;
   }}
 
+  /* Verdict badges */
+  .verdict-sbuy {{ color: #fff; background: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }}
+  .verdict-buy {{ color: #16a34a; font-weight: 700; font-size: 11px; }}
+  .verdict-hold {{ color: var(--orange); font-size: 11px; }}
+  .verdict-sell {{ color: var(--red); font-size: 11px; }}
+  .verdict-ssell {{ color: #fff; background: var(--red); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }}
+  .verdict-cell {{ text-align: center; white-space: nowrap; }}
+  .rpt-score {{ text-align: right; font-size: 12px; }}
+
+  /* Expandable detail row */
+  .main-row {{ cursor: pointer; }}
+  .main-row:hover {{ background: var(--light-blue) !important; }}
+  .main-row.expanded {{ background: #f0f4ff; }}
+  .detail-row td {{ padding: 0 !important; border-bottom: 2px solid var(--accent); }}
+  .detail-cell {{ padding: 0 !important; }}
+  .detail-content {{
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #fafbff, #f0f4ff);
+    font-size: 13px;
+    line-height: 1.7;
+  }}
+  .detail-header {{
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }}
+  .detail-verdict {{
+    font-size: 15px; font-weight: 800; padding: 4px 12px; border-radius: 6px;
+  }}
+  .detail-verdict.verdict-sbuy {{ color: #fff; background: #16a34a; }}
+  .detail-verdict.verdict-buy {{ color: #fff; background: #22c55e; }}
+  .detail-verdict.verdict-hold {{ color: #fff; background: var(--orange); }}
+  .detail-verdict.verdict-sell {{ color: #fff; background: #ef4444; }}
+  .detail-verdict.verdict-ssell {{ color: #fff; background: #991b1b; }}
+  .detail-ver {{
+    font-size: 10px; color: var(--dim); background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px; padding: 2px 8px;
+  }}
+  .ir-link {{
+    font-size: 12px; color: var(--accent); text-decoration: none;
+    border: 1px solid var(--accent); border-radius: 6px; padding: 3px 10px;
+    transition: all 0.15s;
+  }}
+  .ir-link:hover {{ background: var(--accent); color: #fff; }}
+  .pdf-link {{ border-color: var(--red); color: var(--red); }}
+  .pdf-link:hover {{ background: var(--red); color: #fff; }}
+
+  /* Breakdown bar */
+  .bd-bar {{
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }}
+  .bd-item {{
+    display: flex; align-items: center; gap: 4px; font-size: 11px;
+  }}
+  .bd-label {{ color: var(--dim); min-width: 56px; font-weight: 600; }}
+  .bd-track {{
+    width: 60px; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;
+  }}
+  .bd-fill {{
+    height: 100%; background: var(--accent); border-radius: 4px;
+    transition: width 0.3s;
+  }}
+  .bd-val {{ color: var(--dim); font-family: 'SF Mono', monospace; min-width: 40px; }}
+
+  .detail-summary {{
+    white-space: pre-wrap;
+    font-size: 12.5px;
+    color: var(--text);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    line-height: 1.8;
+  }}
+
   /* Legend */
   .legend {{
     margin-top: 24px;
@@ -536,7 +736,7 @@ def generate_dashboard(csv_path: str) -> str:
 
 <div class="header">
   <h1><span>Value-Reversal</span> Screener</h1>
-  <div class="date">{display_date} | {n} candidates</div>
+  <div class="date">{display_date} | <span id="visibleCount">{n}</span> / {n} 銘柄</div>
 </div>
 
 <div class="summary">
@@ -575,32 +775,44 @@ def generate_dashboard(csv_path: str) -> str:
 </div>
 
 <div class="filters">
-  <label>MIX上限</label>
-  <input type="range" id="mixSlider" min="5" max="40" step="0.5" value="30"
-    oninput="document.getElementById('mixVal').textContent=this.value; applyFilters()">
-  <span id="mixVal">30</span>
+  <label>PER</label>
+  <input type="text" id="perMinVal" class="val-input" value="0"
+    onchange="syncFromInput('perMin')" onkeydown="if(event.key==='Enter')this.blur()">
+  <span class="unit">~</span>
+  <input type="text" id="perMaxVal" class="val-input" value="999"
+    onchange="syncFromInput('perMax')" onkeydown="if(event.key==='Enter')this.blur()">
 
   <label>PBR上限</label>
-  <input type="range" id="pbrSlider" min="0.1" max="3.0" step="0.05" value="2.5"
-    oninput="document.getElementById('pbrVal').textContent=this.value; applyFilters()">
-  <span id="pbrVal">2.5</span>
+  <input type="range" id="pbrSlider" min="0.1" max="10.0" step="0.05" value="10.0"
+    oninput="syncFromSlider('pbr')">
+  <input type="text" id="pbrVal" class="val-input" value="10.0"
+    onchange="syncFromInput('pbr')" onkeydown="if(event.key==='Enter')this.blur()">
+
+  <label>MIX上限</label>
+  <input type="range" id="mixSlider" min="5" max="200" step="1" value="200"
+    oninput="syncFromSlider('mix')">
+  <input type="text" id="mixVal" class="val-input" value="200"
+    onchange="syncFromInput('mix')" onkeydown="if(event.key==='Enter')this.blur()">
 
   <label>Tech下限</label>
   <input type="range" id="techSlider" min="0" max="1" step="0.05" value="0"
-    oninput="document.getElementById('techVal').textContent=this.value; applyFilters()">
-  <span id="techVal">0</span>
+    oninput="syncFromSlider('tech')">
+  <input type="text" id="techVal" class="val-input" value="0"
+    onchange="syncFromInput('tech')" onkeydown="if(event.key==='Enter')this.blur()">
 
-  <label>時価総額</label>
-  <select id="mcapFilter" onchange="applyFilters()" style="padding:5px 8px">
-    <option value="0">全て</option>
-    <option value="50">50億+</option>
-    <option value="100">100億+</option>
-    <option value="500">500億+</option>
-    <option value="1000">1000億+</option>
-    <option value="5000">5000億+</option>
-    <option value="-500">500億以下</option>
-    <option value="-100">100億以下</option>
-  </select>
+  <label>時価総額下限</label>
+  <input type="range" id="mcapSlider" min="0" max="100" step="1" value="50"
+    oninput="syncLogSlider('mcap')">
+  <input type="text" id="mcapVal" class="val-input" value="100"
+    onchange="syncLogInput('mcap')" onkeydown="if(event.key==='Enter')this.blur()">
+  <span class="unit">億円~</span>
+
+  <label>売買代金(5d平均)</label>
+  <input type="range" id="vaSlider" min="0" max="100" step="1" value="43"
+    oninput="syncLogSlider('va')">
+  <input type="text" id="vaVal" class="val-input" value="1"
+    onchange="syncLogInput('va')" onkeydown="if(event.key==='Enter')this.blur()">
+  <span class="unit">億円~</span>
 
   <label style="margin-left:8px">決算まで</label>
   <select id="earnFilter" onchange="applyFilters()" style="padding:5px 8px">
@@ -626,12 +838,15 @@ def generate_dashboard(csv_path: str) -> str:
   <th onclick="sortTable(7)">MIX</th>
   <th onclick="sortTable(8)">時価総額(億)</th>
   <th onclick="sortTable(9)">現金比率%</th>
-  <th onclick="sortTable(10)">RSI</th>
-  <th onclick="sortTable(11)">Tech</th>
-  <th onclick="sortTable(12)">出来高比</th>
-  <th onclick="sortTable(13)">Value</th>
-  <th onclick="sortTable(14)">総合</th>
-  <th onclick="sortTable(15)">売買代金(億)</th>
+  <th onclick="sortTable(10)">ネット現金%</th>
+  <th onclick="sortTable(11)">RSI</th>
+  <th onclick="sortTable(12)" title="Tech総合 (RSI反転/MACDクロス/MA転換/底値反発) 各0~1">Tech</th>
+  <th onclick="sortTable(13)">出来高比</th>
+  <th onclick="sortTable(14)">Value</th>
+  <th onclick="sortTable(15)">総合</th>
+  <th onclick="sortTable(16)">判定</th>
+  <th onclick="sortTable(17)">評価点</th>
+  <th onclick="sortTable(18)">売買代金(億)</th>
   <th>推移</th>
   <th>シグナル</th>
   <th>決算予定</th>
@@ -649,7 +864,13 @@ def generate_dashboard(csv_path: str) -> str:
   <span class="formula">Tech = RSI反転(25%) + MACDクロス(25%) + MA転換(25%) + 底値反発(25%)</span><br>
   <span class="formula">総合 = Value(40%) + Tech(40%) + 出来高(15%) + カタリスト(5%)</span><br>
   <br>
-  fPER = 予想PER &nbsp;|&nbsp; 現金比率 = 総現預金 / 時価総額 x 100 &nbsp;|&nbsp;
+  <strong>Tech内訳 (RSI/MACD/MA/底値) 各0.0〜1.0:</strong><br>
+  <span class="formula">RSI反転</span>: 1.0=5日前RSI≤35から反発中 / 0.5=RSI≤35(売られ過ぎ) / 0.3=RSI≤55(通常) / 0.0=RSI&gt;55(過熱)<br>
+  <span class="formula">MACDクロス</span>: 1.0=ヒストグラムがマイナス→プラス転換 / 0.5=上昇中 / 0.0=下落中<br>
+  <span class="formula">MA転換</span>: 1.0=株価&gt;短期MA&gt;長期MA / 0.5=株価&gt;短期MAのみ / +0.5=ゴールデンクロス発生<br>
+  <span class="formula">底値反発</span>: 直近期間の安値から25%位置付近で最高(1.0)、離れるほど減少<br>
+  <br>
+  fPER = 予想PER &nbsp;|&nbsp; 現金比率 = 現金同等物 / 時価総額 x 100 &nbsp;|&nbsp; ネット現金 = (現金同等物 - 負債) / 時価総額 x 100 &nbsp;|&nbsp;
   出来高比 = 直近5日平均 / 20日平均 &nbsp;|&nbsp; 売買代金推移 = 直近10営業日
 </div>
 
@@ -675,51 +896,149 @@ function filterSector(el, sec) {{
   applyFilters();
 }}
 
+const sliderMap = {{
+  mix:  {{ slider: 'mixSlider',  input: 'mixVal' }},
+  pbr:  {{ slider: 'pbrSlider',  input: 'pbrVal' }},
+  tech: {{ slider: 'techSlider', input: 'techVal' }},
+}};
+function syncFromSlider(key) {{
+  const s = sliderMap[key];
+  document.getElementById(s.input).value = document.getElementById(s.slider).value;
+  applyFilters();
+}}
+function syncFromInput(key) {{
+  const s = sliderMap[key];
+  const inp = document.getElementById(s.input);
+  const sl = document.getElementById(s.slider);
+  let v = parseFloat(inp.value);
+  if (isNaN(v)) v = parseFloat(sl.min);
+  v = Math.max(parseFloat(sl.min), Math.min(parseFloat(sl.max), v));
+  sl.value = v;
+  inp.value = v;
+  applyFilters();
+}}
+
+// Log-scale sliders: slider 0-100 → real value via log mapping
+const logConfig = {{
+  mcap: {{ minVal: 0, maxVal: 10000 }},  // 0~10000億円
+  va:   {{ minVal: 0, maxVal: 200 }},     // 0~200億円
+}};
+const logIds = {{
+  mcap: {{ slider: 'mcapSlider', input: 'mcapVal' }},
+  va:   {{ slider: 'vaSlider',   input: 'vaVal' }},
+}};
+function sliderToReal(key, pos) {{
+  // pos: 0-100 linear → real value (log scale)
+  if (pos <= 0) return 0;
+  const cfg = logConfig[key];
+  return Math.round(cfg.maxVal ** (pos / 100));
+}}
+function realToSlider(key, val) {{
+  if (val <= 0) return 0;
+  const cfg = logConfig[key];
+  const v = Math.min(val, cfg.maxVal);
+  return Math.round(Math.log(v) / Math.log(cfg.maxVal) * 100);
+}}
+function syncLogSlider(key) {{
+  const ids = logIds[key];
+  const pos = parseFloat(document.getElementById(ids.slider).value);
+  const real = sliderToReal(key, pos);
+  document.getElementById(ids.input).value = real;
+  applyFilters();
+}}
+function syncLogInput(key) {{
+  const ids = logIds[key];
+  const inp = document.getElementById(ids.input);
+  let v = parseFloat(inp.value);
+  if (isNaN(v) || v < 0) v = 0;
+  inp.value = Math.round(v);
+  document.getElementById(ids.slider).value = realToSlider(key, v);
+  applyFilters();
+}}
+
+function toggleDetail(mainRow) {{
+  const code = mainRow.dataset.code;
+  const detailRow = document.querySelector(`.detail-row[data-parent="${{code}}"]`);
+  if (!detailRow) return;
+  const isOpen = detailRow.style.display !== 'none';
+  detailRow.style.display = isOpen ? 'none' : '';
+  mainRow.classList.toggle('expanded', !isOpen);
+}}
+
 function applyFilters() {{
-  const mixMax = parseFloat(document.getElementById('mixSlider').value);
-  const pbrMax = parseFloat(document.getElementById('pbrSlider').value);
-  const techMin = parseFloat(document.getElementById('techSlider').value);
-  const mcapVal = parseInt(document.getElementById('mcapFilter').value);
+  const perMin = parseFloat(document.getElementById('perMinVal').value) || 0;
+  const perMax = parseFloat(document.getElementById('perMaxVal').value) || 999;
+  const pbrMax = parseFloat(document.getElementById('pbrVal').value);
+  const mixMax = parseFloat(document.getElementById('mixVal').value);
+  const techMin = parseFloat(document.getElementById('techVal').value);
+  const mcapMin = parseFloat(document.getElementById('mcapVal').value) || 0;
+  const vaMin = parseFloat(document.getElementById('vaVal').value) || 0;
   const earnVal = document.getElementById('earnFilter').value;
-  document.querySelectorAll('#tableBody tr').forEach(row => {{
+  let visCount = 0;
+  document.querySelectorAll('#tableBody tr.main-row').forEach(row => {{
     const sector = row.dataset.sector;
     const ed = parseInt(row.dataset.earnDays);
     const mcap = parseFloat(row.dataset.mcap);
+    const vaAvg5 = parseFloat(row.dataset.vaAvg5);
     const c = row.cells;
     const g = t => {{ const v = c[t].textContent.trim(); return v === '-' ? NaN : parseFloat(v); }};
-    const mix = g(7), pbr = g(6), tech = g(11);
+    const per = g(4), pbr = g(6), mix = g(7), tech = g(11);
     let show = true;
     if (activeSector && sector !== activeSector) show = false;
-    if (!isNaN(mix) && mix > mixMax) show = false;
+    if (!isNaN(per) && (per < perMin || per > perMax)) show = false;
     if (!isNaN(pbr) && pbr > pbrMax) show = false;
+    if (!isNaN(mix) && mix > mixMax) show = false;
     if (!isNaN(tech) && tech < techMin) show = false;
-    if (mcapVal > 0 && mcap < mcapVal) show = false;
-    if (mcapVal < 0 && mcap > Math.abs(mcapVal)) show = false;
+    if (mcapMin > 0 && mcap < mcapMin) show = false;
+    if (vaMin > 0 && vaAvg5 < vaMin) show = false;
     if (earnVal === 'none' && ed >= 999) show = false;
     else if (earnVal !== 'all' && earnVal !== 'none') {{
       const maxDays = parseInt(earnVal);
       if (ed > maxDays || ed < 0) show = false;
     }}
     row.style.display = show ? '' : 'none';
+    // Also hide detail row if main row is hidden
+    const code = row.dataset.code;
+    const detail = document.querySelector(`.detail-row[data-parent="${{code}}"]`);
+    if (detail && !show) {{
+      detail.style.display = 'none';
+      row.classList.remove('expanded');
+    }}
+    if (show) visCount++;
   }});
+  document.getElementById('visibleCount').textContent = visCount;
 }}
 
 let sortCol = -1, sortAsc = true;
 function sortTable(col) {{
   const tb = document.getElementById('tableBody');
-  const rows = Array.from(tb.rows);
+  // Collect main rows with their following detail rows
+  const pairs = [];
+  const allRows = Array.from(tb.rows);
+  for (let i = 0; i < allRows.length; i++) {{
+    if (allRows[i].classList.contains('main-row')) {{
+      const pair = [allRows[i]];
+      if (i + 1 < allRows.length && allRows[i+1].classList.contains('detail-row')) {{
+        pair.push(allRows[i+1]);
+      }}
+      pairs.push(pair);
+    }}
+  }}
   if (sortCol === col) sortAsc = !sortAsc; else {{ sortCol = col; sortAsc = false; }}
-  rows.sort((a, b) => {{
-    let va = a.cells[col].textContent.trim();
-    let vb = b.cells[col].textContent.trim();
-    if (va === '-') va = sortAsc ? '99999' : '-99999';
-    if (vb === '-') vb = sortAsc ? '99999' : '-99999';
+  pairs.sort((a, b) => {{
+    let va = a[0].cells[col].textContent.trim();
+    let vb = b[0].cells[col].textContent.trim();
+    if (va === '-' || va === '') va = sortAsc ? '99999' : '-99999';
+    if (vb === '-' || vb === '') vb = sortAsc ? '99999' : '-99999';
     const na = parseFloat(va), nb = parseFloat(vb);
     if (!isNaN(na) && !isNaN(nb)) return sortAsc ? na - nb : nb - na;
     return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
   }});
-  rows.forEach(r => tb.appendChild(r));
+  pairs.forEach(pair => pair.forEach(r => tb.appendChild(r)));
 }}
+
+// Apply default filters on load
+document.addEventListener('DOMContentLoaded', applyFilters);
 </script>
 </body>
 </html>"""

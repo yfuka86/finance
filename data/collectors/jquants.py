@@ -1,7 +1,13 @@
 """
 J-Quants API V2 data collector.
 Authentication: x-api-key header.
-Free plan: data available from 2022 onwards.
+
+Endpoint reference (2025-12~ V2):
+  /v2/equities/bars/daily    OHLCV
+  /v2/equities/master        銘柄マスタ (名前・業種・市場)
+  /v2/fins/summary           決算サマリー (EPS, BPS, CashEq 等)
+  /v2/equities/earnings-calendar  決算発表予定
+  /v2/markets/calendar       営業日カレンダー
 """
 import time
 import requests
@@ -16,52 +22,21 @@ _RENAME = {
 }
 
 
-def download_jquants(code: str, start: str, end: str) -> pd.DataFrame:
-    """Download daily OHLCV from J-Quants API V2 with pagination."""
-    headers = {"x-api-key": JQUANTS_API_KEY}
-    jq_code = code.replace(".T", "")
-    from_date = start.replace("-", "")
-    to_date = end.replace("-", "")
-
-    all_records = []
-    params = {"code": jq_code, "from": from_date, "to": to_date}
-
-    while True:
-        resp = requests.get(
-            f"{JQUANTS_BASE}/v2/equities/bars/daily",
-            params=params, headers=headers, timeout=30,
-        )
-        if resp.status_code != 200:
-            print(f"  J-Quants error for {code}: {resp.status_code}")
-            break
-        body = resp.json()
-        all_records.extend(body.get("data", []))
-        pagination_key = body.get("pagination_key")
-        if not pagination_key:
-            break
-        params["pagination_key"] = pagination_key
-        time.sleep(0.5)
-
-    if not all_records:
-        return pd.DataFrame()
-
-    df = pd.DataFrame(all_records)
-    df["Date"] = pd.to_datetime(df["Date"])
-    df = df.set_index("Date").sort_index().rename(columns=_RENAME)
-    return df
-
-
-# ── Fundamental / screening endpoints ─────────────────────────
-
-def _paginated_get(path: str, params: dict, key: str) -> pd.DataFrame:
+def _paginated_get(path: str, params: dict, key: str = "data") -> pd.DataFrame:
     """Generic paginated GET helper."""
     headers = {"x-api-key": JQUANTS_API_KEY}
     all_records = []
     while True:
-        resp = requests.get(
-            f"{JQUANTS_BASE}{path}",
-            params=params, headers=headers, timeout=30,
-        )
+        for attempt in range(4):
+            resp = requests.get(
+                f"{JQUANTS_BASE}{path}",
+                params=params, headers=headers, timeout=30,
+            )
+            if resp.status_code == 429:
+                wait = 2 ** attempt + 1
+                time.sleep(wait)
+                continue
+            break
         if resp.status_code != 200:
             print(f"  J-Quants {path} error: {resp.status_code}")
             break
@@ -75,19 +50,53 @@ def _paginated_get(path: str, params: dict, key: str) -> pd.DataFrame:
     return pd.DataFrame(all_records) if all_records else pd.DataFrame()
 
 
-def fetch_listed_info() -> pd.DataFrame:
-    """Fetch all listed stock info."""
-    return _paginated_get("/v2/listed/info", {}, "info")
+def download_jquants(code: str, start: str, end: str) -> pd.DataFrame:
+    """Download daily OHLCV from J-Quants API V2 with pagination."""
+    jq_code = code.replace(".T", "")
+    from_date = start.replace("-", "")
+    to_date = end.replace("-", "")
+
+    df = _paginated_get(
+        "/v2/equities/bars/daily",
+        {"code": jq_code, "from": from_date, "to": to_date},
+    )
+    if df.empty:
+        return df
+
+    df["Date"] = pd.to_datetime(df["Date"])
+    df = df.set_index("Date").sort_index().rename(columns=_RENAME)
+    return df
 
 
-def fetch_daily_quotes(date: str = None, code: str = None,
-                       from_date: str = None, to_date: str = None) -> pd.DataFrame:
-    """
-    Fetch daily quotes (OHLCV + MarketCap etc.).
-      date      – single date YYYY-MM-DD → all stocks for that date
-      code      – stock code (e.g. "7203" or "7203.T")
-      from_date / to_date – date range (with code)
-    """
+# ── Screening / fundamental endpoints ─────────────────────────
+
+def fetch_equities_master() -> pd.DataFrame:
+    """銘柄マスタ (コード / 銘柄名 / 業種 / 市場区分)."""
+    return _paginated_get("/v2/equities/master", {})
+
+
+def fetch_fins_summary(code: str) -> pd.DataFrame:
+    """決算サマリー (EPS / BPS / CashEq / 売上 / 利益 etc.)."""
+    return _paginated_get(
+        "/v2/fins/summary",
+        {"code": code.replace(".T", "")},
+    )
+
+
+def fetch_earnings_calendar(from_date: str = None,
+                            to_date: str = None) -> pd.DataFrame:
+    """決算発表予定カレンダー."""
+    params = {}
+    if from_date:
+        params["from"] = from_date.replace("-", "")
+    if to_date:
+        params["to"] = to_date.replace("-", "")
+    return _paginated_get("/v2/equities/earnings-calendar", params)
+
+
+def fetch_bars_daily(date: str = None, code: str = None,
+                     from_date: str = None, to_date: str = None) -> pd.DataFrame:
+    """日足 OHLCV (全銘柄一括 or 個別銘柄)."""
     params = {}
     if date:
         params["date"] = date.replace("-", "")
@@ -97,24 +106,23 @@ def fetch_daily_quotes(date: str = None, code: str = None,
         params["from"] = from_date.replace("-", "")
     if to_date:
         params["to"] = to_date.replace("-", "")
-    df = _paginated_get("/v2/prices/daily_quotes", params, "daily_quotes")
-    if not df.empty and "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"])
-    return df
+    return _paginated_get("/v2/equities/bars/daily", params)
+
+
+# ── Legacy aliases (backward compat) ──────────────────────────
+
+def fetch_listed_info() -> pd.DataFrame:
+    """Alias for fetch_equities_master."""
+    return fetch_equities_master()
 
 
 def fetch_statements(code: str) -> pd.DataFrame:
-    """Fetch financial statements for a stock."""
-    params = {"code": code.replace(".T", "")}
-    return _paginated_get("/v2/fins/statements", params, "statements")
+    """Alias for fetch_fins_summary."""
+    return fetch_fins_summary(code)
 
 
-def fetch_earnings_calendar(from_date: str = None,
-                            to_date: str = None) -> pd.DataFrame:
-    """Fetch earnings announcement calendar."""
-    params = {}
-    if from_date:
-        params["from"] = from_date.replace("-", "")
-    if to_date:
-        params["to"] = to_date.replace("-", "")
-    return _paginated_get("/v2/fins/announcement", params, "announcement")
+def fetch_daily_quotes(date: str = None, code: str = None,
+                       from_date: str = None, to_date: str = None) -> pd.DataFrame:
+    """Alias for fetch_bars_daily."""
+    return fetch_bars_daily(date=date, code=code,
+                            from_date=from_date, to_date=to_date)

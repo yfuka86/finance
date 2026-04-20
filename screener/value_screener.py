@@ -1,8 +1,13 @@
 """
 Value-Reversal Screener
 =======================
-J-Quants bars/daily API でテクニカル + 出来高スクリーニング。
-yfinance で PER / PBR / MIX / 現預金を補完。
+J-Quants API のみで完結するバリュー×テクニカル反転スクリーナー。
+yfinance 不使用。
+
+データソース:
+  - /v2/equities/bars/daily      → OHLCV (テクニカル分析)
+  - /v2/fins/summary             → PER / PBR / 現預金
+  - /v2/equities/master          → 銘柄名・業種
 
 Usage:
     python -m screener.run
@@ -10,14 +15,28 @@ Usage:
 from __future__ import annotations
 
 import datetime as dt
+import glob
+import json
+import os
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import numpy as np
 import pandas as pd
 import requests
+import io
 
 from data.collectors.config import JQUANTS_API_KEY, JQUANTS_BASE
+from data.collectors.jquants import (
+    fetch_equities_master,
+    fetch_fins_summary,
+    fetch_bars_daily,
+)
 
-import io
+# ── Cache directory ───────────────────────────────────────────
+
+CACHE_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 
 # ── JPX master (日本語銘柄名・業種) ───────────────────────────
@@ -67,7 +86,7 @@ def _jq_bars(params: dict) -> pd.DataFrame:
         if not pk:
             break
         params["pagination_key"] = pk
-        time.sleep(0.5)
+        time.sleep(0.3)
     return pd.DataFrame(records) if records else pd.DataFrame()
 
 
@@ -85,38 +104,287 @@ def fetch_stock_history(code: str, from_d: str, to_d: str) -> pd.DataFrame:
     })
 
 
-# ── yfinance fundamental helpers ──────────────────────────────
+# ── Bulk history cache ────────────────────────────────────────
 
-def fetch_fundamentals_yf(codes: list) -> dict:
-    """
-    yfinance で PER / PBR / 時価総額 / 現預金 / 銘柄名 / セクターを取得。
-    codes: ['7203', '6758', ...]  (4桁コード)
-    """
-    import yfinance as yf
-    out = {}
-    for i, c in enumerate(codes):
-        ticker_str = f"{c}.T"
-        try:
-            info = yf.Ticker(ticker_str).info
-        except Exception:
+def _bulk_history_cache_path(from_d: str, to_d: str) -> str:
+    return os.path.join(CACHE_DIR, f"bars_{from_d}_{to_d}.parquet")
+
+
+def fetch_bulk_history(from_d: str, to_d: str) -> pd.DataFrame:
+    """全銘柄の日足を日単位で一括取得。各日ごとにキャッシュ。"""
+    cache = _bulk_history_cache_path(from_d, to_d)
+    if os.path.exists(cache):
+        print(f"  キャッシュ読込: {os.path.basename(cache)}")
+        return pd.read_parquet(cache)
+
+    # 日付リストを生成
+    start = dt.datetime.strptime(from_d, "%Y-%m-%d").date()
+    end = dt.datetime.strptime(to_d, "%Y-%m-%d").date()
+    all_frames = []
+
+    # 個別日キャッシュを確認しつつ取得
+    d = start
+    days_total = (end - start).days + 1
+    days_done = 0
+    while d <= end:
+        if d.weekday() >= 5:  # skip weekends
+            d += dt.timedelta(days=1)
             continue
-        out[c] = {
-            "Name": info.get("shortName", ""),
-            "Sector": info.get("sector", ""),
-            "PER": info.get("trailingPE"),
-            "fPER": info.get("forwardPE"),
-            "PBR": info.get("priceToBook"),
-            "MarketCap": info.get("marketCap"),
-            "Cash": info.get("totalCash"),
-            "EarningsDate": None,
+        ds = d.strftime("%Y-%m-%d")
+        day_cache = os.path.join(CACHE_DIR, f"bars_day_{ds}.parquet")
+
+        if os.path.exists(day_cache):
+            df = pd.read_parquet(day_cache)
+        else:
+            df = _jq_bars({"date": ds.replace("-", "")})
+            if not df.empty:
+                df["Code"] = df["Code"].astype(str).str[:4]
+                for col in ("C", "O", "H", "L", "Vo", "Va",
+                            "AdjC", "AdjO", "AdjH", "AdjL"):
+                    if col in df.columns:
+                        df[col] = pd.to_numeric(df[col], errors="coerce")
+                df.to_parquet(day_cache)
+
+        if not df.empty:
+            all_frames.append(df)
+        days_done += 1
+        if days_done % 10 == 0:
+            print(f"    {days_done} 日取得済 ({ds})")
+        d += dt.timedelta(days=1)
+
+    if not all_frames:
+        return pd.DataFrame()
+
+    result = pd.concat(all_frames, ignore_index=True)
+    # 結合キャッシュも保存
+    result.to_parquet(cache)
+    print(f"  → {len(result)} レコード ({result['Code'].nunique()} 銘柄)")
+    return result
+
+
+# ── fins/summary cache ────────────────────────────────────────
+
+def _fins_cache_path(date_str: str) -> str:
+    return os.path.join(CACHE_DIR, f"fins_{date_str}.json")
+
+
+def _load_fins_cache(date_str: str) -> dict:
+    path = _fins_cache_path(date_str)
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def _save_fins_cache(date_str: str, data: dict):
+    path = _fins_cache_path(date_str)
+    with open(path, "w") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+
+def _fetch_single_fins(code: str) -> tuple[str, list]:
+    """1銘柄の fins/summary を取得 → (code, records_list)."""
+    try:
+        df = fetch_fins_summary(code)
+        if df.empty:
+            return code, []
+        return code, df.to_dict("records")
+    except Exception:
+        return code, []
+
+
+# ── Next earnings estimator ──────────────────────────────────
+
+def _estimate_next_earnings(latest, today: dt.date) -> str | None:
+    """fins/summary の CurFYEn / CurPerType から次回決算発表推定日を算出。"""
+    try:
+        fy_end_str = str(latest.get("CurFYEn", ""))
+        per_type = str(latest.get("CurPerType", ""))
+        if not fy_end_str or len(fy_end_str) < 10 or not per_type:
+            return None
+
+        fy_end = dt.datetime.strptime(fy_end_str[:10], "%Y-%m-%d").date()
+        fy_start_str = str(latest.get("CurFYSt", ""))
+        if fy_start_str and len(fy_start_str) >= 10:
+            fy_start = dt.datetime.strptime(fy_start_str[:10], "%Y-%m-%d").date()
+        else:
+            fy_start = fy_end.replace(year=fy_end.year - 1) + dt.timedelta(days=1)
+
+        total_days = (fy_end - fy_start).days
+        q1_end = fy_start + dt.timedelta(days=total_days // 4)
+        q2_end = fy_start + dt.timedelta(days=total_days // 2)
+        q3_end = fy_start + dt.timedelta(days=total_days * 3 // 4)
+
+        if per_type == "FY":
+            next_per_end = fy_end + dt.timedelta(days=total_days // 4)
+        elif per_type == "3Q":
+            next_per_end = fy_end
+        elif per_type == "2Q":
+            next_per_end = q3_end
+        elif per_type == "1Q":
+            next_per_end = q2_end
+        else:
+            return None
+
+        est_date = next_per_end + dt.timedelta(days=45)
+        if est_date < today:
+            est_date = est_date + dt.timedelta(days=total_days // 4)
+
+        return est_date.strftime("%Y-%m-%d")
+    except Exception:
+        return None
+
+
+def _build_split_factor_map(out: dict):
+    """キャッシュ済みバーデータから銘柄ごとの分割係数を算出。
+
+    分割前の日付では C/AdjC > 1 になるため、期間中の最大値を分割係数とする。
+    fins/summary の EPS/BPS/ShOutFY はこの係数で調整する。
+    """
+    cache_dir = os.path.join(os.path.dirname(__file__), "..", "data", "cache")
+    combined = sorted(glob.glob(os.path.join(cache_dir, "bars_20*.parquet")))
+    if not combined:
+        return
+    bars = pd.read_parquet(combined[-1])
+    bars["Code"] = bars["Code"].astype(str).str[:4]
+    for col in ("C", "AdjC"):
+        bars[col] = pd.to_numeric(bars[col], errors="coerce")
+    valid = bars[(bars["C"] > 0) & (bars["AdjC"] > 0)].copy()
+    valid["ratio"] = valid["C"] / valid["AdjC"]
+    max_ratio = valid.groupby("Code")["ratio"].max()
+    for code, ratio in max_ratio.items():
+        if ratio > 1.01:
+            out[code] = round(ratio, 6)
+
+
+# ── J-Quants fundamentals (with cache + concurrency) ─────────
+
+def fetch_fundamentals_jq(codes: list, quote_date: str) -> dict:
+    """J-Quants API で PER / PBR / 時価総額 / 現預金を取得。キャッシュ+並列取得。"""
+    out = {}
+
+    # 1) 終値を bars/daily (全銘柄一括) から取得
+    #    C=生の終値, AdjC=分割調整済み終値
+    #    分割係数 = C / AdjC (分割前の銘柄は >1, 例: 1:5分割 → 係数5)
+    #    fins/summary の EPS/BPS/ShOutFY は分割前の値なので調整が必要
+    print(f"  bars/daily 取得中 ({quote_date})...")
+    dq = fetch_bars_daily(date=quote_date)
+    close_map = {}  # code -> 現在の終値 (C, 生値)
+    split_factor_map = {}  # code -> 分割係数 (C / AdjC)
+    if not dq.empty:
+        dq["Code"] = dq["Code"].astype(str).str[:4]
+        for col in ("AdjC", "C"):
+            if col in dq.columns:
+                dq[col] = pd.to_numeric(dq[col], errors="coerce")
+        if "C" in dq.columns:
+            close_map = dict(zip(dq["Code"], dq["C"]))
+        # 分割係数は過去データの C/AdjC 最大値から推定
+        # (分割前の日付では C/AdjC = 分割倍率, 分割後は 1.0)
+        _build_split_factor_map(split_factor_map)
+
+    # 2) equities/master で銘��名・業種取得
+    print("  equities/master 取得中...")
+    info_df = fetch_equities_master()
+    name_map = {}
+    sector_map = {}
+    if not info_df.empty:
+        info_df["Code"] = info_df["Code"].astype(str).str[:4]
+        if "CoName" in info_df.columns:
+            name_map = dict(zip(info_df["Code"], info_df["CoName"]))
+        if "S33Nm" in info_df.columns:
+            sector_map = dict(zip(info_df["Code"], info_df["S33Nm"]))
+
+    # 3) fins/summary — キャッシュ活用 + 並列取得
+    today = dt.date.today()
+    cache_key = quote_date.replace("-", "")
+    cache = _load_fins_cache(cache_key)
+
+    # キャッシュにない銘柄を特定
+    missing_codes = [c for c in codes if c not in cache]
+    cached_count = len(codes) - len(missing_codes)
+    if cached_count > 0:
+        print(f"  fins/summary キャッシュ: {cached_count} 銘柄")
+
+    if missing_codes:
+        print(f"  fins/summary 取得中 ({len(missing_codes)} 銘柄)...")
+        # 逐次取得 (レートリミット対応: 0.15s間隔)
+        for i, code in enumerate(missing_codes):
+            _, records = _fetch_single_fins(code)
+            cache[code] = records
+            if (i + 1) % 100 == 0:
+                print(f"    {i+1}/{len(missing_codes)}")
+                # 100件ごとに中間キャッシュ保存
+                _save_fins_cache(cache_key, cache)
+            time.sleep(0.15)
+        _save_fins_cache(cache_key, cache)
+        print(f"  → fins/summary 完了 ({len(missing_codes)} 銘柄取得)")
+
+    # 4) 各銘柄のファンダメンタルを計算
+    n_split_adj = 0
+    for code in codes:
+        entry = {
+            "Name": name_map.get(code, ""),
+            "Sector": sector_map.get(code, ""),
+            "PER": None, "fPER": None, "PBR": None,
+            "MarketCap": None, "Cash": None, "EarningsDate": None,
         }
-        # earnings date
-        ed = info.get("earningsTimestamp") or info.get("mostRecentQuarter")
-        if ed and isinstance(ed, (int, float)):
-            out[c]["EarningsDate"] = dt.datetime.fromtimestamp(ed).strftime("%Y-%m-%d")
-        if (i + 1) % 10 == 0:
-            print(f"  yfinance {i+1}/{len(codes)}")
-        time.sleep(0.25)
+
+        records = cache.get(code, [])
+        if records:
+            stmts = pd.DataFrame(records)
+            if "DiscDate" in stmts.columns:
+                stmts = stmts.sort_values("DiscDate", ascending=False)
+            latest = stmts.iloc[0]
+            close_price = close_map.get(code)
+
+            # 分割調整: fins/summary の per-share 数値は分割前基準
+            # split_factor > 1 の場合、EPS/BPS を割り、ShOutFY を掛ける
+            sf = split_factor_map.get(code, 1.0)
+            if sf > 1.01:
+                n_split_adj += 1
+
+            eps = pd.to_numeric(latest.get("EPS"), errors="coerce")
+            if pd.notna(eps) and eps > 0 and close_price and close_price > 0:
+                entry["PER"] = round(close_price / (eps / sf), 1)
+
+            feps = pd.to_numeric(latest.get("FEPS"), errors="coerce")
+            if pd.notna(feps) and feps > 0 and close_price and close_price > 0:
+                entry["fPER"] = round(close_price / (feps / sf), 1)
+
+            bps = pd.to_numeric(latest.get("BPS"), errors="coerce")
+            if not (pd.notna(bps) and bps > 0):
+                eq = pd.to_numeric(latest.get("Eq"), errors="coerce")
+                shares = pd.to_numeric(latest.get("ShOutFY"), errors="coerce")
+                tr_shares = pd.to_numeric(latest.get("TrShFY"), errors="coerce")
+                if pd.notna(eq) and pd.notna(shares) and shares > 0:
+                    net_shares = (shares * sf) - ((tr_shares * sf) if pd.notna(tr_shares) else 0)
+                    if net_shares > 0:
+                        bps = eq / net_shares
+            else:
+                # BPS も分割前基準なので調整
+                bps = bps / sf
+            if pd.notna(bps) and bps > 0 and close_price and close_price > 0:
+                entry["PBR"] = round(close_price / bps, 2)
+
+            shares = pd.to_numeric(latest.get("ShOutFY"), errors="coerce")
+            if pd.notna(shares) and close_price and close_price > 0:
+                entry["MarketCap"] = close_price * shares * sf
+
+            cash = pd.to_numeric(latest.get("CashEq"), errors="coerce")
+            if pd.notna(cash):
+                entry["Cash"] = cash
+
+            ta = pd.to_numeric(latest.get("TA"), errors="coerce")
+            eq = pd.to_numeric(latest.get("Eq"), errors="coerce")
+            if pd.notna(cash) and pd.notna(ta) and pd.notna(eq):
+                entry["NetCash"] = cash - (ta - eq)  # 現金 - 負債
+
+            entry["EarningsDate"] = _estimate_next_earnings(latest, today)
+
+        out[code] = entry
+
+    if n_split_adj > 0:
+        print(f"  → 株式分割調整: {n_split_adj} 銘柄")
     return out
 
 
@@ -175,9 +443,9 @@ def _sma(close: np.ndarray, w: int) -> np.ndarray:
 
 class ValueReversalScreener:
     """
-    Pass 1  J-Quants: 全銘柄 → 流動性フィルタ → テクニカル分析
-    Pass 2  yfinance: 上位候補の PER/PBR/MIX/現預金
-    Pass 3  バリューフィルタ + 複合スコア
+    Pass 1  J-Quants bars/daily: 全銘柄 → 流動性フィルタ → テクニカル分析 (一括データ)
+    Pass 2  J-Quants fins/summary: PER/PBR/MIX/現預金 (キャッシュ+並列)
+    Pass 3  複合スコア (フィルタはダッシュボード側)
     """
 
     def __init__(self, **kw):
@@ -195,7 +463,6 @@ class ValueReversalScreener:
             df = fetch_all_stocks(ds)
             if not df.empty:
                 self._quote_date = ds
-                # normalise code to 4 digits
                 df["Code"] = df["Code"].astype(str).str[:4]
                 for col in ("C", "O", "H", "L", "Vo", "Va",
                             "AdjC", "AdjO", "AdjH", "AdjL"):
@@ -213,16 +480,30 @@ class ValueReversalScreener:
         print(f"  {before} → {len(df)} 銘柄 (売買代金 >= {self.p['turnover_min']/1e8:.1f}億円)")
         return df
 
-    def _score_technical(self, code: str) -> dict | None:
-        """個別銘柄の価格履歴からテクニカル+出来高スコアを算出."""
+    def _load_bulk_history(self) -> dict[str, pd.DataFrame]:
+        """全銘柄の日足を一括取得し、銘柄別に分割して返す。"""
         p = self.p
-        fr = (self.today - dt.timedelta(days=p["lookback"] * 2)).strftime("%Y-%m-%d")
-        to = self.today.strftime("%Y-%m-%d")
+        from_d = (self.today - dt.timedelta(days=p["lookback"] * 2)).strftime("%Y-%m-%d")
+        to_d = self.today.strftime("%Y-%m-%d")
 
-        hist = fetch_stock_history(code, fr, to)
-        if hist.empty or len(hist) < p["macd_slow"] + p["macd_signal"]:
+        print(f"[3a/5] 日足データ一括取得中 ({from_d} → {to_d})...")
+        bulk = fetch_bulk_history(from_d, to_d)
+        if bulk.empty:
+            return {}
+
+        # 銘柄ごとに分割
+        result = {}
+        for code, grp in bulk.groupby("Code"):
+            result[code] = grp.sort_values("Date").reset_index(drop=True)
+        print(f"  → {len(result)} 銘柄の履歴データ取得完了")
+        return result
+
+    def _score_technical_from_data(self, hist: pd.DataFrame) -> dict | None:
+        """事前取得済みの履歴データからテクニカルスコアを算出。"""
+        p = self.p
+        if len(hist) < p["macd_slow"] + p["macd_signal"]:
             return None
-        hist = hist.sort_values("Date")
+
         close = pd.to_numeric(hist["AdjC"], errors="coerce").dropna().values
         vol = pd.to_numeric(hist["Vo"], errors="coerce").dropna().values
         va = pd.to_numeric(hist["Va"], errors="coerce").dropna().values
@@ -311,21 +592,23 @@ class ValueReversalScreener:
             Va_dates=va_dates,
         )
 
-    def _run_technical_pass(self, universe: pd.DataFrame) -> pd.DataFrame:
-        """全候補のテクニカルスコアを算出."""
+    def _run_technical_pass(self, universe: pd.DataFrame,
+                            history: dict[str, pd.DataFrame]) -> pd.DataFrame:
+        """一括取得済み履歴データでテクニカルスコアを算出。"""
         p = self.p
         codes = universe["Code"].tolist()
-        # Limit to avoid too many API calls
         max_scan = p["max_scan"]
         if len(codes) > max_scan:
-            # sort by turnover (Va) descending, take top max_scan
             universe = universe.nlargest(max_scan, "Va")
             codes = universe["Code"].tolist()
 
-        print(f"[3/5] テクニカル分析中... ({len(codes)} 銘柄)")
+        print(f"[3b/5] テクニカル分析中... ({len(codes)} 銘柄)")
         rows = []
         for i, code in enumerate(codes):
-            sc = self._score_technical(code)
+            hist = history.get(code)
+            if hist is None or hist.empty:
+                continue
+            sc = self._score_technical_from_data(hist)
             if sc is None:
                 continue
             row = universe[universe["Code"] == code].iloc[0]
@@ -334,20 +617,18 @@ class ValueReversalScreener:
                 "Turnover_M": round(float(row["Va"]) / 1e6, 0),
                 **sc,
             })
-            if (i + 1) % 20 == 0:
+            if (i + 1) % 500 == 0:
                 print(f"  {i+1}/{len(codes)} ({len(rows)} 候補)")
-            time.sleep(0.5)  # rate limit guard
         print(f"  → テクニカル候補: {len(rows)} 銘柄")
         return pd.DataFrame(rows) if rows else pd.DataFrame()
 
-    # ── Pass 2: fundamentals from yfinance ────────────────────
+    # ── Pass 2: fundamentals from J-Quants ────────────────────
 
     def _enrich_fundamentals(self, df: pd.DataFrame) -> pd.DataFrame:
-        """テクニカル上位銘柄の PER/PBR/MIX/現預金を取得."""
-        p = self.p
+        """テクニカル上位銘柄の PER/PBR/時価総額/現預金を J-Quants から取得."""
         codes = df["Code"].tolist()
-        print(f"[4/5] ファンダメンタル取得中 (yfinance, {len(codes)} 銘柄)...")
-        fdata = fetch_fundamentals_yf(codes)
+        print(f"[4/5] ファンダメンタル取得中 (J-Quants, {len(codes)} 銘柄)...")
+        fdata = fetch_fundamentals_jq(codes, self._quote_date)
 
         for c, fd in fdata.items():
             mask = df["Code"] == c
@@ -362,42 +643,32 @@ class ValueReversalScreener:
             if fd.get("PBR") is not None:
                 df.loc[mask, "PBR"] = round(fd["PBR"], 2)
             if fd.get("MarketCap") is not None:
-                df.loc[mask, "MarketCap_B"] = round(fd["MarketCap"] / 1e9, 1)
+                mc = fd["MarketCap"]
+                df.loc[mask, "MarketCap_B"] = round(mc / 1e8, 1) if mc else None
             if fd.get("Cash") is not None and fd.get("MarketCap"):
                 df.loc[mask, "CashRatio"] = round(
                     fd["Cash"] / fd["MarketCap"] * 100, 1)
+            if fd.get("NetCash") is not None and fd.get("MarketCap"):
+                df.loc[mask, "NetCashRatio"] = round(
+                    fd["NetCash"] / fd["MarketCap"] * 100, 1)
             if fd.get("EarningsDate"):
                 df.loc[mask, "EarningsDate"] = fd["EarningsDate"]
         return df
 
-    # ── Pass 3: value filter & composite score ────────────────
+    # ── Pass 3: composite score (no pre-filter) ────────────────
 
     def _value_filter_and_score(self, df: pd.DataFrame) -> pd.DataFrame:
-        """PER/PBR/MIX でフィルタし、複合スコアを算出."""
-        print("[5/5] バリューフィルタ & スコアリング...")
-        p = self.p
+        """MIX を算出し、複合スコアを付与 (フィルタはダッシュボード側)."""
+        print("[5/5] スコアリング...")
 
-        # Require fundamental data
         before = len(df)
-        if "PBR" in df.columns:
-            df = df[df["PBR"].notna()]
-        if "PER" in df.columns:
-            has_per = df["PER"].notna()
-            per_ok = (df["PER"] >= p["per_min"]) & (df["PER"] <= p["per_max"])
-            df = df[~has_per | per_ok]
-        if "PBR" in df.columns:
-            pbr_ok = (df["PBR"] >= p["pbr_min"]) & (df["PBR"] <= p["pbr_max"])
-            df = df[pbr_ok]
 
-        # MIX
+        # MIX 計算のみ (フィルタは掛けない)
         if "PER" in df.columns and "PBR" in df.columns:
             both = df["PER"].notna() & df["PBR"].notna()
             df.loc[both, "MIX"] = df.loc[both, "PER"] * df.loc[both, "PBR"]
-            has_mix = df["MIX"].notna() if "MIX" in df.columns else pd.Series(False, index=df.index)
-            if has_mix.any():
-                df = df[~has_mix | (df["MIX"] <= p["mix_max"])]
 
-        print(f"  {before} → {len(df)} 銘柄")
+        print(f"  {before} 銘柄")
 
         if df.empty:
             return df
@@ -435,7 +706,9 @@ class ValueReversalScreener:
             + cat * 0.05
         ).round(3)
 
-        df = df.sort_values("Score", ascending=False).head(self.p["top_n"])
+        df = df.sort_values("Score", ascending=False)
+        if self.p["top_n"] > 0:
+            df = df.head(self.p["top_n"])
         df = df.reset_index(drop=True)
         df.index += 1
         return df
@@ -453,7 +726,10 @@ class ValueReversalScreener:
         if liquid.empty:
             return pd.DataFrame()
 
-        tech = self._run_technical_pass(liquid)
+        # 一括で全銘柄の日足を取得 (API 1回 vs 2950回)
+        history = self._load_bulk_history()
+
+        tech = self._run_technical_pass(liquid, history)
         if tech.empty:
             return pd.DataFrame()
 
