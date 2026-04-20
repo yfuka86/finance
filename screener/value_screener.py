@@ -173,6 +173,18 @@ def _load_fins_cache(date_str: str) -> dict:
     if os.path.exists(path):
         with open(path, "r") as f:
             return json.load(f)
+    # gzip分割ファイルからの自動復元
+    import gzip as _gzip
+    parts = sorted(glob.glob(os.path.join(CACHE_DIR, f"fins_{date_str}_part*.json.gz")))
+    if parts:
+        merged = {}
+        for p in parts:
+            with _gzip.open(p, "rt", encoding="utf-8") as f:
+                merged.update(json.load(f))
+        # 復元したJSONを書き出して次回高速化
+        _save_fins_cache(date_str, merged)
+        print(f"  fins cache restored from {len(parts)} parts ({len(merged)} codes)")
+        return merged
     return {}
 
 
