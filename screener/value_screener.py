@@ -685,40 +685,40 @@ class ValueReversalScreener:
         if df.empty:
             return df
 
-        # ── Composite score ──
-        def _ni(s):
-            mn, mx = s.min(), s.max()
-            return 1.0 - (s - mn) / (mx - mn) if mx > mn else pd.Series(0.5, index=s.index)
+        # ── 7軸評価でスコアリング ──
+        from screener.report_format import evaluate_stock
 
-        def _n(s):
-            mn, mx = s.min(), s.max()
-            return (s - mn) / (mx - mn) if mx > mn else pd.Series(0.5, index=s.index)
+        eval_results = []
+        for _, row in df.iterrows():
+            ev = evaluate_stock(row.to_dict())
+            bd = ev["breakdown"]
+            eval_results.append({
+                "Sc_Valuation": bd.get("valuation", 0),
+                "Sc_Financial": bd.get("financial", 0),
+                "Sc_Growth": bd.get("growth", 0),
+                "Sc_Technical": bd.get("technical", 0),
+                "Sc_Supply": bd.get("supply", 0),
+                "Sc_Catalyst": bd.get("catalyst", 0),
+                "Sc_Risk": bd.get("risk", 0),
+                "TotalScore": ev["total_score"],
+            })
+        eval_df = pd.DataFrame(eval_results, index=df.index)
+        df = pd.concat([df, eval_df], axis=1)
 
-        vs = pd.Series(0.0, index=df.index)
-        nv = 0
-        for col in ("MIX", "PER", "PBR"):
-            if col in df.columns and df[col].notna().any():
-                vs += _ni(df[col].fillna(df[col].max()))
-                nv += 1
-        if "CashRatio" in df.columns and df["CashRatio"].notna().any():
-            vs += _n(df["CashRatio"].fillna(0))
-            nv += 1
-        df["ValueScore"] = (vs / max(nv, 1)).round(2)
+        # ── ファンダメンタル総合 (テクニカル除外) ──
+        # バリュー(20) + 財務(15) + 成長性(15) + カタリスト(10) + リスク(10) = 70点満点
+        df["FundaScore"] = (
+            df["Sc_Valuation"]
+            + df["Sc_Financial"]
+            + df["Sc_Growth"]
+            + df["Sc_Catalyst"]
+            + df["Sc_Risk"]
+        ).round(1)
 
-        # catalyst bonus
-        cat = pd.Series(0.0, index=df.index)
-        if "EarningsDate" in df.columns:
-            cat = df["EarningsDate"].apply(lambda x: 0.1 if pd.notna(x) and x else 0.0)
+        # テクニカル込みの総合 (参考用に残す)
+        df["Score"] = df["TotalScore"]
 
-        # 40% value + 40% tech + 15% volume + 5% catalyst
-        df["Score"] = (
-            df["ValueScore"] * 0.40
-            + df["TechScore"] * 0.40
-            + df["Vol_sc"] * 0.15
-            + cat * 0.05
-        ).round(3)
-
-        df = df.sort_values("Score", ascending=False)
+        df = df.sort_values("FundaScore", ascending=False)
         if self.p["top_n"] > 0:
             df = df.head(self.p["top_n"])
         df = df.reset_index(drop=True)
@@ -783,11 +783,12 @@ def format_results(df: pd.DataFrame) -> str:
 
     rename = {
         "Code": "コード", "Name": "銘柄名", "Sector": "業種",
-        "PER": "PER", "PBR": "PBR", "MIX": "MIX",
+        "PER": "PER", "fPER": "fPER", "PBR": "PBR", "MIX": "MIX",
         "MarketCap_B": "時価総額(億)", "CashRatio": "現金%",
-        "RSI": "RSI", "TechScore": "Tech", "VolRatio": "出来高比",
-        "Va_latest": "代金(億)", "Va_avg5": "5d平均", "Va_avg20": "20d平均",
-        "ValueScore": "Value", "Score": "総合",
+        "Sc_Valuation": "割安", "Sc_Financial": "財務", "Sc_Growth": "成長",
+        "Sc_Catalyst": "触媒", "Sc_Risk": "リスク",
+        "FundaScore": "Fスコア",
+        "Va_latest": "代金(億)",
         "EarningsDate": "決算予定",
     }
     show = [c for c in rename if c in out.columns]
@@ -801,9 +802,9 @@ def format_results(df: pd.DataFrame) -> str:
     disp = disp.rename(columns=rename)
 
     lines = [
-        "=" * 130,
-        "  VALUE-REVERSAL SCREENER RESULTS",
-        "=" * 130, "",
+        "=" * 140,
+        "  VALUE SCREENER — ファンダメンタル重視 (テクニカル除外)",
+        "=" * 140, "",
         disp.to_string(), "",
     ]
 
@@ -830,10 +831,10 @@ def format_results(df: pd.DataFrame) -> str:
         lines.append("")
 
     lines.extend([
-        "-" * 130,
-        "MIX = PER x PBR  (Graham基準 < 22.5, 許容上限 30)",
-        "Tech = RSI反転 + MACDクロス + MA転換 + 底値反発",
-        "総合 = Value 40% + Tech 40% + 出来高 15% + カタリスト 5%",
+        "-" * 140,
+        "Fスコア = 割安(20) + 財務(15) + 成長(15) + 触媒(10) + リスク(10) = 70点満点",
+        "割安: PER/fPER/PBR/MIX  |  財務: 現金比率+資産裏付け  |  成長: fPER/PER比+推定ROE",
+        "触媒: 決算近接度  |  リスク: 流動性+バリュートラップ兆候 (減点方式)",
         "",
     ])
     return "\n".join(lines)
