@@ -7,3 +7,5 @@ trading/bybit/saved_data/
 trading/bybit/saved_results/
 *.parquet
 =5.8
+# Large fins cache JSONs (use compressed .gz parts instead)
+data/cache/fins_*.json
