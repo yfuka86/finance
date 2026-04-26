@@ -87,19 +87,6 @@ def generate_summary(row: dict, eval_result: dict) -> str:
         if cash > 30:
             parts.append("  → 豊富なキャッシュポジション")
 
-    # テクニカル
-    tech_tags = []
-    if _v(rsi) and rsi < 35:
-        tech_tags.append(f"RSI={rsi:.0f}(売られ過ぎ)")
-    elif _v(rsi) and rsi > 65:
-        tech_tags.append(f"RSI={rsi:.0f}(買われ過ぎ)")
-    if _v(tech):
-        tech_tags.append(f"Tech={tech:.2f}")
-    if _v(vr) and vr > 1.3:
-        tech_tags.append(f"出来高急増(x{vr:.1f})")
-    if tech_tags:
-        parts.append("【テクニカル】" + ", ".join(tech_tags))
-
     # カタリスト
     if earn and str(earn) != "nan":
         parts.append(f"【カタリスト】次回決算予定: {earn}")

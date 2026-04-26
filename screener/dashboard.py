@@ -39,18 +39,6 @@ def _score_class(v: float, thresholds=(0.3, 0.5)) -> str:
     return "low"
 
 
-def _signal_label(rsi_sc, macd_sc, ma_sc, bottom_sc) -> str:
-    parts = []
-    if rsi_sc >= 0.5:
-        parts.append("RSI反転")
-    if macd_sc >= 0.5:
-        parts.append("MACDクロス")
-    if ma_sc >= 0.5:
-        parts.append("MA転換")
-    if bottom_sc >= 0.5:
-        parts.append("底値反発")
-    return " / ".join(parts) if parts else "-"
-
 
 def _parse_list_col(val):
     """CSV から読み込んだリスト文字列をパース."""
@@ -101,15 +89,7 @@ def generate_dashboard(csv_path: str) -> str:
         mcap = r.get("MarketCap_B")
         cash = r.get("CashRatio")
         net_cash = r.get("NetCashRatio")
-        rsi = r.get("RSI")
-        tech = r.get("TechScore", 0)
-        rsi_sc = r.get("RSI_sc", 0)
-        macd_sc = r.get("MACD_sc", 0)
-        ma_sc = r.get("MA_sc", 0)
-        bottom_sc = r.get("Bottom_sc", 0)
-        vol_ratio = r.get("VolRatio")
-        val = r.get("ValueScore", 0)
-        score = r.get("Score", 0)
+        score = r.get("FundaScore", 0) or 0
         earn = r.get("EarningsDate", "")
         fper = r.get("fPER")
         close = r.get("Close")
@@ -121,21 +101,11 @@ def generate_dashboard(csv_path: str) -> str:
         va_spark = _parse_list_col(r.get("Va_spark"))
         va_dates = _parse_list_col(r.get("Va_dates"))
 
-        # signal tags
-        sig = _signal_label(
-            r.get("RSI_sc", 0), r.get("MACD_sc", 0),
-            r.get("MA_sc", 0), r.get("Bottom_sc", 0))
-
         def fmt(v, d=1):
             if pd.isna(v):
                 return '<span class="na">-</span>'
             return f"{v:.{d}f}"
 
-        score_cls = _score_class(score, (0.25, 0.35))
-        tech_cls = _score_class(tech, (0.3, 0.5))
-        val_cls = _score_class(val, (0.3, 0.5))
-        rsi_cls = "oversold" if (not pd.isna(rsi) and rsi < 35) else (
-            "overbought" if (not pd.isna(rsi) and rsi > 70) else "neutral")
         mix_cls = "good" if (not pd.isna(mix) and mix < 15) else (
             "ok" if (not pd.isna(mix) and mix < 22.5) else "na")
 
@@ -207,19 +177,20 @@ def generate_dashboard(csv_path: str) -> str:
         rpt_presentation = rpt.get("presentation_url", "")
         rpt_bd = rpt_eval.get("breakdown", {})
 
-        # Verdict HTML
-        if rpt_verdict:
-            star_str = "★" * rpt_stars + "☆" * (5 - rpt_stars)
-            verdict_cls = {
-                "Strong Buy": "verdict-sbuy", "Buy": "verdict-buy",
-                "Hold": "verdict-hold", "Sell": "verdict-sell",
-                "Strong Sell": "verdict-ssell",
-            }.get(rpt_verdict, "verdict-hold")
-            verdict_html = f'<span class="{verdict_cls}">{star_str}</span>'
-            rpt_score_html = f'{rpt_score:.1f}' if isinstance(rpt_score, (int, float)) else ''
+        # Verdict HTML — FundaScore (70点満点) ベースで判定
+        funda_score = r.get("FundaScore", 0) or 0
+        if funda_score >= 45:
+            verdict_label, verdict_cls, stars = "Strong Buy", "verdict-sbuy", 5
+        elif funda_score >= 40:
+            verdict_label, verdict_cls, stars = "Buy", "verdict-buy", 4
+        elif funda_score >= 35:
+            verdict_label, verdict_cls, stars = "Hold", "verdict-hold", 3
+        elif funda_score >= 30:
+            verdict_label, verdict_cls, stars = "Sell", "verdict-sell", 2
         else:
-            verdict_html = '<span class="na">-</span>'
-            rpt_score_html = ''
+            verdict_label, verdict_cls, stars = "Strong Sell", "verdict-ssell", 1
+        star_str = "★" * stars + "☆" * (5 - stars)
+        verdict_html = f'<span class="{verdict_cls}">{star_str} {verdict_label}</span>'
 
         # Detail row (hidden by default)
         detail_html = ""
@@ -239,11 +210,10 @@ def generate_dashboard(csv_path: str) -> str:
             bd_html = ""
             if rpt_bd:
                 bd_html = '<div class="bd-bar">'
-                bd_labels = {"valuation": "バリュー", "financial": "財務",
-                             "growth": "成長", "technical": "テクニカル",
-                             "supply": "需給", "catalyst": "カタリスト", "risk": "リスク"}
+                bd_labels = {"valuation": "割安 (PER/fPER/PBR/MIX)", "financial": "財務 (現金比率+資産裏付け)",
+                             "growth": "成長 (fPER/PER比+推定ROE)", "catalyst": "触媒 (決算近接度)", "risk": "リスク (減点式)"}
                 bd_maxes = {"valuation": 20, "financial": 15, "growth": 15,
-                            "technical": 20, "supply": 10, "catalyst": 10, "risk": 10}
+                            "catalyst": 10, "risk": 10}
                 for k, label in bd_labels.items():
                     v = rpt_bd.get(k, 0)
                     mx = bd_maxes.get(k, 10)
@@ -254,10 +224,10 @@ def generate_dashboard(csv_path: str) -> str:
             summary_escaped = rpt_summary.replace("\n", "<br>")
             detail_html = f"""
         <tr class="detail-row" data-parent="{code}" style="display:none">
-          <td colspan="29" class="detail-cell">
+          <td colspan="16" class="detail-cell">
             <div class="detail-content">
               <div class="detail-header">
-                <span class="detail-verdict {verdict_cls}">{rpt_verdict} ({rpt_score:.1f}pt)</span>
+                <span class="detail-verdict {verdict_cls}">{verdict_label} ({funda_score:.1f}/70)</span>
                 <span class="detail-ver">{rpt_ver}</span>
                 {ir_links_html}
               </div>
@@ -267,22 +237,18 @@ def generate_dashboard(csv_path: str) -> str:
           </td>
         </tr>"""
 
-        # 7軸スコア
-        sc_val = r.get("Sc_Valuation", 0) or 0
-        sc_fin = r.get("Sc_Financial", 0) or 0
-        sc_grw = r.get("Sc_Growth", 0) or 0
-        sc_cat = r.get("Sc_Catalyst", 0) or 0
-        sc_rsk = r.get("Sc_Risk", 0) or 0
-        sc_tech = r.get("Sc_Technical", 0) or 0
-        sc_sup = r.get("Sc_Supply", 0) or 0
+        # ファンダメンタルスコア (70点満点)
         funda_score = r.get("FundaScore", 0) or 0
-        total_score = r.get("TotalScore", 0) or 0
+        # スコアに応じたクラス
+        fs_cls = "fs-high" if funda_score >= 45 else ("fs-mid" if funda_score >= 38 else "fs-low")
 
         rows_html.append(f"""
-        <tr class="main-row" data-sector="{sector}" data-score="{total_score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}" data-va-avg5="{va_avg5 if pd.notna(va_avg5) else 0}" data-code="{code}" onclick="toggleDetail(this)">
+        <tr class="main-row" data-sector="{sector}" data-score="{funda_score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}" data-va-avg5="{va_avg5 if pd.notna(va_avg5) else 0}" data-code="{code}" onclick="toggleDetail(this)">
           <td class="code"><a href="https://irbank.net/{code}" target="_blank" onclick="event.stopPropagation()">{code}</a></td>
           <td class="name" title="{name_en}">{name}</td>
           <td class="sector">{sector}</td>
+          <td class="num funda-score {fs_cls}">{funda_score:.1f}</td>
+          <td class="verdict-cell">{verdict_html}</td>
           <td class="num">{fmt(close, 0)}</td>
           <td class="num per">{fmt(per)}</td>
           <td class="num">{fmt(fper)}</td>
@@ -292,23 +258,8 @@ def generate_dashboard(csv_path: str) -> str:
           <td class="num cash">{fmt(cash)}</td>
           <td class="num {"net-cash-neg" if pd.notna(net_cash) and net_cash < 0 else "net-cash"}">{fmt(net_cash)}</td>
           <td class="catalyst">{earn_html}</td>
-          <td class="num sc-val" title="PER/fPER/PBR/MIX → 割安度">{sc_val:.1f}</td>
-          <td class="num sc-fin" title="現金比率+資産裏付け">{sc_fin:.1f}</td>
-          <td class="num sc-grw" title="fPER/PER比+推定ROE">{sc_grw:.1f}</td>
-          <td class="num sc-cat" title="決算近接度">{sc_cat:.1f}</td>
-          <td class="num sc-rsk" title="流動性+バリュートラップ(減点式)">{sc_rsk:.1f}</td>
-          <td class="num funda-score">{funda_score:.1f}</td>
-          <td class="verdict-cell">{verdict_html}</td>
-          <td class="num rpt-score">{rpt_score_html}</td>
-          <td class="sep"></td>
-          <td class="num rsi {rsi_cls}">{fmt(rsi)}</td>
-          <td class="num tech {tech_cls}" title="RSI:{rsi_sc:.2f} MACD:{macd_sc:.2f} MA:{ma_sc:.2f} 底値:{bottom_sc:.2f}">{fmt(tech, 2)}<span class="tech-detail"> RSI:{rsi_sc:.1f} MACD:{macd_sc:.1f} MA:{ma_sc:.1f} 底値:{bottom_sc:.1f}</span></td>
-          <td class="num sc-tech" title="テクニカル総合(20点満点)">{sc_tech:.1f}</td>
-          <td class="num sc-sup" title="需給: 出来高変化率+売買代金">{sc_sup:.1f}</td>
-          <td class="num vol">{fmt(vol_ratio, 2)}</td>
           <td class="va-cell">{va_html}{va_avg_html}</td>
           <td class="spark-cell">{spark_svg}</td>
-          <td class="signals">{sig}</td>
         </tr>{detail_html}""")
 
     table_body = "\n".join(rows_html)
@@ -318,9 +269,9 @@ def generate_dashboard(csv_path: str) -> str:
     avg_per = df["PER"].mean() if "PER" in df else 0
     avg_pbr = df["PBR"].mean() if "PBR" in df else 0
     avg_mix = df["MIX"].mean() if "MIX" in df else 0
-    avg_tech = df["TechScore"].mean() if "TechScore" in df else 0
+    avg_funda = df["FundaScore"].mean() if "FundaScore" in df.columns else 0
     n_catalyst = int(df["EarningsDate"].notna().sum()) if "EarningsDate" in df else 0
-    top_score = df["Score"].max() if "Score" in df else 0
+    top_score = df["FundaScore"].max() if "FundaScore" in df.columns else 0
 
     # Sector distribution (Japanese)
     sec_col = "SectorJP" if "SectorJP" in df.columns else "Sector"
@@ -560,12 +511,6 @@ def generate_dashboard(csv_path: str) -> str:
   .score.high {{ color: #fff; background: var(--green); border-radius: 4px; padding: 3px 8px; font-weight: 700; }}
   .score.mid {{ color: var(--orange); font-weight: 700; }}
   .score.low {{ color: var(--dim); }}
-  .tech.high {{ color: var(--green); font-weight: 700; }}
-  .tech.mid {{ color: var(--orange); font-weight: 600; }}
-  .val.high {{ color: var(--green); font-weight: 700; }}
-  .val.mid {{ color: var(--orange); font-weight: 600; }}
-  .rsi.oversold {{ color: var(--green); font-weight: 700; }}
-  .rsi.overbought {{ color: var(--red); }}
   .mix.good {{ color: var(--green); font-weight: 700; }}
   .mix.ok {{ color: var(--text); }}
   .cash {{ color: var(--accent); }}
@@ -592,37 +537,14 @@ def generate_dashboard(csv_path: str) -> str:
   .spark-cell {{ padding: 4px 4px; }}
   .spark {{ display: block; }}
 
-  /* Score columns */
-  .sc-val, .sc-fin, .sc-grw, .sc-cat, .sc-rsk, .sc-tech, .sc-sup {{
-    font-size: 12px;
-    font-weight: 500;
-  }}
+  /* Score column */
   .funda-score {{
     font-size: 13px;
     font-weight: 700;
-    color: var(--accent);
   }}
-  .sep, .sep-th {{
-    width: 3px !important;
-    min-width: 3px !important;
-    max-width: 3px !important;
-    padding: 0 !important;
-    background: var(--border) !important;
-  }}
-  /* Signals & Catalyst */
-  .tech-detail {{
-    font-size: 10px;
-    color: #888;
-    white-space: nowrap;
-  }}
-  .signals {{
-    font-size: 11px;
-    color: var(--orange);
-    font-weight: 500;
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }}
+  .fs-high {{ color: var(--green); }}
+  .fs-mid {{ color: var(--accent); }}
+  .fs-low {{ color: var(--dim); }}
   .catalyst-soon {{
     background: #fef2f2;
     color: var(--red);
@@ -811,7 +733,7 @@ def generate_dashboard(csv_path: str) -> str:
   </div>
   <div class="card">
     <div class="label">最高スコア</div>
-    <div class="value green">{top_score:.3f}</div>
+    <div class="value green">{top_score:.1f}/70</div>
   </div>
   <div class="card">
     <div class="label">平均 PER</div>
@@ -826,8 +748,8 @@ def generate_dashboard(csv_path: str) -> str:
     <div class="value orange">{avg_mix:.1f}</div>
   </div>
   <div class="card">
-    <div class="label">平均 Tech</div>
-    <div class="value">{avg_tech:.2f}</div>
+    <div class="label">平均スコア</div>
+    <div class="value">{avg_funda:.1f}/70</div>
   </div>
   <div class="card">
     <div class="label">決算予定あり</div>
@@ -842,10 +764,10 @@ def generate_dashboard(csv_path: str) -> str:
 <div class="filters">
   <label>PER</label>
   <input type="text" id="perMinVal" class="val-input" value="0"
-    onchange="syncFromInput('perMin')" onkeydown="if(event.key==='Enter')this.blur()">
+    onchange="applyFilters()" onkeydown="if(event.key==='Enter')this.blur()">
   <span class="unit">~</span>
   <input type="text" id="perMaxVal" class="val-input" value="999"
-    onchange="syncFromInput('perMax')" onkeydown="if(event.key==='Enter')this.blur()">
+    onchange="applyFilters()" onkeydown="if(event.key==='Enter')this.blur()">
 
   <label>PBR上限</label>
   <input type="range" id="pbrSlider" min="0.1" max="10.0" step="0.05" value="10.0"
@@ -858,12 +780,6 @@ def generate_dashboard(csv_path: str) -> str:
     oninput="syncFromSlider('mix')">
   <input type="text" id="mixVal" class="val-input" value="200"
     onchange="syncFromInput('mix')" onkeydown="if(event.key==='Enter')this.blur()">
-
-  <label>Tech下限</label>
-  <input type="range" id="techSlider" min="0" max="1" step="0.05" value="0"
-    oninput="syncFromSlider('tech')">
-  <input type="text" id="techVal" class="val-input" value="0"
-    onchange="syncFromInput('tech')" onkeydown="if(event.key==='Enter')this.blur()">
 
   <label>時価総額下限</label>
   <input type="range" id="mcapSlider" min="0" max="100" step="1" value="50"
@@ -896,32 +812,19 @@ def generate_dashboard(csv_path: str) -> str:
   <th onclick="sortTable(0)">コード</th>
   <th onclick="sortTable(1)">銘柄名</th>
   <th onclick="sortTable(2)">業種</th>
-  <th onclick="sortTable(3)">株価</th>
-  <th onclick="sortTable(4)">PER</th>
-  <th onclick="sortTable(5)">fPER</th>
-  <th onclick="sortTable(6)">PBR</th>
-  <th onclick="sortTable(7)">MIX</th>
-  <th onclick="sortTable(8)">時価総額(億)</th>
-  <th onclick="sortTable(9)">現金比率%</th>
-  <th onclick="sortTable(10)">ネット現金%</th>
+  <th onclick="sortTable(3)" title="割安(20)+財務(15)+成長(15)+触媒(10)+リスク(10)=70点満点 ※行クリックで内訳表示">スコア</th>
+  <th onclick="sortTable(4)">判定</th>
+  <th onclick="sortTable(5)">株価</th>
+  <th onclick="sortTable(6)">PER</th>
+  <th onclick="sortTable(7)">fPER</th>
+  <th onclick="sortTable(8)">PBR</th>
+  <th onclick="sortTable(9)">MIX</th>
+  <th onclick="sortTable(10)">時価総額(億)</th>
+  <th onclick="sortTable(11)">現金比率%</th>
+  <th onclick="sortTable(12)">ネット現金%</th>
   <th>決算予定</th>
-  <th onclick="sortTable(12)" title="PER/fPER/PBR/MIX から算出 (20点満点)">割安</th>
-  <th onclick="sortTable(13)" title="現金比率 + PBR資産裏付け (15点満点)">財務</th>
-  <th onclick="sortTable(14)" title="fPER/PER比 + 推定ROE (15点満点)">成長</th>
-  <th onclick="sortTable(15)" title="決算近接度 (10点満点)">触媒</th>
-  <th onclick="sortTable(16)" title="流動性リスク+バリュートラップ兆候 (10点/減点式)">リスク</th>
-  <th onclick="sortTable(17)" title="割安+財務+成長+触媒+リスク = 70点満点">Fスコア</th>
-  <th onclick="sortTable(18)">判定</th>
-  <th onclick="sortTable(19)">評価点</th>
-  <th class="sep-th"></th>
-  <th onclick="sortTable(21)" title="RSI(14) 35以下=売られ過ぎ">RSI</th>
-  <th onclick="sortTable(22)" title="Tech総合 (RSI反転/MACDクロス/MA転換/底値反発) 各0~1">Tech</th>
-  <th onclick="sortTable(23)" title="テクニカル総合 (20点満点)">T点</th>
-  <th onclick="sortTable(24)" title="需給: 出来高変化率+売買代金 (10点満点)">需給</th>
-  <th onclick="sortTable(25)">出来高比</th>
-  <th onclick="sortTable(26)">売買代金(億)</th>
+  <th onclick="sortTable(14)">売買代金(億)</th>
   <th>推移</th>
-  <th>シグナル</th>
 </tr>
 </thead>
 <tbody id="tableBody">
@@ -931,39 +834,23 @@ def generate_dashboard(csv_path: str) -> str:
 </div>
 
 <div class="legend">
-  <h3>ファンダメンタル・スコア (Fスコア = 70点満点)</h3>
+  <h3>バリュースコア (70点満点)</h3>
+  <p style="margin:4px 0 8px;color:var(--text)">ファンダメンタルのみで銘柄を評価。5つの軸の合計点がスコア。行をクリックすると内訳バーが表示されます。</p>
   <table class="legend-table">
     <tr><th>軸</th><th>満点</th><th>算出方法</th></tr>
-    <tr><td><strong>割安</strong></td><td>20</td><td>PER(5) + fPER(5) + PBR(5) + MIX(5)。各指標が低いほど高得点。PER&lt;8→5, &lt;12→4, &lt;15→3, &lt;20→2, &lt;30→1。PBR&lt;0.5→5, &lt;0.8→4, &lt;1.0→3.5, &lt;1.5→2.5。MIX&lt;10→5, &lt;15→4, &lt;22.5→3</td></tr>
-    <tr><td><strong>財務</strong></td><td>15</td><td>現金比率(10) + PBR資産裏付け(5)。現金比率&gt;50%→10, &gt;30%→8, &gt;20%→6, &gt;10%→4。PBR低いほど資産裏付け加点(5/PBR, 上限5)</td></tr>
-    <tr><td><strong>成長</strong></td><td>15</td><td>fPER/PER比(10) + 推定ROE(5)。fPER/PER&lt;0.5→10(大幅増益), &lt;0.7→8, &lt;0.9→5。推定ROE=PBR/PER×100: &gt;15%→5, &gt;10%→3</td></tr>
-    <tr><td><strong>触媒</strong></td><td>10</td><td>次回決算までの日数。14日以内→8, 30日以内→5, 60日以内→3, 60日超→1</td></tr>
-    <tr><td><strong>リスク</strong></td><td>10</td><td>10点から減点。PBR&lt;0.5かつ現金比率&lt;5%→-3(バリュートラップ)。PER&gt;100→-4, &gt;50→-2。売買代金5d平均&lt;1億→-3, &lt;3億→-1</td></tr>
+    <tr><td><strong>割安</strong></td><td>20</td><td>PER(5) + fPER(5) + PBR(5) + MIX(5)。各指標が低いほど高得点<br><span style="color:#888">PER: &lt;8→5, &lt;12→4, &lt;15→3, &lt;20→2, &lt;30→1 ／ PBR: &lt;0.5→5, &lt;0.8→4, &lt;1.0→3.5, &lt;1.5→2.5 ／ MIX: &lt;10→5, &lt;15→4, &lt;22.5→3</span></td></tr>
+    <tr><td><strong>財務</strong></td><td>15</td><td>現金比率(10) + PBR資産裏付け(5)<br><span style="color:#888">現金比率: &gt;50%→10, &gt;30%→8, &gt;20%→6, &gt;10%→4 ／ 資産: min(5, 5÷PBR)</span></td></tr>
+    <tr><td><strong>成長</strong></td><td>15</td><td>fPER/PER比(10) + 推定ROE(5)<br><span style="color:#888">fPER/PER: &lt;0.5→10(大幅増益), &lt;0.7→8, &lt;0.9→5 ／ 推定ROE(=PBR/PER×100): &gt;15%→5, &gt;10%→3</span></td></tr>
+    <tr><td><strong>触媒</strong></td><td>10</td><td>次回決算までの日数<br><span style="color:#888">14日以内→8, 30日以内→5, 60日以内→3, 60日超→1</span></td></tr>
+    <tr><td><strong>リスク</strong></td><td>10</td><td>10点から減点<br><span style="color:#888">バリュートラップ(PBR&lt;0.5+現金比率&lt;5%): −3 ／ 超高PER(&gt;100): −4, (&gt;50): −2 ／ 低流動性(代金&lt;1億): −3, (&lt;3億): −1</span></td></tr>
   </table>
-
-  <h3>テクニカル・スコア (右側)</h3>
-  <table class="legend-table">
-    <tr><th>軸</th><th>満点</th><th>算出方法</th></tr>
-    <tr><td><strong>Tech</strong></td><td>0~1</td><td>RSI反転(25%) + MACDクロス(25%) + MA転換(25%) + 底値反発(25%)</td></tr>
-    <tr><td><strong>T点</strong></td><td>20</td><td>Tech × 20。テクニカル総合スコアを20点満点に換算</td></tr>
-    <tr><td><strong>需給</strong></td><td>10</td><td>出来高比(7) + 売買代金水準(3)。出来高比&gt;2.0→7, &gt;1.5→5, &gt;1.2→3。代金5d≥50億→3, ≥10億→2.5, ≥3億→2</td></tr>
-  </table>
-
-  <h3>Tech内訳 (RSI/MACD/MA/底値) 各0.0〜1.0</h3>
-  <span class="formula">RSI反転</span>: 1.0=5日前RSI≤35から反発中 / 0.5=RSI≤35(売られ過ぎ) / 0.3=RSI≤55(通常) / 0.0=RSI&gt;55(過熱)<br>
-  <span class="formula">MACDクロス</span>: 1.0=ヒストグラムがマイナス→プラス転換 / 0.5=上昇中 / 0.0=下落中<br>
-  <span class="formula">MA転換</span>: 1.0=株価&gt;短期MA&gt;長期MA / 0.5=株価&gt;短期MAのみ / +0.5=ゴールデンクロス発生<br>
-  <span class="formula">底値反発</span>: 直近期間の安値から25%位置付近で最高(1.0)、離れるほど減少<br>
-  <br>
-  <strong>総合評価点</strong> = Fスコア(70) + T点(20) + 需給(10) = 100点満点<br>
-  <strong>判定</strong>: ★★★★★ Strong Buy(≥60) / ★★★★ Buy(≥50) / ★★★ Hold(≥42) / ★★ Sell(≥35) / ★ Strong Sell(&lt;35)<br>
+  <strong>判定</strong>: ★★★★★ Strong Buy(≥45) / ★★★★ Buy(≥40) / ★★★ Hold(≥35) / ★★ Sell(≥30) / ★ Strong Sell(&lt;30)<br>
   <br>
   <span style="color:#888">
   MIX = PER × PBR (Graham基準 &lt; 22.5) &nbsp;|&nbsp;
-  fPER = 予想PER &nbsp;|&nbsp;
-  現金比率 = 現金同等物 / 時価総額 × 100 &nbsp;|&nbsp;
-  ネット現金 = (現金同等物 − 負債) / 時価総額 × 100 &nbsp;|&nbsp;
-  出来高比 = 直近5日平均 / 20日平均
+  fPER = 会社予想ベースのPER &nbsp;|&nbsp;
+  現金比率 = 現金同等物 ÷ 時価総額 × 100 &nbsp;|&nbsp;
+  ネット現金 = (現金同等物 − 負債) ÷ 時価総額 × 100
   </span>
 </div>
 
@@ -992,7 +879,6 @@ function filterSector(el, sec) {{
 const sliderMap = {{
   mix:  {{ slider: 'mixSlider',  input: 'mixVal' }},
   pbr:  {{ slider: 'pbrSlider',  input: 'pbrVal' }},
-  tech: {{ slider: 'techSlider', input: 'techVal' }},
 }};
 function syncFromSlider(key) {{
   const s = sliderMap[key];
@@ -1063,7 +949,6 @@ function applyFilters() {{
   const perMax = parseFloat(document.getElementById('perMaxVal').value) || 999;
   const pbrMax = parseFloat(document.getElementById('pbrVal').value);
   const mixMax = parseFloat(document.getElementById('mixVal').value);
-  const techMin = parseFloat(document.getElementById('techVal').value);
   const mcapMin = parseFloat(document.getElementById('mcapVal').value) || 0;
   const vaMin = parseFloat(document.getElementById('vaVal').value) || 0;
   const earnVal = document.getElementById('earnFilter').value;
@@ -1075,13 +960,12 @@ function applyFilters() {{
     const vaAvg5 = parseFloat(row.dataset.vaAvg5);
     const c = row.cells;
     const g = t => {{ const v = c[t].textContent.trim(); return v === '-' ? NaN : parseFloat(v); }};
-    const per = g(4), pbr = g(6), mix = g(7), tech = g(11);
+    const per = g(6), pbr = g(8), mix = g(9);
     let show = true;
     if (activeSector && sector !== activeSector) show = false;
     if (!isNaN(per) && (per < perMin || per > perMax)) show = false;
     if (!isNaN(pbr) && pbr > pbrMax) show = false;
     if (!isNaN(mix) && mix > mixMax) show = false;
-    if (!isNaN(tech) && tech < techMin) show = false;
     if (mcapMin > 0 && mcap < mcapMin) show = false;
     if (vaMin > 0 && vaAvg5 < vaMin) show = false;
     if (earnVal === 'none' && ed >= 999) show = false;

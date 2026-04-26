@@ -1110,23 +1110,23 @@
   "code": "5985",
   "name": "サンコール",
   "sector": "金属製品",
-  "screener_score": 0.62,
+  "screener_score": 55.5,
   "eval": {
-   "total_score": 55.6,
+   "total_score": 55.5,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
     "valuation": 13.5,
-    "financial": 3.184713375796178,
+    "financial": 3.125,
     "growth": 10.0,
     "technical": 8.4,
     "supply": 5.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 10.4, 予想PER 8.9, PBR 1.57, MIX 16.3\n  → 増益見通し (fPER/PER=85.6%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.42, 出来高急増(x1.5)\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 10.5, 予想PER 9.1, PBR 1.60, MIX 16.8\n  → 増益見通し (fPER/PER=86.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/5985/results",
   "presentation_url": "https://irbank.net/5985/presentation",
   "pdf_url": null,
@@ -1542,23 +1542,23 @@
   "code": "3407",
   "name": "旭化成",
   "sector": "化学",
-  "screener_score": 0.608,
+  "screener_score": 59.6,
   "eval": {
-   "total_score": 56.4,
+   "total_score": 59.6,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
-    "valuation": 10.5,
-    "financial": 8.62962962962963,
+    "valuation": 11.5,
+    "financial": 10.761904761904763,
     "growth": 5.0,
     "technical": 12.8,
     "supply": 4.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 18.0, 予想PER 15.0, PBR 1.08, MIX 19.4\n  → 増益見通し (fPER/PER=83.3%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 20.0%\n【テクニカル】Tech=0.64\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 17.6, 予想PER 14.6, PBR 1.05, MIX 18.5\n  → 増益見通し (fPER/PER=83.0%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 20.5%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/3407/results",
   "presentation_url": "https://irbank.net/3407/presentation",
   "pdf_url": null,
@@ -4647,7 +4647,7 @@
   "code": "9432",
   "name": "ＮＴＴ",
   "sector": "情報・通信業",
-  "screener_score": 0.553,
+  "screener_score": 57.0,
   "eval": {
    "total_score": 57.0,
    "verdict": "Buy",
@@ -4661,9 +4661,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 13.7, 予想PER 13.2, PBR 1.32, MIX 18.1\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 20.2%\n【テクニカル】Tech=0.61\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 13.7, 予想PER 13.1, PBR 1.32, MIX 18.1\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 20.3%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9432/results",
   "presentation_url": "https://irbank.net/9432/presentation",
   "pdf_url": null,
@@ -4971,23 +4971,23 @@
   "code": "6779",
   "name": "日本電波工業",
   "sector": "電気機器",
-  "screener_score": 0.548,
+  "screener_score": 46.9,
   "eval": {
-   "total_score": 49.6,
+   "total_score": 46.9,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 4.0,
-    "financial": 12.098360655737704,
+    "financial": 9.424657534246576,
     "growth": 8.0,
     "technical": 5.0,
     "supply": 5.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 34.7, 予想PER 22.3, PBR 1.22, MIX 42.3\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=64.3%)\n【財務】現金比率 30.2%\n  → 豊富なキャッシュポジション\n【テクニカル】RSI=68(買われ過ぎ), Tech=0.25, 出来高急増(x1.4)\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 41.4, 予想PER 26.6, PBR 1.46, MIX 60.4\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=64.3%)\n【財務】現金比率 25.3%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/6779/results",
   "presentation_url": "https://irbank.net/6779/presentation",
   "pdf_url": null,
@@ -6159,7 +6159,7 @@
   "code": "7269",
   "name": "スズキ",
   "sector": "輸送用機器",
-  "screener_score": 0.533,
+  "screener_score": 63.2,
   "eval": {
    "total_score": 63.2,
    "verdict": "Strong Buy",
@@ -6173,9 +6173,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 11.9, 予想PER 9.4, PBR 0.90, MIX 10.7\n  → 増益見通し (fPER/PER=79.0%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 24.2%\n【テクニカル】Tech=0.56\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 11.9, 予想PER 9.4, PBR 0.90, MIX 10.7\n  → 増益見通し (fPER/PER=79.0%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 24.2%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/7269/results",
   "presentation_url": "https://irbank.net/7269/presentation",
   "pdf_url": null,
@@ -6375,23 +6375,23 @@
   "code": "5101",
   "name": "横浜ゴム",
   "sector": "ゴム製品",
-  "screener_score": 0.533,
+  "screener_score": 49.8,
   "eval": {
-   "total_score": 50.9,
-   "verdict": "Buy",
-   "stars": 4,
+   "total_score": 49.8,
+   "verdict": "Hold",
+   "stars": 3,
    "breakdown": {
-    "valuation": 11.5,
-    "financial": 7.0,
+    "valuation": 10.5,
+    "financial": 6.854368932038835,
     "growth": 3.0,
     "technical": 11.4,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 9.7, PBR 1.00, MIX 9.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 9.9%\n【テクニカル】Tech=0.57\n【カタリスト】次回決算予定: 2026-05-16",
+  "summary": "【バリュエーション】PER 10.1, PBR 1.03, MIX 10.4\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 9.6%\n【カタリスト】次回決算予定: 2026-05-16",
   "ir_url": "https://irbank.net/5101/results",
   "presentation_url": "https://irbank.net/5101/presentation",
   "pdf_url": null,
@@ -8427,7 +8427,7 @@
   "code": "1911",
   "name": "住友林業",
   "sector": "建設業",
-  "screener_score": 0.512,
+  "screener_score": 54.9,
   "eval": {
    "total_score": 54.9,
    "verdict": "Buy",
@@ -8441,9 +8441,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 8.3, PBR 0.88, MIX 7.3\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 23.4%\n【テクニカル】Tech=0.47\n【カタリスト】次回決算予定: 2026-05-16",
+  "summary": "【バリュエーション】PER 8.4, PBR 0.89, MIX 7.5\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 23.1%\n【カタリスト】次回決算予定: 2026-05-16",
   "ir_url": "https://irbank.net/1911/results",
   "presentation_url": "https://irbank.net/1911/presentation",
   "pdf_url": null,
@@ -8643,7 +8643,7 @@
   "code": "6178",
   "name": "日本郵政",
   "sector": "サービス業",
-  "screener_score": 0.509,
+  "screener_score": 52.2,
   "eval": {
    "total_score": 52.2,
    "verdict": "Buy",
@@ -8657,9 +8657,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 21.2, 予想PER 17.0, PBR 0.32, MIX 6.8\n  → 増益見通し (fPER/PER=80.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.51\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 21.2, 予想PER 16.9, PBR 0.32, MIX 6.8\n  → 増益見通し (fPER/PER=79.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/6178/results",
   "presentation_url": "https://irbank.net/6178/presentation",
   "pdf_url": null,
@@ -9183,7 +9183,7 @@
   "code": "6902",
   "name": "デンソー",
   "sector": "輸送用機器",
-  "screener_score": 0.505,
+  "screener_score": 57.3,
   "eval": {
    "total_score": 57.3,
    "verdict": "Buy",
@@ -9197,9 +9197,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 19.2, 予想PER 12.6, PBR 0.94, MIX 18.0\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=65.6%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 18.3%\n【テクニカル】Tech=0.49\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 19.6, 予想PER 12.9, PBR 0.96, MIX 18.8\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=65.8%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 18.0%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/6902/results",
   "presentation_url": "https://irbank.net/6902/presentation",
   "pdf_url": null,
@@ -9210,7 +9210,7 @@
   "code": "3402",
   "name": "東レ",
   "sector": "繊維製品",
-  "screener_score": 0.505,
+  "screener_score": 51.8,
   "eval": {
    "total_score": 51.8,
    "verdict": "Buy",
@@ -9224,9 +9224,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 43.6, 予想PER 21.2, PBR 0.91, MIX 39.7\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=48.6%)\n【財務】現金比率 14.1%\n【テクニカル】Tech=0.49\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 43.2, 予想PER 21.1, PBR 0.90, MIX 38.9\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=48.8%)\n【財務】現金比率 14.2%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/3402/results",
   "presentation_url": "https://irbank.net/3402/presentation",
   "pdf_url": null,
@@ -9345,23 +9345,23 @@
   "code": "9843",
   "name": "ニトリホールディングス",
   "sector": "小売業",
-  "screener_score": 0.505,
+  "screener_score": 50.9,
   "eval": {
    "total_score": 50.9,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
     "valuation": 9.0,
-    "financial": 7.424657534246576,
+    "financial": 7.401360544217687,
     "growth": 6.5,
     "technical": 10.0,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 19.2, 予想PER 15.2, PBR 1.46, MIX 28.0\n  → 増益見通し (fPER/PER=79.2%)\n【財務】現金比率 11.7%\n【テクニカル】Tech=0.50\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 19.2, 予想PER 15.2, PBR 1.47, MIX 28.2\n  → 増益見通し (fPER/PER=79.2%)\n【財務】現金比率 11.6%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9843/results",
   "presentation_url": "https://irbank.net/9843/presentation",
   "pdf_url": null,
@@ -10182,7 +10182,7 @@
   "code": "7911",
   "name": "ＴＯＰＰＡＮホールディングス",
   "sector": "その他製品",
-  "screener_score": 0.501,
+  "screener_score": 48.8,
   "eval": {
    "total_score": 48.8,
    "verdict": "Hold",
@@ -10196,9 +10196,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 23.0, 予想PER 18.8, PBR 0.95, MIX 21.9\n  → 増益見通し (fPER/PER=81.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.44\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 22.8, 予想PER 18.6, PBR 0.94, MIX 21.4\n  → 増益見通し (fPER/PER=81.6%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/7911/results",
   "presentation_url": "https://irbank.net/7911/presentation",
   "pdf_url": null,
@@ -11019,13 +11019,13 @@
   "code": "9433",
   "name": "ＫＤＤＩ",
   "sector": "情報・通信業",
-  "screener_score": 0.493,
+  "screener_score": 51.7,
   "eval": {
-   "total_score": 53.2,
+   "total_score": 51.7,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
-    "valuation": 10.0,
+    "valuation": 8.5,
     "financial": 11.0,
     "growth": 10.0,
     "technical": 9.2,
@@ -11033,9 +11033,9 @@
     "catalyst": 0.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 31.4, 予想PER 7.6, PBR 0.94, MIX 29.5\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=24.2%)\n【財務】現金比率 25.9%\n【テクニカル】Tech=0.46\n【カタリスト】次回決算予定: 2025-02-13",
+  "summary": "【バリュエーション】PER 31.8, 予想PER 7.7, PBR 0.96, MIX 30.5\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=24.2%)\n【財務】現金比率 25.6%\n【カタリスト】次回決算予定: 2025-02-13",
   "ir_url": "https://irbank.net/9433/results",
   "presentation_url": "https://irbank.net/9433/presentation",
   "pdf_url": null,
@@ -11235,23 +11235,23 @@
   "code": "6479",
   "name": "ミネベアミツミ",
   "sector": "電気機器",
-  "screener_score": 0.491,
+  "screener_score": 48.6,
   "eval": {
-   "total_score": 48.8,
+   "total_score": 48.6,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 6.5,
-    "financial": 7.6231884057971016,
+    "financial": 7.448275862068966,
     "growth": 8.0,
     "technical": 7.2,
     "supply": 4.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 24.0, 予想PER 16.7, PBR 1.38, MIX 33.1\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=69.6%)\n【財務】現金比率 17.5%\n【テクニカル】RSI=66(買われ過ぎ), Tech=0.36\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 25.1, 予想PER 17.5, PBR 1.45, MIX 36.4\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=69.7%)\n【財務】現金比率 16.7%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/6479/results",
   "presentation_url": "https://irbank.net/6479/presentation",
   "pdf_url": null,
@@ -11937,7 +11937,7 @@
   "code": "7259",
   "name": "アイシン",
   "sector": "輸送用機器",
-  "screener_score": 0.485,
+  "screener_score": 56.3,
   "eval": {
    "total_score": 56.3,
    "verdict": "Buy",
@@ -11951,9 +11951,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 15.9, 予想PER 13.9, PBR 0.69, MIX 11.0\n  → 増益見通し (fPER/PER=87.4%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 23.5%\n【テクニカル】Tech=0.44\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 16.3, 予想PER 14.3, PBR 0.71, MIX 11.6\n  → 増益見通し (fPER/PER=87.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 22.9%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/7259/results",
   "presentation_url": "https://irbank.net/7259/presentation",
   "pdf_url": null,
@@ -12153,7 +12153,7 @@
   "code": "9502",
   "name": "中部電力",
   "sector": "電気・ガス業",
-  "screener_score": 0.482,
+  "screener_score": 48.0,
   "eval": {
    "total_score": 48.0,
    "verdict": "Hold",
@@ -12167,9 +12167,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 10.8, 予想PER 11.8, PBR 0.71, MIX 7.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】RSI=77(買われ過ぎ), Tech=0.25\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 10.4, 予想PER 11.4, PBR 0.68, MIX 7.1\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9502/results",
   "presentation_url": "https://irbank.net/9502/presentation",
   "pdf_url": null,
@@ -13044,23 +13044,23 @@
   "code": "6366",
   "name": "千代田化工建設",
   "sector": "建設業",
-  "screener_score": 0.473,
+  "screener_score": 51.0,
   "eval": {
-   "total_score": 50.9,
+   "total_score": 51.0,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
     "valuation": 14.5,
-    "financial": 1.824817518248175,
+    "financial": 1.8939393939393938,
     "growth": 8.0,
     "technical": 8.6,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 3.9, 予想PER 3.8, PBR 2.74, MIX 10.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.43\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 3.8, 予想PER 3.7, PBR 2.64, MIX 10.0\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/6366/results",
   "presentation_url": "https://irbank.net/6366/presentation",
   "pdf_url": null,
@@ -14448,7 +14448,7 @@
   "code": "4188",
   "name": "三菱ケミカルグループ",
   "sector": "化学",
-  "screener_score": 0.461,
+  "screener_score": 49.9,
   "eval": {
    "total_score": 49.9,
    "verdict": "Hold",
@@ -14462,9 +14462,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 12.9, 予想PER 28.8, PBR 0.54, MIX 7.0\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 25.7%\n【テクニカル】Tech=0.37\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 12.5, 予想PER 28.1, PBR 0.53, MIX 6.6\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 26.4%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/4188/results",
   "presentation_url": "https://irbank.net/4188/presentation",
   "pdf_url": null,
@@ -16257,7 +16257,7 @@
   "code": "4005",
   "name": "住友化学",
   "sector": "化学",
-  "screener_score": 0.453,
+  "screener_score": 52.2,
   "eval": {
    "total_score": 52.2,
    "verdict": "Buy",
@@ -16271,9 +16271,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 9.9, 予想PER 15.7, PBR 0.68, MIX 6.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 24.5%\n【テクニカル】Tech=0.36\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 9.8, 予想PER 15.5, PBR 0.67, MIX 6.6\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 24.8%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/4005/results",
   "presentation_url": "https://irbank.net/4005/presentation",
   "pdf_url": null,
@@ -16797,23 +16797,23 @@
   "code": "1928",
   "name": "積水ハウス",
   "sector": "建設業",
-  "screener_score": 0.451,
+  "screener_score": 44.7,
   "eval": {
-   "total_score": 44.8,
+   "total_score": 44.7,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 10.5,
-    "financial": 8.761904761904763,
+    "financial": 8.672897196261683,
     "growth": 3.0,
     "technical": 5.0,
     "supply": 4.5,
     "catalyst": 3.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 9.7, PBR 1.05, MIX 10.2\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 18.8%\n【テクニカル】Tech=0.25\n【カタリスト】次回決算予定: 2026-06-16",
+  "summary": "【バリュエーション】PER 9.8, PBR 1.07, MIX 10.5\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 18.6%\n【カタリスト】次回決算予定: 2026-06-16",
   "ir_url": "https://irbank.net/1928/results",
   "presentation_url": "https://irbank.net/1928/presentation",
   "pdf_url": null,
@@ -17040,23 +17040,23 @@
   "code": "9531",
   "name": "東京瓦斯",
   "sector": "電気・ガス業",
-  "screener_score": 0.449,
+  "screener_score": 47.9,
   "eval": {
-   "total_score": 47.8,
+   "total_score": 47.9,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 12.5,
-    "financial": 3.5971223021582737,
+    "financial": 3.731343283582089,
     "growth": 6.5,
     "technical": 7.2,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 14.6, 予想PER 12.3, PBR 1.39, MIX 20.3\n  → 増益見通し (fPER/PER=84.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】RSI=33(売られ過ぎ), Tech=0.36\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 14.0, 予想PER 11.9, PBR 1.34, MIX 18.8\n  → 増益見通し (fPER/PER=85.0%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9531/results",
   "presentation_url": "https://irbank.net/9531/presentation",
   "pdf_url": null,
@@ -17634,23 +17634,23 @@
   "code": "4204",
   "name": "積水化学工業",
   "sector": "化学",
-  "screener_score": 0.444,
+  "screener_score": 47.0,
   "eval": {
    "total_score": 47.0,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 9.0,
-    "financial": 6.065040650406504,
+    "financial": 6.098360655737705,
     "growth": 8.0,
     "technical": 4.4,
     "supply": 4.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 22.3, 予想PER 14.6, PBR 1.23, MIX 27.4\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=65.5%)\n【財務】現金比率 9.5%\n【テクニカル】RSI=30(売られ過ぎ), Tech=0.22\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 22.1, 予想PER 14.5, PBR 1.22, MIX 27.0\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=65.6%)\n【財務】現金比率 9.6%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/4204/results",
   "presentation_url": "https://irbank.net/4204/presentation",
   "pdf_url": null,
@@ -18120,13 +18120,13 @@
   "code": "7270",
   "name": "ＳＵＢＡＲＵ",
   "sector": "輸送用機器",
-  "screener_score": 0.441,
+  "screener_score": 57.2,
   "eval": {
-   "total_score": 58.2,
+   "total_score": 57.2,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
-    "valuation": 13.0,
+    "valuation": 12.0,
     "financial": 13.0,
     "growth": 8.0,
     "technical": 6.2,
@@ -18134,9 +18134,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 22.2, 予想PER 14.7, PBR 0.66, MIX 14.7\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=66.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 46.1%\n  → 豊富なキャッシュポジション\n【テクニカル】Tech=0.31\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 22.5, 予想PER 14.9, PBR 0.67, MIX 15.1\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=66.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 45.5%\n  → 豊富なキャッシュポジション\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/7270/results",
   "presentation_url": "https://irbank.net/7270/presentation",
   "pdf_url": null,
@@ -18390,7 +18390,7 @@
   "code": "9101",
   "name": "日本郵船",
   "sector": "海運業",
-  "screener_score": 0.437,
+  "screener_score": 51.1,
   "eval": {
    "total_score": 51.1,
    "verdict": "Buy",
@@ -18404,9 +18404,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 17.6, 予想PER 12.2, PBR 0.85, MIX 15.0\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=69.3%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.33\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 17.0, 予想PER 11.8, PBR 0.82, MIX 13.9\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=69.4%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9101/results",
   "presentation_url": "https://irbank.net/9101/presentation",
   "pdf_url": null,
@@ -18714,13 +18714,13 @@
   "code": "9107",
   "name": "川崎汽船",
   "sector": "海運業",
-  "screener_score": 0.437,
+  "screener_score": 48.1,
   "eval": {
-   "total_score": 47.1,
+   "total_score": 48.1,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
-    "valuation": 12.5,
+    "valuation": 13.5,
     "financial": 5.0,
     "growth": 5.0,
     "technical": 6.6,
@@ -18728,9 +18728,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 16.4, 予想PER 14.6, PBR 0.95, MIX 15.6\n  → 増益見通し (fPER/PER=89.0%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.33\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 15.8, 予想PER 14.1, PBR 0.91, MIX 14.4\n  → 増益見通し (fPER/PER=89.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9107/results",
   "presentation_url": "https://irbank.net/9107/presentation",
   "pdf_url": null,
@@ -18930,7 +18930,7 @@
   "code": "9503",
   "name": "関西電力",
   "sector": "電気・ガス業",
-  "screener_score": 0.433,
+  "screener_score": 51.4,
   "eval": {
    "total_score": 51.4,
    "verdict": "Buy",
@@ -18944,9 +18944,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 8.2, 予想PER 7.7, PBR 0.81, MIX 6.6\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.32\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 8.1, 予想PER 7.6, PBR 0.80, MIX 6.5\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9503/results",
   "presentation_url": "https://irbank.net/9503/presentation",
   "pdf_url": null,
@@ -19011,23 +19011,23 @@
   "code": "7203",
   "name": "トヨタ自動車",
   "sector": "輸送用機器",
-  "screener_score": 0.433,
+  "screener_score": 51.7,
   "eval": {
-   "total_score": 51.8,
+   "total_score": 51.7,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
     "valuation": 12.5,
-    "financial": 8.587155963302752,
+    "financial": 8.545454545454545,
     "growth": 6.5,
     "technical": 6.2,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 14.4, 予想PER 12.2, PBR 1.09, MIX 15.7\n  → 増益見通し (fPER/PER=84.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 15.0%\n【テクニカル】Tech=0.31\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 14.6, 予想PER 12.4, PBR 1.10, MIX 16.1\n  → 増益見通し (fPER/PER=84.9%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 14.8%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/7203/results",
   "presentation_url": "https://irbank.net/7203/presentation",
   "pdf_url": null,
@@ -19335,7 +19335,7 @@
   "code": "4689",
   "name": "ＬＩＮＥヤフー",
   "sector": "情報・通信業",
-  "screener_score": 0.433,
+  "screener_score": 47.0,
   "eval": {
    "total_score": 47.0,
    "verdict": "Hold",
@@ -19349,9 +19349,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 16.2, PBR 0.82, MIX 13.3\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 39.7%\n  → 豊富なキャッシュポジション\n【テクニカル】RSI=70(買われ過ぎ), Tech=0.25\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 16.3, PBR 0.82, MIX 13.4\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 39.6%\n  → 豊富なキャッシュポジション\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/4689/results",
   "presentation_url": "https://irbank.net/4689/presentation",
   "pdf_url": null,
@@ -20172,7 +20172,7 @@
   "code": "9435",
   "name": "光通信",
   "sector": "情報・通信業",
-  "screener_score": 0.429,
+  "screener_score": 46.3,
   "eval": {
    "total_score": 46.3,
    "verdict": "Hold",
@@ -20186,9 +20186,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 15.6, 予想PER 14.6, PBR 1.51, MIX 23.6\n【財務】現金比率 22.1%\n【テクニカル】Tech=0.30\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 15.5, 予想PER 14.6, PBR 1.51, MIX 23.4\n【財務】現金比率 22.2%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9435/results",
   "presentation_url": "https://irbank.net/9435/presentation",
   "pdf_url": null,
@@ -21927,7 +21927,7 @@
   "code": "9022",
   "name": "東海旅客鉄道",
   "sector": "陸運業",
-  "screener_score": 0.417,
+  "screener_score": 50.6,
   "eval": {
    "total_score": 50.6,
    "verdict": "Buy",
@@ -21941,9 +21941,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 8.9, 予想PER 8.1, PBR 0.80, MIX 7.1\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.28\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 9.0, 予想PER 8.2, PBR 0.81, MIX 7.3\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9022/results",
   "presentation_url": "https://irbank.net/9022/presentation",
   "pdf_url": null,
@@ -22467,23 +22467,23 @@
   "code": "6305",
   "name": "日立建機",
   "sector": "機械",
-  "screener_score": 0.414,
+  "screener_score": 46.2,
   "eval": {
    "total_score": 46.2,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 9.0,
-    "financial": 8.032258064516128,
+    "financial": 8.0,
     "growth": 5.0,
     "technical": 5.2,
     "supply": 4.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 20.3, 予想PER 14.6, PBR 1.24, MIX 25.2\n  → 増益見通し (fPER/PER=71.9%)\n【財務】現金比率 11.0%\n【テクニカル】Tech=0.26\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 20.6, 予想PER 14.8, PBR 1.25, MIX 25.8\n  → 増益見通し (fPER/PER=71.8%)\n【財務】現金比率 10.9%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/6305/results",
   "presentation_url": "https://irbank.net/6305/presentation",
   "pdf_url": null,
@@ -22521,23 +22521,23 @@
   "code": "9005",
   "name": "東急",
   "sector": "陸運業",
-  "screener_score": 0.413,
+  "screener_score": 46.4,
   "eval": {
-   "total_score": 46.3,
+   "total_score": 46.4,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 12.5,
-    "financial": 4.424778761061948,
+    "financial": 4.504504504504504,
     "growth": 6.5,
     "technical": 5.4,
     "supply": 2.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 14.1, 予想PER 12.5, PBR 1.13, MIX 15.9\n  → 増益見通し (fPER/PER=88.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】RSI=28(売られ過ぎ), Tech=0.27\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 13.8, 予想PER 12.2, PBR 1.11, MIX 15.3\n  → 増益見通し (fPER/PER=88.4%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9005/results",
   "presentation_url": "https://irbank.net/9005/presentation",
   "pdf_url": null,
@@ -22548,7 +22548,7 @@
   "code": "2502",
   "name": "アサヒグループホールディングス",
   "sector": "食料品",
-  "screener_score": 0.413,
+  "screener_score": 47.9,
   "eval": {
    "total_score": 47.9,
    "verdict": "Hold",
@@ -22562,9 +22562,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 24.2, 予想PER 14.7, PBR 0.88, MIX 21.3\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=60.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 3.4%\n【テクニカル】RSI=65(買われ過ぎ), Tech=0.27\n【カタリスト】次回決算予定: 2026-05-16",
+  "summary": "【バリュエーション】PER 24.0, 予想PER 14.6, PBR 0.88, MIX 21.1\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=60.8%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 3.4%\n【カタリスト】次回決算予定: 2026-05-16",
   "ir_url": "https://irbank.net/2502/results",
   "presentation_url": "https://irbank.net/2502/presentation",
   "pdf_url": null,
@@ -24330,23 +24330,23 @@
   "code": "4901",
   "name": "富士フイルムホールディングス",
   "sector": "化学",
-  "screener_score": 0.405,
+  "screener_score": 44.4,
   "eval": {
    "total_score": 44.4,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 11.5,
-    "financial": 4.901960784313726,
+    "financial": 4.854368932038835,
     "growth": 5.0,
     "technical": 5.0,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 19.7, 予想PER 14.4, PBR 1.02, MIX 20.1\n  → 増益見通し (fPER/PER=73.1%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.25\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 19.8, 予想PER 14.5, PBR 1.03, MIX 20.4\n  → 増益見通し (fPER/PER=73.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/4901/results",
   "presentation_url": "https://irbank.net/4901/presentation",
   "pdf_url": null,
@@ -24978,7 +24978,7 @@
   "code": "9042",
   "name": "阪急阪神ホールディングス",
   "sector": "陸運業",
-  "screener_score": 0.405,
+  "screener_score": 44.5,
   "eval": {
    "total_score": 44.5,
    "verdict": "Hold",
@@ -24992,9 +24992,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 15.5, 予想PER 14.7, PBR 0.96, MIX 14.9\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】RSI=70(買われ過ぎ), Tech=0.25\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 15.2, 予想PER 14.4, PBR 0.94, MIX 14.3\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9042/results",
   "presentation_url": "https://irbank.net/9042/presentation",
   "pdf_url": null,
@@ -25464,7 +25464,7 @@
   "code": "4507",
   "name": "塩野義製薬",
   "sector": "医薬品",
-  "screener_score": 0.405,
+  "screener_score": 43.3,
   "eval": {
    "total_score": 43.3,
    "verdict": "Hold",
@@ -25478,9 +25478,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 17.3, 予想PER 14.6, PBR 1.81, MIX 31.3\n  → 増益見通し (fPER/PER=84.4%)\n【財務】現金比率 7.5%\n【テクニカル】RSI=23(売られ過ぎ), Tech=0.25\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 17.3, 予想PER 14.5, PBR 1.81, MIX 31.3\n  → 増益見通し (fPER/PER=83.8%)\n【財務】現金比率 7.5%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/4507/results",
   "presentation_url": "https://irbank.net/4507/presentation",
   "pdf_url": null,
@@ -26355,23 +26355,23 @@
   "code": "1925",
   "name": "大和ハウス工業",
   "sector": "建設業",
-  "screener_score": 0.398,
+  "screener_score": 47.9,
   "eval": {
-   "total_score": 48.0,
+   "total_score": 47.9,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 13.5,
-    "financial": 4.716981132075471,
+    "financial": 4.62962962962963,
     "growth": 6.5,
     "technical": 3.8,
     "supply": 4.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 13.3, 予想PER 10.4, PBR 1.06, MIX 14.1\n  → 増益見通し (fPER/PER=78.2%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】RSI=26(売られ過ぎ), Tech=0.19\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 13.5, 予想PER 10.5, PBR 1.08, MIX 14.6\n  → 増益見通し (fPER/PER=77.8%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/1925/results",
   "presentation_url": "https://irbank.net/1925/presentation",
   "pdf_url": null,
@@ -26382,23 +26382,23 @@
   "code": "2768",
   "name": "双日",
   "sector": "卸売業",
-  "screener_score": 0.397,
+  "screener_score": 48.8,
   "eval": {
-   "total_score": 51.7,
-   "verdict": "Buy",
-   "stars": 4,
+   "total_score": 48.8,
+   "verdict": "Hold",
+   "stars": 3,
    "breakdown": {
     "valuation": 11.5,
-    "financial": 8.347826086956523,
-    "growth": 9.5,
+    "financial": 8.385964912280702,
+    "growth": 6.5,
     "technical": 4.4,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 15.8, 予想PER 11.0, PBR 1.15, MIX 18.2\n  → 会社予想ベースでは大幅増益見通し (fPER/PER=69.6%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 16.1%\n【テクニカル】Tech=0.22\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 15.7, 予想PER 11.0, PBR 1.14, MIX 17.9\n  → 増益見通し (fPER/PER=70.1%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 16.3%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/2768/results",
   "presentation_url": "https://irbank.net/2768/presentation",
   "pdf_url": null,
@@ -26490,23 +26490,23 @@
   "code": "5020",
   "name": "ＥＮＥＯＳホールディングス",
   "sector": "石油・石炭製品",
-  "screener_score": 0.397,
+  "screener_score": 42.9,
   "eval": {
-   "total_score": 42.7,
+   "total_score": 42.9,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 6.5,
-    "financial": 10.807692307692307,
+    "financial": 10.950495049504951,
     "growth": 3.0,
     "technical": 4.4,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 28.6, 予想PER 27.4, PBR 1.04, MIX 29.7\n【財務】現金比率 20.8%\n【テクニカル】RSI=33(売られ過ぎ), Tech=0.22\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 27.8, 予想PER 26.6, PBR 1.01, MIX 28.1\n【財務】現金比率 21.4%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/5020/results",
   "presentation_url": "https://irbank.net/5020/presentation",
   "pdf_url": null,
@@ -27111,23 +27111,23 @@
   "code": "8725",
   "name": "ＭＳ＆ＡＤインシュアランスグループホールディングス",
   "sector": "保険業",
-  "screener_score": 0.393,
+  "screener_score": 43.8,
   "eval": {
    "total_score": 43.8,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 14.5,
-    "financial": 3.90625,
+    "financial": 3.937007874015748,
     "growth": 3.0,
     "technical": 4.4,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 9.2, 予想PER 10.2, PBR 1.28, MIX 11.8\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.22\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 9.2, 予想PER 10.2, PBR 1.27, MIX 11.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8725/results",
   "presentation_url": "https://irbank.net/8725/presentation",
   "pdf_url": null,
@@ -28164,7 +28164,7 @@
   "code": "5411",
   "name": "ＪＦＥホールディングス",
   "sector": "鉄鋼",
-  "screener_score": 0.385,
+  "screener_score": 50.8,
   "eval": {
    "total_score": 50.8,
    "verdict": "Buy",
@@ -28178,9 +28178,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 18.8, 予想PER 15.3, PBR 0.44, MIX 8.3\n  → 増益見通し (fPER/PER=81.4%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 15.6%\n【テクニカル】RSI=34(売られ過ぎ), Tech=0.19\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 18.5, 予想PER 15.0, PBR 0.43, MIX 8.0\n  → 増益見通し (fPER/PER=81.1%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 15.8%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/5411/results",
   "presentation_url": "https://irbank.net/5411/presentation",
   "pdf_url": null,
@@ -28596,23 +28596,23 @@
   "code": "8411",
   "name": "みずほフィナンシャルグループ",
   "sector": "銀行業",
-  "screener_score": 0.384,
+  "screener_score": 43.2,
   "eval": {
-   "total_score": 41.2,
-   "verdict": "Sell",
-   "stars": 2,
+   "total_score": 43.2,
+   "verdict": "Hold",
+   "stars": 3,
    "breakdown": {
     "valuation": 10.0,
-    "financial": 3.3783783783783785,
-    "growth": 4.5,
+    "financial": 3.3557046979865772,
+    "growth": 6.5,
     "technical": 3.8,
     "supply": 4.5,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 16.5, 予想PER 14.9, PBR 1.48, MIX 24.4\n【テクニカル】Tech=0.19\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 16.6, 予想PER 14.9, PBR 1.49, MIX 24.7\n  → 増益見通し (fPER/PER=89.8%)\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8411/results",
   "presentation_url": "https://irbank.net/8411/presentation",
   "pdf_url": null,
@@ -29217,7 +29217,7 @@
   "code": "8053",
   "name": "住友商事",
   "sector": "卸売業",
-  "screener_score": 0.381,
+  "screener_score": 42.6,
   "eval": {
    "total_score": 42.6,
    "verdict": "Hold",
@@ -29231,9 +29231,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 17.8, 予想PER 12.7, PBR 1.53, MIX 27.2\n  → 増益見通し (fPER/PER=71.3%)\n【財務】現金比率 8.4%\n【テクニカル】Tech=0.19\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 17.7, 予想PER 12.7, PBR 1.53, MIX 27.1\n  → 増益見通し (fPER/PER=71.8%)\n【財務】現金比率 8.4%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8053/results",
   "presentation_url": "https://irbank.net/8053/presentation",
   "pdf_url": null,
@@ -29406,23 +29406,23 @@
   "code": "9021",
   "name": "西日本旅客鉄道",
   "sector": "陸運業",
-  "screener_score": 0.381,
+  "screener_score": 42.5,
   "eval": {
-   "total_score": 42.6,
+   "total_score": 42.5,
    "verdict": "Hold",
    "stars": 3,
    "breakdown": {
     "valuation": 14.5,
-    "financial": 4.761904761904762,
+    "financial": 4.716981132075471,
     "growth": 1.5,
     "technical": 3.8,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 11.5, 予想PER 11.7, PBR 1.05, MIX 12.1\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】RSI=29(売られ過ぎ), Tech=0.19\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 11.6, 予想PER 11.9, PBR 1.06, MIX 12.3\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/9021/results",
   "presentation_url": "https://irbank.net/9021/presentation",
   "pdf_url": null,
@@ -31026,7 +31026,7 @@
   "code": "8750",
   "name": "第一生命ホールディングス",
   "sector": "保険業",
-  "screener_score": 0.365,
+  "screener_score": 41.8,
   "eval": {
    "total_score": 41.8,
    "verdict": "Sell",
@@ -31040,9 +31040,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 14.4, 予想PER 13.0, PBR 1.30, MIX 18.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.15\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 14.4, 予想PER 13.0, PBR 1.30, MIX 18.7\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8750/results",
   "presentation_url": "https://irbank.net/8750/presentation",
   "pdf_url": null,
@@ -32565,7 +32565,7 @@
   "code": "7261",
   "name": "マツダ",
   "sector": "輸送用機器",
-  "screener_score": 0.344,
+  "screener_score": 48.9,
   "eval": {
    "total_score": 48.9,
    "verdict": "Hold",
@@ -32579,9 +32579,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】予想PER 34.8, PBR 0.38\n【財務】現金比率 163.0%\n  → 豊富なキャッシュポジション\n【テクニカル】Tech=0.47\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】予想PER 34.8, PBR 0.38\n【財務】現金比率 163.0%\n  → 豊富なキャッシュポジション\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/7261/results",
   "presentation_url": "https://irbank.net/7261/presentation",
   "pdf_url": null,
@@ -32808,23 +32808,23 @@
   "code": "1662",
   "name": "石油資源開発",
   "sector": "鉱業",
-  "screener_score": 0.341,
+  "screener_score": 44.3,
   "eval": {
-   "total_score": 41.3,
-   "verdict": "Sell",
-   "stars": 2,
+   "total_score": 44.3,
+   "verdict": "Hold",
+   "stars": 3,
    "breakdown": {
-    "valuation": 11.5,
-    "financial": 4.9504950495049505,
+    "valuation": 14.5,
+    "financial": 5.0,
     "growth": 5.0,
     "technical": 1.8,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 15.1, 予想PER 13.4, PBR 1.01, MIX 15.3\n  → 増益見通し (fPER/PER=88.7%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.09\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 13.9, 予想PER 12.3, PBR 0.93, MIX 12.9\n  → 増益見通し (fPER/PER=88.5%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/1662/results",
   "presentation_url": "https://irbank.net/1662/presentation",
   "pdf_url": null,
@@ -33294,23 +33294,23 @@
   "code": "8630",
   "name": "ＳＯＭＰＯホールディングス",
   "sector": "保険業",
-  "screener_score": 0.337,
+  "screener_score": 53.7,
   "eval": {
-   "total_score": 53.6,
+   "total_score": 53.7,
    "verdict": "Buy",
    "stars": 4,
    "breakdown": {
     "valuation": 15.5,
-    "financial": 10.716981132075471,
+    "financial": 10.761904761904763,
     "growth": 8.0,
     "technical": 1.4,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 10.5, 予想PER 9.3, PBR 1.06, MIX 11.1\n  → 増益見通し (fPER/PER=88.6%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 24.8%\n【テクニカル】Tech=0.07\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 10.4, 予想PER 9.3, PBR 1.05, MIX 10.9\n  → 増益見通し (fPER/PER=89.4%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【財務】現金比率 24.9%\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8630/results",
   "presentation_url": "https://irbank.net/8630/presentation",
   "pdf_url": null,
@@ -34428,7 +34428,7 @@
   "code": "8593",
   "name": "三菱ＨＣキャピタル",
   "sector": "その他金融業",
-  "screener_score": 0.333,
+  "screener_score": 41.5,
   "eval": {
    "total_score": 41.5,
    "verdict": "Sell",
@@ -34442,9 +34442,9 @@
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 15.5, 予想PER 13.1, PBR 1.09, MIX 16.9\n  → 増益見通し (fPER/PER=84.5%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.07\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 15.4, 予想PER 13.0, PBR 1.09, MIX 16.8\n  → 増益見通し (fPER/PER=84.4%)\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8593/results",
   "presentation_url": "https://irbank.net/8593/presentation",
   "pdf_url": null,
@@ -35832,23 +35832,23 @@
   "code": "8309",
   "name": "三井住友トラストグループ",
   "sector": "銀行業",
-  "screener_score": 0.309,
+  "screener_score": 39.7,
   "eval": {
    "total_score": 39.7,
    "verdict": "Sell",
    "stars": 2,
    "breakdown": {
     "valuation": 12.5,
-    "financial": 4.4642857142857135,
+    "financial": 4.545454545454545,
     "growth": 4.5,
     "technical": 0.2,
     "supply": 3.0,
     "catalyst": 5.0,
     "risk": 10.0
    },
-   "format_version": "v1.1"
+   "format_version": "v2.0"
   },
-  "summary": "【バリュエーション】PER 14.2, 予想PER 12.8, PBR 1.12, MIX 15.9\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【テクニカル】Tech=0.01\n【カタリスト】次回決算予定: 2026-05-15",
+  "summary": "【バリュエーション】PER 14.0, 予想PER 12.6, PBR 1.10, MIX 15.4\n  → Graham基準(MIX<22.5)を充足 — 割安水準\n【カタリスト】次回決算予定: 2026-05-15",
   "ir_url": "https://irbank.net/8309/results",
   "presentation_url": "https://irbank.net/8309/presentation",
   "pdf_url": null,
