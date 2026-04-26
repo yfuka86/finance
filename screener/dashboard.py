@@ -1035,11 +1035,14 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
     date_str = os.path.basename(csv_path).replace("value_reversal_", "").replace(".csv", "")
     out_path = args.output or os.path.join(out_dir, f"dashboard_{date_str}.html")
+    latest_path = os.path.join(out_dir, "dashboard.html")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"Dashboard: {out_path}")
-    return out_path
+    with open(latest_path, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"Dashboard: {latest_path}")
+    return latest_path
 
 
 if __name__ == "__main__":

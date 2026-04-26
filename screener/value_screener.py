@@ -421,8 +421,8 @@ DEFAULTS = dict(
     vol_short=5,
     vol_long=20,
     earnings_window=45,
-    top_n=30,
-    max_scan=250,
+    top_n=0,
+    max_scan=0,
 )
 
 
@@ -610,7 +610,7 @@ class ValueReversalScreener:
         p = self.p
         codes = universe["Code"].tolist()
         max_scan = p["max_scan"]
-        if len(codes) > max_scan:
+        if max_scan > 0 and len(codes) > max_scan:
             universe = universe.nlargest(max_scan, "Va")
             codes = universe["Code"].tolist()
 

@@ -36,9 +36,9 @@ def main():
                     help="最低時価総額 (円, default: 100億)")
     ap.add_argument("--turnover-min", type=float, default=1e7,
                     help="最低売買代金 (円/日, default: 1000万)")
-    ap.add_argument("--max-scan", type=int, default=250,
-                    help="テクニカル分析対象の最大銘柄数 (default: 250)")
-    ap.add_argument("--top",      type=int,   default=50,    help="出力銘柄数 (default: 50)")
+    ap.add_argument("--max-scan", type=int, default=0,
+                    help="テクニカル分析対象の最大銘柄数 (0=全銘柄, default: 0)")
+    ap.add_argument("--top",      type=int,   default=0,     help="出力銘柄数 (0=全銘柄, default: 0)")
     ap.add_argument("--output",   type=str,   default=None,  help="CSV出力先パス")
     args = ap.parse_args()
 
@@ -67,10 +67,15 @@ def main():
 
     # generate HTML dashboard
     html = generate_dashboard(csv_path)
+    # 日付付きファイル
     html_path = csv_path.replace(".csv", ".html").replace("value_reversal_", "dashboard_")
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"ダッシュボード: {html_path}")
+    # 常に最新を指す固定ファイル
+    latest_html = os.path.join(out_dir, "dashboard.html")
+    with open(latest_html, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"ダッシュボード: {latest_html}")
 
 
 if __name__ == "__main__":
