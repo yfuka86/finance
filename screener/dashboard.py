@@ -254,7 +254,7 @@ def generate_dashboard(csv_path: str) -> str:
             summary_escaped = rpt_summary.replace("\n", "<br>")
             detail_html = f"""
         <tr class="detail-row" data-parent="{code}" style="display:none">
-          <td colspan="21" class="detail-cell">
+          <td colspan="29" class="detail-cell">
             <div class="detail-content">
               <div class="detail-header">
                 <span class="detail-verdict {verdict_cls}">{rpt_verdict} ({rpt_score:.1f}pt)</span>
@@ -267,8 +267,19 @@ def generate_dashboard(csv_path: str) -> str:
           </td>
         </tr>"""
 
+        # 7軸スコア
+        sc_val = r.get("Sc_Valuation", 0) or 0
+        sc_fin = r.get("Sc_Financial", 0) or 0
+        sc_grw = r.get("Sc_Growth", 0) or 0
+        sc_cat = r.get("Sc_Catalyst", 0) or 0
+        sc_rsk = r.get("Sc_Risk", 0) or 0
+        sc_tech = r.get("Sc_Technical", 0) or 0
+        sc_sup = r.get("Sc_Supply", 0) or 0
+        funda_score = r.get("FundaScore", 0) or 0
+        total_score = r.get("TotalScore", 0) or 0
+
         rows_html.append(f"""
-        <tr class="main-row" data-sector="{sector}" data-score="{score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}" data-va-avg5="{va_avg5 if pd.notna(va_avg5) else 0}" data-code="{code}" onclick="toggleDetail(this)">
+        <tr class="main-row" data-sector="{sector}" data-score="{total_score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}" data-va-avg5="{va_avg5 if pd.notna(va_avg5) else 0}" data-code="{code}" onclick="toggleDetail(this)">
           <td class="code"><a href="https://irbank.net/{code}" target="_blank" onclick="event.stopPropagation()">{code}</a></td>
           <td class="name" title="{name_en}">{name}</td>
           <td class="sector">{sector}</td>
@@ -280,17 +291,24 @@ def generate_dashboard(csv_path: str) -> str:
           <td class="num">{fmt(mcap, 0)}</td>
           <td class="num cash">{fmt(cash)}</td>
           <td class="num {"net-cash-neg" if pd.notna(net_cash) and net_cash < 0 else "net-cash"}">{fmt(net_cash)}</td>
-          <td class="num rsi {rsi_cls}">{fmt(rsi)}</td>
-          <td class="num tech {tech_cls}" title="RSI:{rsi_sc:.2f} MACD:{macd_sc:.2f} MA:{ma_sc:.2f} 底値:{bottom_sc:.2f}">{fmt(tech, 2)}<span class="tech-detail"> RSI:{rsi_sc:.1f} MACD:{macd_sc:.1f} MA:{ma_sc:.1f} 底値:{bottom_sc:.1f}</span></td>
-          <td class="num vol">{fmt(vol_ratio, 2)}</td>
-          <td class="num val {val_cls}">{fmt(val, 2)}</td>
-          <td class="num score {score_cls}">{fmt(score, 3)}</td>
+          <td class="catalyst">{earn_html}</td>
+          <td class="num sc-val" title="PER/fPER/PBR/MIX → 割安度">{sc_val:.1f}</td>
+          <td class="num sc-fin" title="現金比率+資産裏付け">{sc_fin:.1f}</td>
+          <td class="num sc-grw" title="fPER/PER比+推定ROE">{sc_grw:.1f}</td>
+          <td class="num sc-cat" title="決算近接度">{sc_cat:.1f}</td>
+          <td class="num sc-rsk" title="流動性+バリュートラップ(減点式)">{sc_rsk:.1f}</td>
+          <td class="num funda-score">{funda_score:.1f}</td>
           <td class="verdict-cell">{verdict_html}</td>
           <td class="num rpt-score">{rpt_score_html}</td>
+          <td class="sep"></td>
+          <td class="num rsi {rsi_cls}">{fmt(rsi)}</td>
+          <td class="num tech {tech_cls}" title="RSI:{rsi_sc:.2f} MACD:{macd_sc:.2f} MA:{ma_sc:.2f} 底値:{bottom_sc:.2f}">{fmt(tech, 2)}<span class="tech-detail"> RSI:{rsi_sc:.1f} MACD:{macd_sc:.1f} MA:{ma_sc:.1f} 底値:{bottom_sc:.1f}</span></td>
+          <td class="num sc-tech" title="テクニカル総合(20点満点)">{sc_tech:.1f}</td>
+          <td class="num sc-sup" title="需給: 出来高変化率+売買代金">{sc_sup:.1f}</td>
+          <td class="num vol">{fmt(vol_ratio, 2)}</td>
           <td class="va-cell">{va_html}{va_avg_html}</td>
           <td class="spark-cell">{spark_svg}</td>
           <td class="signals">{sig}</td>
-          <td class="catalyst">{earn_html}</td>
         </tr>{detail_html}""")
 
     table_body = "\n".join(rows_html)
@@ -574,6 +592,23 @@ def generate_dashboard(csv_path: str) -> str:
   .spark-cell {{ padding: 4px 4px; }}
   .spark {{ display: block; }}
 
+  /* Score columns */
+  .sc-val, .sc-fin, .sc-grw, .sc-cat, .sc-rsk, .sc-tech, .sc-sup {{
+    font-size: 12px;
+    font-weight: 500;
+  }}
+  .funda-score {{
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }}
+  .sep, .sep-th {{
+    width: 3px !important;
+    min-width: 3px !important;
+    max-width: 3px !important;
+    padding: 0 !important;
+    background: var(--border) !important;
+  }}
   /* Signals & Catalyst */
   .tech-detail {{
     font-size: 10px;
@@ -723,6 +758,36 @@ def generate_dashboard(csv_path: str) -> str:
     font-family: 'SF Mono', monospace;
     font-size: 12px;
   }}
+  .legend-table {{
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 12px;
+    font-size: 12px;
+  }}
+  .legend-table th {{
+    text-align: left;
+    padding: 4px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--text);
+  }}
+  .legend-table td {{
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.6;
+  }}
+  .legend-table td:first-child {{
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--accent);
+  }}
+  .legend-table td:nth-child(2) {{
+    text-align: center;
+    white-space: nowrap;
+    width: 50px;
+  }}
 
   @media (max-width: 960px) {{
     .summary {{ grid-template-columns: repeat(3, 1fr); }}
@@ -839,17 +904,24 @@ def generate_dashboard(csv_path: str) -> str:
   <th onclick="sortTable(8)">時価総額(億)</th>
   <th onclick="sortTable(9)">現金比率%</th>
   <th onclick="sortTable(10)">ネット現金%</th>
-  <th onclick="sortTable(11)">RSI</th>
-  <th onclick="sortTable(12)" title="Tech総合 (RSI反転/MACDクロス/MA転換/底値反発) 各0~1">Tech</th>
-  <th onclick="sortTable(13)">出来高比</th>
-  <th onclick="sortTable(14)">Value</th>
-  <th onclick="sortTable(15)">総合</th>
-  <th onclick="sortTable(16)">判定</th>
-  <th onclick="sortTable(17)">評価点</th>
-  <th onclick="sortTable(18)">売買代金(億)</th>
+  <th>決算予定</th>
+  <th onclick="sortTable(12)" title="PER/fPER/PBR/MIX から算出 (20点満点)">割安</th>
+  <th onclick="sortTable(13)" title="現金比率 + PBR資産裏付け (15点満点)">財務</th>
+  <th onclick="sortTable(14)" title="fPER/PER比 + 推定ROE (15点満点)">成長</th>
+  <th onclick="sortTable(15)" title="決算近接度 (10点満点)">触媒</th>
+  <th onclick="sortTable(16)" title="流動性リスク+バリュートラップ兆候 (10点/減点式)">リスク</th>
+  <th onclick="sortTable(17)" title="割安+財務+成長+触媒+リスク = 70点満点">Fスコア</th>
+  <th onclick="sortTable(18)">判定</th>
+  <th onclick="sortTable(19)">評価点</th>
+  <th class="sep-th"></th>
+  <th onclick="sortTable(21)" title="RSI(14) 35以下=売られ過ぎ">RSI</th>
+  <th onclick="sortTable(22)" title="Tech総合 (RSI反転/MACDクロス/MA転換/底値反発) 各0~1">Tech</th>
+  <th onclick="sortTable(23)" title="テクニカル総合 (20点満点)">T点</th>
+  <th onclick="sortTable(24)" title="需給: 出来高変化率+売買代金 (10点満点)">需給</th>
+  <th onclick="sortTable(25)">出来高比</th>
+  <th onclick="sortTable(26)">売買代金(億)</th>
   <th>推移</th>
   <th>シグナル</th>
-  <th>決算予定</th>
 </tr>
 </thead>
 <tbody id="tableBody">
@@ -859,19 +931,40 @@ def generate_dashboard(csv_path: str) -> str:
 </div>
 
 <div class="legend">
-  <h3>スコアリング方法</h3>
-  <span class="formula">MIX = PER x PBR</span> &mdash; Benjamin Graham 基準 &lt; 22.5<br>
-  <span class="formula">Tech = RSI反転(25%) + MACDクロス(25%) + MA転換(25%) + 底値反発(25%)</span><br>
-  <span class="formula">総合 = Value(40%) + Tech(40%) + 出来高(15%) + カタリスト(5%)</span><br>
-  <br>
-  <strong>Tech内訳 (RSI/MACD/MA/底値) 各0.0〜1.0:</strong><br>
+  <h3>ファンダメンタル・スコア (Fスコア = 70点満点)</h3>
+  <table class="legend-table">
+    <tr><th>軸</th><th>満点</th><th>算出方法</th></tr>
+    <tr><td><strong>割安</strong></td><td>20</td><td>PER(5) + fPER(5) + PBR(5) + MIX(5)。各指標が低いほど高得点。PER&lt;8→5, &lt;12→4, &lt;15→3, &lt;20→2, &lt;30→1。PBR&lt;0.5→5, &lt;0.8→4, &lt;1.0→3.5, &lt;1.5→2.5。MIX&lt;10→5, &lt;15→4, &lt;22.5→3</td></tr>
+    <tr><td><strong>財務</strong></td><td>15</td><td>現金比率(10) + PBR資産裏付け(5)。現金比率&gt;50%→10, &gt;30%→8, &gt;20%→6, &gt;10%→4。PBR低いほど資産裏付け加点(5/PBR, 上限5)</td></tr>
+    <tr><td><strong>成長</strong></td><td>15</td><td>fPER/PER比(10) + 推定ROE(5)。fPER/PER&lt;0.5→10(大幅増益), &lt;0.7→8, &lt;0.9→5。推定ROE=PBR/PER×100: &gt;15%→5, &gt;10%→3</td></tr>
+    <tr><td><strong>触媒</strong></td><td>10</td><td>次回決算までの日数。14日以内→8, 30日以内→5, 60日以内→3, 60日超→1</td></tr>
+    <tr><td><strong>リスク</strong></td><td>10</td><td>10点から減点。PBR&lt;0.5かつ現金比率&lt;5%→-3(バリュートラップ)。PER&gt;100→-4, &gt;50→-2。売買代金5d平均&lt;1億→-3, &lt;3億→-1</td></tr>
+  </table>
+
+  <h3>テクニカル・スコア (右側)</h3>
+  <table class="legend-table">
+    <tr><th>軸</th><th>満点</th><th>算出方法</th></tr>
+    <tr><td><strong>Tech</strong></td><td>0~1</td><td>RSI反転(25%) + MACDクロス(25%) + MA転換(25%) + 底値反発(25%)</td></tr>
+    <tr><td><strong>T点</strong></td><td>20</td><td>Tech × 20。テクニカル総合スコアを20点満点に換算</td></tr>
+    <tr><td><strong>需給</strong></td><td>10</td><td>出来高比(7) + 売買代金水準(3)。出来高比&gt;2.0→7, &gt;1.5→5, &gt;1.2→3。代金5d≥50億→3, ≥10億→2.5, ≥3億→2</td></tr>
+  </table>
+
+  <h3>Tech内訳 (RSI/MACD/MA/底値) 各0.0〜1.0</h3>
   <span class="formula">RSI反転</span>: 1.0=5日前RSI≤35から反発中 / 0.5=RSI≤35(売られ過ぎ) / 0.3=RSI≤55(通常) / 0.0=RSI&gt;55(過熱)<br>
   <span class="formula">MACDクロス</span>: 1.0=ヒストグラムがマイナス→プラス転換 / 0.5=上昇中 / 0.0=下落中<br>
   <span class="formula">MA転換</span>: 1.0=株価&gt;短期MA&gt;長期MA / 0.5=株価&gt;短期MAのみ / +0.5=ゴールデンクロス発生<br>
   <span class="formula">底値反発</span>: 直近期間の安値から25%位置付近で最高(1.0)、離れるほど減少<br>
   <br>
-  fPER = 予想PER &nbsp;|&nbsp; 現金比率 = 現金同等物 / 時価総額 x 100 &nbsp;|&nbsp; ネット現金 = (現金同等物 - 負債) / 時価総額 x 100 &nbsp;|&nbsp;
-  出来高比 = 直近5日平均 / 20日平均 &nbsp;|&nbsp; 売買代金推移 = 直近10営業日
+  <strong>総合評価点</strong> = Fスコア(70) + T点(20) + 需給(10) = 100点満点<br>
+  <strong>判定</strong>: ★★★★★ Strong Buy(≥60) / ★★★★ Buy(≥50) / ★★★ Hold(≥42) / ★★ Sell(≥35) / ★ Strong Sell(&lt;35)<br>
+  <br>
+  <span style="color:#888">
+  MIX = PER × PBR (Graham基準 &lt; 22.5) &nbsp;|&nbsp;
+  fPER = 予想PER &nbsp;|&nbsp;
+  現金比率 = 現金同等物 / 時価総額 × 100 &nbsp;|&nbsp;
+  ネット現金 = (現金同等物 − 負債) / 時価総額 × 100 &nbsp;|&nbsp;
+  出来高比 = 直近5日平均 / 20日平均
+  </span>
 </div>
 
 </div>
