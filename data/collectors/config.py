@@ -9,6 +9,10 @@ JQUANTS_API_KEY = os.environ.get(
 )
 JQUANTS_BASE = "https://api.jquants.com"
 
+EDINET_API_KEY = os.environ.get(
+    "EDINET_API_KEY", "a5e9c7dad00c4554ba9ca23ac3f62c79"
+)
+
 # --- US Sector ETFs (Select Sector SPDR, 11 GICS sectors) ---
 US_TICKERS = [
     "XLB",   # Materials

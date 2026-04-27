@@ -89,6 +89,9 @@ def generate_dashboard(csv_path: str) -> str:
         mcap = r.get("MarketCap_B")
         cash = r.get("CashRatio")
         net_cash = r.get("NetCashRatio")
+        bs_near = r.get("BS_NearCash")
+        bs_debt = r.get("BS_Debt")
+        bs_nc = r.get("BS_NetCash")
         score = r.get("FundaScore", 0) or 0
         earn = r.get("EarningsDate", "")
         fper = r.get("fPER")
@@ -242,6 +245,14 @@ def generate_dashboard(csv_path: str) -> str:
         # スコアに応じたクラス
         fs_cls = "fs-high" if funda_score >= 45 else ("fs-mid" if funda_score >= 38 else "fs-low")
 
+        # ネット現金セル (BS詳細あればツールチップ + BSタグ)
+        nc_cls = "net-cash-neg" if pd.notna(net_cash) and net_cash < 0 else "net-cash"
+        nc_title = ""
+        nc_tag = ""
+        if pd.notna(bs_near):
+            nc_title = f' title="準現金: {bs_near:.0f}億 / 有利子負債: {bs_debt:.0f}億 / NC: {bs_nc:.0f}億"'
+            nc_tag = '<span class="bs-tag">BS</span>'
+
         rows_html.append(f"""
         <tr class="main-row" data-sector="{sector}" data-score="{funda_score}" data-earn-days="{earn_days}" data-mcap="{mcap if pd.notna(mcap) else 0}" data-va-avg5="{va_avg5 if pd.notna(va_avg5) else 0}" data-code="{code}" onclick="toggleDetail(this)">
           <td class="code"><a href="https://irbank.net/{code}" target="_blank" onclick="event.stopPropagation()">{code}</a></td>
@@ -256,7 +267,7 @@ def generate_dashboard(csv_path: str) -> str:
           <td class="num mix {mix_cls}">{fmt(mix)}</td>
           <td class="num">{fmt(mcap, 0)}</td>
           <td class="num cash">{fmt(cash)}</td>
-          <td class="num {"net-cash-neg" if pd.notna(net_cash) and net_cash < 0 else "net-cash"}">{fmt(net_cash)}</td>
+          <td class="num {nc_cls}"{nc_title}>{fmt(net_cash)}{nc_tag}</td>
           <td class="catalyst">{earn_html}</td>
           <td class="va-cell">{va_html}{va_avg_html}</td>
           <td class="spark-cell">{spark_svg}</td>
@@ -516,6 +527,18 @@ def generate_dashboard(csv_path: str) -> str:
   .cash {{ color: var(--accent); }}
   .net-cash {{ color: var(--accent); }}
   .net-cash-neg {{ color: var(--red); }}
+  .bs-tag {{
+    display: inline-block;
+    font-size: 8px;
+    background: #dbeafe;
+    color: var(--accent);
+    border-radius: 3px;
+    padding: 0 3px;
+    margin-left: 3px;
+    font-weight: 700;
+    vertical-align: super;
+    line-height: 1;
+  }}
 
   /* Volume / turnover */
   .va-cell {{
@@ -821,7 +844,7 @@ def generate_dashboard(csv_path: str) -> str:
   <th onclick="sortTable(9)">MIX</th>
   <th onclick="sortTable(10)">時価総額(億)</th>
   <th onclick="sortTable(11)">現金比率%</th>
-  <th onclick="sortTable(12)">ネット現金%</th>
+  <th onclick="sortTable(12)" title="(準現金性資産 − 有利子負債) ÷ 時価総額 × 100。BS=EDINET有報詳細データ使用">ネット現金%</th>
   <th>決算予定</th>
   <th onclick="sortTable(14)">売買代金(億)</th>
   <th>推移</th>
@@ -850,7 +873,7 @@ def generate_dashboard(csv_path: str) -> str:
   MIX = PER × PBR (Graham基準 &lt; 22.5) &nbsp;|&nbsp;
   fPER = 会社予想ベースのPER &nbsp;|&nbsp;
   現金比率 = 現金同等物 ÷ 時価総額 × 100 &nbsp;|&nbsp;
-  ネット現金 = (現金同等物 − 負債) ÷ 時価総額 × 100
+  ネット現金 = (準現金性資産 − 有利子負債) ÷ 時価総額 × 100 <sup>BS</sup>=EDINET有報BS詳細 ／ 無印=J-Quants簡易(現金−総負債)
   </span>
 </div>
 

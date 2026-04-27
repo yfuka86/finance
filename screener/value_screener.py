@@ -665,6 +665,32 @@ class ValueReversalScreener:
                     fd["NetCash"] / fd["MarketCap"] * 100, 1)
             if fd.get("EarningsDate"):
                 df.loc[mask, "EarningsDate"] = fd["EarningsDate"]
+
+        # ── EDINET BS 詳細から広義ネットキャッシュを上書き ──
+        from screener.edinet_bs import fetch_bs_batch
+        print("[4b/5] EDINET BS 詳細取得中...")
+        bs_data = fetch_bs_batch(codes)
+        n_bs = 0
+        for c, bsd in bs_data.items():
+            mask = df["Code"] == c
+            if not mask.any():
+                continue
+            nc_info = bsd.get("net_cash_info")
+            if nc_info is None:
+                continue
+            mc_raw = fdata.get(c, {}).get("MarketCap")
+            if mc_raw and mc_raw > 0:
+                # 広義ネットキャッシュ比率で上書き
+                df.loc[mask, "NetCashRatio"] = round(
+                    nc_info["net_cash"] / mc_raw * 100, 1)
+                n_bs += 1
+            # BS 内訳列 (ダッシュボード表示用)
+            bd = nc_info["breakdown"]
+            df.loc[mask, "BS_NearCash"] = round(nc_info["near_cash"] / 1e8, 1)
+            df.loc[mask, "BS_Debt"] = round(nc_info["interest_debt"] / 1e8, 1)
+            df.loc[mask, "BS_NetCash"] = round(nc_info["net_cash"] / 1e8, 1)
+        if n_bs:
+            print(f"  → EDINET BS で広義ネットキャッシュ更新: {n_bs} 銘柄")
         return df
 
     # ── Pass 3: composite score (no pre-filter) ────────────────
