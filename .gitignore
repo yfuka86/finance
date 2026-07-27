@@ -3,9 +3,20 @@ backtest/results/
 __pycache__/
 *.pyc
 .claude/
+.env
 trading/bybit/saved_data/
 trading/bybit/saved_results/
 *.parquet
 =5.8
 # Large fins cache JSONs (use compressed .gz parts instead)
 data/cache/fins_*.json
+# 再生成可能・大容量データ（コレクタ/キャッシュで再構築可）
+data/cache_panels/
+data/live_reports/
+data/live_models/
+data/jp_minutes_2y/
+data/jp_minutes_100bn*/
+data/jp_ticks*/
+data/jp_daily_history/
+data/live_reports/
+nohup.out

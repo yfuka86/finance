@@ -1,0 +1,9 @@
+{
+  "total_return": -0.019867907580960242,
+  "cagr": -0.6784524313284814,
+  "sharpe": -15.135091913548171,
+  "max_drawdown": -0.024290913158058314,
+  "turnover": 16.0,
+  "gross_return_sum": -0.016817876927231253,
+  "strategy": "volume_reversal_30m"
+}

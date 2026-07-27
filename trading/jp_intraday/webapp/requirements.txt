@@ -1,0 +1,3 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+google-cloud-firestore>=2.16  ; python_version >= "3.9"
