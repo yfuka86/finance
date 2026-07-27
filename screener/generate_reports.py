@@ -27,14 +27,14 @@ REPORT_CACHE = os.path.join(
 
 def _load_report_cache() -> dict:
     if os.path.exists(REPORT_CACHE):
-        with open(REPORT_CACHE, "r") as f:
+        with open(REPORT_CACHE, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
 
 def _save_report_cache(data: dict):
     os.makedirs(os.path.dirname(REPORT_CACHE), exist_ok=True)
-    with open(REPORT_CACHE, "w") as f:
+    with open(REPORT_CACHE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
 
 

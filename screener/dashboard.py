@@ -56,7 +56,7 @@ def _load_reports() -> dict:
     """レポートキャッシュを読み込み."""
     rpath = os.path.join(os.path.dirname(__file__), "..", "data", "cache", "reports.json")
     if os.path.exists(rpath):
-        with open(rpath, "r") as f:
+        with open(rpath, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 

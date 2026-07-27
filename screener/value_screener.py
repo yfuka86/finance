@@ -171,7 +171,7 @@ def _fins_cache_path(date_str: str) -> str:
 def _load_fins_cache(date_str: str) -> dict:
     path = _fins_cache_path(date_str)
     if os.path.exists(path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     # gzip分割ファイルからの自動復元
     import gzip as _gzip
@@ -190,7 +190,7 @@ def _load_fins_cache(date_str: str) -> dict:
 
 def _save_fins_cache(date_str: str, data: dict):
     path = _fins_cache_path(date_str)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False)
 
 

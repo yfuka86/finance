@@ -80,7 +80,7 @@ for sym in SYMBOLS:
 
 # Save results
 out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "validated_results_cfl.json")
-with open(out_path, "w") as f:
+with open(out_path, "w", encoding="utf-8") as f:
     json.dump(results, f, indent=2)
 print(f"\nResults saved to {out_path}")
 

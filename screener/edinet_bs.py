@@ -75,14 +75,14 @@ ALL_TARGET_ITEMS = {**NEAR_CASH_ITEMS, **INTEREST_BEARING_DEBT, **REFERENCE_ITEM
 
 def _load_json(path: str) -> dict:
     if os.path.exists(path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
 
 def _save_json(path: str, data: dict):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
 
 

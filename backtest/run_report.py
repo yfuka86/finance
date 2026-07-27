@@ -368,7 +368,7 @@ def _write_markdown_report(report_data, splits):
     lines.append("")
 
     report_path = os.path.join(RESULTS_DIR, "strategy_report.md")
-    with open(report_path, "w") as f:
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print(f"  Written: {report_path}")
 
