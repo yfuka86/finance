@@ -1,0 +1,10 @@
+{
+  "strategy": "gap_fade",
+  "holding_bars": 12,
+  "gross_sharpe": 3.446774590839049,
+  "sharpe": 2.227434192475195,
+  "gross_return_sum": 0.03915579474662076,
+  "total_return": 0.025177423663173437,
+  "turnover": 67.9939393939394,
+  "max_drawdown": -0.022024135508673992
+}

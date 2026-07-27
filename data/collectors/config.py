@@ -2,16 +2,29 @@
 Ticker definitions and data source configuration.
 """
 import os
+from pathlib import Path
+
+
+def _load_local_env() -> None:
+    """Load untracked workspace secrets without adding another dependency."""
+    path = Path(__file__).resolve().parents[2] / ".env"
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        os.environ.setdefault(name.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_local_env()
 
 # --- API Keys ---
-JQUANTS_API_KEY = os.environ.get(
-    "JQUANTS_API_KEY", "2gOAlBhCb2vjpcfNYm0AKV8hhhmfsvyYdTnRNLQm6aI"
-)
+JQUANTS_API_KEY = os.environ.get("JQUANTS_API_KEY", "")
 JQUANTS_BASE = "https://api.jquants.com"
 
-EDINET_API_KEY = os.environ.get(
-    "EDINET_API_KEY", "a5e9c7dad00c4554ba9ca23ac3f62c79"
-)
+EDINET_API_KEY = os.environ.get("EDINET_API_KEY", "")
 
 # --- US Sector ETFs (Select Sector SPDR, 11 GICS sectors) ---
 US_TICKERS = [
