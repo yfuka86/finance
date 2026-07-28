@@ -80,6 +80,10 @@ PYTHONPATH=. streamlit run trading/jp_intraday/dashboard.py   # → http://local
 
 ## ライブ実行（要点だけ・詳細は live/README.md）
 
+> **どのモデルで運用するか・Day1手順・日次損益の肌感は
+> [live/README.md の「🎯 本番推奨構成」](trading/jp_intraday/live/README.md) に集約**（2026-07確定）。
+> 要点: `ensemble_core`・¥20M・信用2.0倍（`LIVE_MARGIN_RATIO=2.0`）・8銘柄/側・寄成→引成のみ。
+
 ```bash
 python -m trading.jp_intraday.live.run_live preflight  # どのOSでも: モックで全フロー検証
 python -m trading.jp_intraday.live.run_live train      # 年1回: MLモデル更新
