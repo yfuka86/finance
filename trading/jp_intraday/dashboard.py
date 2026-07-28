@@ -157,14 +157,17 @@ with st.container(border=True):
                      horizontal=True, key="seg")
     MKT = {"全市場": None, "プライムのみ": ("プライム",),
            "プライム+スタンダード": ("プライム", "スタンダード")}[seg]
-    _CAPS = [0, 100e8, 300e8, 1000e8, 3000e8, 1e12, 3e12, float("inf")]
+    # 注意: float("inf") はウィジェット値の往復（JSON化）で壊れて反対側のつまみに
+    # 伝染し、時価総額≥∞→空パネル→全戦略0.0 になる。有限の番兵 1e15(¥1000兆) を使う。
+    _NOCAP = 1e15
+    _CAPS = [0, 100e8, 300e8, 1000e8, 3000e8, 1e12, 3e12, _NOCAP]
     def _cap_lab(v):
-        return "制限なし" if v in (0, float("inf")) else (f"¥{v/1e12:g}兆" if v >= 1e12 else f"¥{v/1e8:,.0f}億")
+        return "制限なし" if v in (0, _NOCAP) else (f"¥{v/1e12:g}兆" if v >= 1e12 else f"¥{v/1e8:,.0f}億")
     cap_lo, cap_hi = u[1].select_slider(
-        "時価総額バンド（PIT株数×前日終値）", options=_CAPS, value=(0, float("inf")),
+        "時価総額バンド（PIT株数×前日終値）", options=_CAPS, value=(0, _NOCAP),
         format_func=_cap_lab)
-    MINCAP = cap_lo or None
-    MAXCAP = None if cap_hi == float("inf") else cap_hi
+    MINCAP = None if cap_lo in (0, _NOCAP) else cap_lo
+    MAXCAP = None if cap_hi >= _NOCAP else cap_hi
     v = st.columns([1.4, 2.8])
     MIN_SH = v[0].select_slider("表示Sharpe下限（一覧の省略）",
                                 options=[None, 0.0, 0.5, 1.0, 2.0], value=0.5,
@@ -197,6 +200,9 @@ is_show = nav.startswith("🔍")
 # INDEX — dense list
 # =====================================================================
 if not is_show:
+    if _panel(liq, MKT, MINCAP, MAXCAP).empty:
+        st.warning("この制約（市場区分・時価総額・流動性）では対象銘柄が0件です。制約を緩めてください。")
+        st.stop()
     summ = _summaries(liq, mode, p, MKT, MINCAP, MAXCAP)
     from trading.jp_intraday.strategies import HOLDING_LABEL
     def _hold_label(k):
