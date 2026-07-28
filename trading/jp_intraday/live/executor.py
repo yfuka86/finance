@@ -190,7 +190,8 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
                 mspec = STRATEGIES[member]
                 scored_m = _score_today(last_df, opens, member)
                 magnitude = mspec.get("construction", "").startswith("magnitude")
-                rows += _sleeve_rows(scored_m, cfg, cfg.capital_yen * w / 2.0, magnitude)
+                side_cap = cfg.capital_yen * cfg.margin_ratio * w / 2.0  # 信用倍率でグロス拡大
+                rows += _sleeve_rows(scored_m, cfg, side_cap, magnitude)
             p = pd.DataFrame(rows)
             # 同一銘柄が複数スリーブに出たら統合（同方向合算・逆方向は差し引き）
             if not p.empty:
@@ -208,7 +209,7 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
             return p
         scored = _score_today(last_df, opens, cfg.strategy)
         magnitude = spec.get("construction", "").startswith("magnitude")
-        return pd.DataFrame(_sleeve_rows(scored, cfg, cfg.capital_yen / 2.0, magnitude))
+        return pd.DataFrame(_sleeve_rows(scored, cfg, cfg.capital_yen * cfg.margin_ratio / 2.0, magnitude))
 
     # 売建可否の実チェック（デイトレ信用の在庫は日々変動）: 不可銘柄を除外して
     # 次点候補で再選択（最大3周）。チェック済みはキャッシュしAPI呼数を最小化。
