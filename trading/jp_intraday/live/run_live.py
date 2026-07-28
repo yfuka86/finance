@@ -43,6 +43,11 @@ def _build_client(cfg: LiveConfig):
         prev = dict(zip(last["symbol"], last["raw_close"].fillna(last["close"])))
         return MockKabuClient(prices, capital_yen=cfg.capital_yen, prev_close=prev)
     client = KabuClient(cfg.api_password, cfg.order_password, env=cfg.env)
+    if cfg.data_env and cfg.data_env != cfg.env:
+        # 板だけ別環境 (検証環境は板がnullのため、本番の板+検証の発注で通しリハーサル)
+        from .kabu_client import HybridKabuClient
+        data = KabuClient(cfg.data_api_password, "", env=cfg.data_env)
+        client = HybridKabuClient(data, client)
     client.authenticate()
     return client
 

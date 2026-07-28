@@ -57,6 +57,10 @@ class KabuClientProtocol(Protocol):
 
 
 class KabuClient:
+    # kabuステーションAPIの参照系レート制限は10req/s。それを僅かに下回るペース。
+    # Session再利用が無いと1リクエスト~0.9秒(毎回TCP+ハンドシェイク)に落ちる実測。
+    MIN_INTERVAL = 0.105
+
     def __init__(self, api_password: str, order_password: str, env: str = "test",
                  host: str = "localhost", timeout: float = 10.0):
         if env not in ("test", "prod"):
@@ -68,11 +72,14 @@ class KabuClient:
         self._order_password = order_password
         self.timeout = timeout
         self._token: str | None = None
+        self._session = requests.Session()
+        self._last_call = 0.0
+        self._board_calls = 0
 
     # ── auth ────────────────────────────────────────────────────────
     def authenticate(self) -> str:
-        r = requests.post(f"{self.base}/token", json={"APIPassword": self._api_password},
-                          timeout=self.timeout)
+        r = self._session.post(f"{self.base}/token", json={"APIPassword": self._api_password},
+                               timeout=self.timeout)
         r.raise_for_status()
         body = r.json()
         token = body.get("Token")
@@ -86,22 +93,49 @@ class KabuClient:
             self.authenticate()
         return {"Content-Type": "application/json", "X-API-KEY": self._token}
 
+    def _throttle(self) -> None:
+        import time
+        wait = self.MIN_INTERVAL - (time.monotonic() - self._last_call)
+        if wait > 0:
+            time.sleep(wait)
+        self._last_call = time.monotonic()
+
     def _request(self, method: str, path: str, *, params=None, json=None):
         url = f"{self.base}{path}"
-        for attempt in range(2):  # one retry after re-auth on 401
-            r = requests.request(method, url, headers=self._headers(),
-                                 params=params, json=json, timeout=self.timeout)
+        for attempt in range(3):  # retry after re-auth on 401 / brief backoff on 429
+            self._throttle()
+            r = self._session.request(method, url, headers=self._headers(),
+                                      params=params, json=json, timeout=self.timeout)
             if r.status_code == 401 and attempt == 0:
                 self._token = None
+                continue
+            if r.status_code == 429 and attempt < 2:
+                import time
+                time.sleep(0.5 * (attempt + 1))
                 continue
             if not r.ok:
                 raise KabuAPIError(f"{method} {path} -> {r.status_code}: {r.text}")
             return r.json() if r.text else {}
-        raise KabuAPIError(f"{method} {path} failed after re-auth")
+        raise KabuAPIError(f"{method} {path} failed after retries")
 
     # ── market data ─────────────────────────────────────────────────
+    def unregister_all(self) -> dict:
+        """登録銘柄リストを全消去 (PUSH配信登録も消えるので注意)."""
+        return self._request("PUT", "/unregister/all")
+
     def board(self, symbol: str, exchange: int = 1) -> dict:
-        """Quote/board incl. pre-open indicative (CurrentPrice / CalcPrice / 特別気配)."""
+        """Quote/board incl. pre-open indicative (CurrentPrice / CalcPrice / 特別気配).
+
+        GET /board は照会銘柄を自動で銘柄登録し、登録数上限50を超えると
+        4002006 で失敗する(実測: 51件目から全滅)。全ユニバースの板を舐める
+        plan 用に、45件ごとに登録リストを全消去して回避する。
+        """
+        if self._board_calls and self._board_calls % 45 == 0:
+            try:
+                self.unregister_all()
+            except KabuAPIError:
+                pass  # 消去失敗は次の board エラーで顕在化する
+        self._board_calls += 1
         return self._request("GET", f"/board/{to_kabu_symbol(symbol)}@{exchange}")
 
     def symbol_info(self, symbol: str, exchange: int = 1) -> dict:
@@ -156,3 +190,51 @@ class KabuClient:
     def cancel_order(self, order_id: str) -> dict:
         return self._request("PUT", "/cancelorder",
                              json={"OrderId": order_id, "Password": self._order_password})
+
+
+class HybridKabuClient:
+    """板・銘柄情報は本番(18080・参照のみ)、口座・発注は検証(18081・ペーパー)。
+
+    検証環境は板情報を配信しない(全フィールドnull)ため、test環境での通し
+    リハーサルには本番の実データが必要になる。本クラスは読み取り系だけを
+    本番クライアントへ委譲し、発注系・口座系は検証クライアントに閉じる。
+    本番側には /board /symbol のGETしか発行しない。
+    """
+
+    def __init__(self, data_client: "KabuClient", trade_client: "KabuClient"):
+        assert trade_client.env != "prod", "HybridKabuClient の発注側は test 限定"
+        self._data = data_client
+        self._trade = trade_client
+
+    def authenticate(self) -> str:
+        self._data.authenticate()
+        return self._trade.authenticate()
+
+    # 参照系 → 本番 (読み取りのみ)
+    def board(self, symbol: str, exchange: int = 1) -> dict:
+        return self._data.board(symbol, exchange)
+
+    def symbol_info(self, symbol: str, exchange: int = 1) -> dict:
+        return self._data.symbol_info(symbol, exchange)
+
+    # 口座・発注系 → 検証
+    def positions(self, product: int = 2) -> list:
+        return self._trade.positions(product=product)
+
+    def orders(self, product: int = 0) -> list:
+        return self._trade.orders(product=product)
+
+    def wallet_margin(self) -> dict:
+        return self._trade.wallet_margin()
+
+    def wallet_cash(self) -> dict:
+        return self._trade.wallet_cash()
+
+    def send_margin_open(self, symbol: str, side: str, qty: int, **kw) -> dict:
+        return self._trade.send_margin_open(symbol, side, qty, **kw)
+
+    def send_margin_close(self, symbol: str, side: str, qty: int, hold_id: str, **kw) -> dict:
+        return self._trade.send_margin_close(symbol, side, qty, hold_id, **kw)
+
+    def cancel_order(self, order_id: str) -> dict:
+        return self._trade.cancel_order(order_id)

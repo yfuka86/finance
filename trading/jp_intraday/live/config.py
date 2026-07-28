@@ -39,6 +39,10 @@ class LiveConfig:
     env: str = "mock"
     api_password: str = ""
     order_password: str = ""
+    # 板データだけ別環境から取る (検証環境は板がnullのため "prod" を指定して
+    # リハーサルする。発注側は env のまま。空文字=無効)
+    data_env: str = ""
+    data_api_password: str = ""
     dry_run: bool = True
     live_confirmed: bool = False
     strategy: str = "ensemble_core"
@@ -60,6 +64,8 @@ class LiveConfig:
             env=os.environ.get("KABU_ENV", "mock"),
             api_password=os.environ.get("KABU_API_PASSWORD", ""),
             order_password=os.environ.get("KABU_ORDER_PASSWORD", ""),
+            data_env=os.environ.get("KABU_DATA_ENV", ""),
+            data_api_password=os.environ.get("KABU_DATA_API_PASSWORD", ""),
             dry_run=_b("KABU_DRY_RUN", "1"),
             live_confirmed=_b("KABU_LIVE_CONFIRMED", "0"),
             strategy=os.environ.get("LIVE_STRATEGY", "ensemble_core"),
@@ -93,6 +99,14 @@ class LiveConfig:
         errs = []
         if self.env not in ("mock", "test", "prod"):
             errs.append(f"KABU_ENV must be mock/test/prod (got {self.env})")
+        if self.data_env:
+            if self.data_env not in ("test", "prod"):
+                errs.append(f"KABU_DATA_ENV must be test/prod (got {self.data_env})")
+            if self.env != "test":
+                errs.append("KABU_DATA_ENV is only allowed with KABU_ENV=test "
+                            "(板を別環境から取るのはリハーサル専用)")
+            if not self.data_api_password:
+                errs.append("KABU_DATA_API_PASSWORD is required when KABU_DATA_ENV is set")
         if self.env in ("test", "prod") and not self.api_password:
             errs.append("KABU_API_PASSWORD is required for test/prod")
         if (self.orders_enabled or self.paper_orders_enabled) and not self.order_password:
