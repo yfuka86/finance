@@ -85,14 +85,23 @@ def load_existing_daily() -> pd.DataFrame:
         raise FileNotFoundError("no existing daily parquet files found")
     panel = pd.concat(frames, ignore_index=True)
     panel["Date"] = pd.to_datetime(panel["Date"])
-    # Normalise codes to J-Quants 5-digit form: the screener cache uses 4-digit
-    # tickers ("1301") while master/reference use 5-digit ("13010" = ticker + "0").
-    # Without this the master merge (fund filter, sector) silently fails for the
-    # cache window and a stock appears under two identities.
-    panel["Code"] = panel["Code"].astype(str)
-    four = panel["Code"].str.fullmatch(r"\d{4}")
-    panel.loc[four, "Code"] = panel.loc[four, "Code"] + "0"
+    panel = _normalize_codes(panel)
     return panel.drop_duplicates(["Date", "Code"]).reset_index(drop=True)
+
+
+def _normalize_codes(panel: pd.DataFrame) -> pd.DataFrame:
+    """Normalise codes to J-Quants 5-digit form ("1301"/"318A" -> "13010"/"318A0").
+
+    The screener cache uses 4-char tickers while master/reference use the 5-char
+    form (ticker + "0"). Without this the master merge (fund filter, sector,
+    貸借区分) silently fails and a stock appears under two identities. 英字入り
+    4桁コード（318A等）も対象 — 旧regex r"\d{4}" は素通りさせ、shortable=
+    fillna(True) でETF等がショート候補に混入するバグだった。
+    """
+    panel["Code"] = panel["Code"].astype(str)
+    four = panel["Code"].str.len().eq(4)
+    panel.loc[four, "Code"] = panel.loc[four, "Code"] + "0"
+    return panel
 
 
 def backtest_gap(panel: pd.DataFrame, quantile: float = 0.2, direction: int = -1,

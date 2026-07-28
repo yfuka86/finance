@@ -18,6 +18,19 @@ class SymbolTest(unittest.TestCase):
         self.assertEqual(to_kabu_symbol("1301"), "1301")    # already 4-char passthrough
 
 
+class PreflightMarkerTest(unittest.TestCase):
+    def test_mock_enter_does_not_block_same_day_rerun(self):
+        # preflight(mock)が entry マーカーを書くと、同日の本番 entry が
+        # RuntimeError で止まる回帰の防止: mock はマーカーを書かない・見ない。
+        client = MockKabuClient({"1301": 1000.0})
+        cfg = LiveConfig(env="mock")
+        plan = pd.DataFrame([{"symbol": "13010", "kabu_symbol": "1301", "side": SIDE_BUY,
+                              "qty": 100, "est_price": 1000.0}])
+        enter(client, cfg, plan)
+        client2 = MockKabuClient({"1301": 1000.0})
+        enter(client2, cfg, plan)   # 2回目も RuntimeError にならないこと
+
+
 class ConfigGateTest(unittest.TestCase):
     def test_margin_ratio_scales_gross_target(self):
         # 本番推奨: ¥20M×信用2.0倍 → グロス目標¥40M（max_gross も自動整合）
