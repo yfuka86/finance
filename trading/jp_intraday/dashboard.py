@@ -221,6 +221,7 @@ if not is_show:
                  "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
                  "年率%": round(summ[k].get("ann_return", 0) * 100, 1),
                  "Sharpe": round(summ[k].get("sharpe", 0), 2),
+                 "勝率%": round(summ[k].get("win_rate", 0) * 100, 1),
                  "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)}
                 for k in ranked if not summ[k].get("unit_na")]
         if rows:
@@ -230,9 +231,9 @@ if not is_show:
         else:
             st.caption("数値のある戦略がありません（フィルタ対象がすべて単元非対応、または0件）。")
 
-    W = [0.46, 0.11, 0.10, 0.11, 0.12]
+    W = [0.42, 0.10, 0.09, 0.09, 0.10, 0.11]
     h = st.columns(W, vertical_alignment="center")
-    for col, txt in zip(h, ["戦略 / 概要", "年率%", "Sharpe", "最大DD%", ""]):
+    for col, txt in zip(h, ["戦略 / 概要", "年率%", "Sharpe", "勝率%", "最大DD%", ""]):
         col.markdown(f"<span style='font-size:12px;color:gray'>{txt}</span>", unsafe_allow_html=True)
     st.markdown("<hr>", unsafe_allow_html=True)
     def _clr(v):
@@ -260,14 +261,16 @@ if not is_show:
             f"<span style='font-size:11px;color:var(--muted)'>{spec['thesis'][:56]}…</span></div>",
             unsafe_allow_html=True)
         if s.get("unit_na"):
-            for i in (1, 2, 3):
+            for i in (1, 2, 3, 4):
                 c[i].markdown("<span style='font-size:14px;color:var(--muted)'>—</span>",
                               unsafe_allow_html=True)
         else:
+            wr = s.get("win_rate", 0) * 100
             c[1].markdown(f"<span style='font-size:15px;font-weight:600;color:{_clr(ann)}'>{ann:.1f}</span>", unsafe_allow_html=True)
             c[2].markdown(f"<span style='font-size:15px;font-weight:700;color:{_clr(sh)}'>{sh:.2f}</span>", unsafe_allow_html=True)
-            c[3].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
-        c[4].button("詳細 ▶", key=f"open_{k}", on_click=_open, args=(k,), width="stretch")
+            c[3].markdown(f"<span style='font-size:15px;color:{_clr(wr - 50)}'>{wr:.1f}</span>", unsafe_allow_html=True)
+            c[4].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
+        c[5].button("詳細 ▶", key=f"open_{k}", on_click=_open, args=(k,), width="stretch")
         st.markdown("<hr>", unsafe_allow_html=True)
 
     for k in ranked:
@@ -304,12 +307,13 @@ st.markdown(f"### {spec['title']}　<span style='font-size:12px;color:gray'>{_KI
 st.info(f"**考え方**: {spec['thesis']}\n\n**具体的な取引**: {spec['rule']}")
 
 sret = annualized_stats(daily, "net"); sg = annualized_stats(daily, "gross")
-c = st.columns(5)
+c = st.columns(6)
 c[0].metric("年率リターン(ネット)", f"{sret['ann_return']*100:.1f}%", f"グロス {sg['ann_return']*100:.1f}%")
 c[1].metric("Sharpe", f"{sret['sharpe']:.2f}")
-c[2].metric("最大DD", f"{sret['max_drawdown']*100:.1f}%")
-c[3].metric("年率ボラ", f"{sret['ann_vol']*100:.1f}%")
-c[4].metric("累積リターン", f"{sret['total_return']*100:.0f}%")
+c[2].metric("日次勝率", f"{sret['win_rate']*100:.1f}%")
+c[3].metric("最大DD", f"{sret['max_drawdown']*100:.1f}%")
+c[4].metric("年率ボラ", f"{sret['ann_vol']*100:.1f}%")
+c[5].metric("累積リターン", f"{sret['total_return']*100:.0f}%")
 if not mode.startswith("理想") and "margin_used_yen" in daily.columns:
     st.caption(f"信用取引の実態: 平均建玉 ¥{daily['deployed_yen'].mean()/1e6:.1f}百万"
                f"（実効倍率 {daily['deployed_yen'].mean()/p['capital']:.2f}x）／"

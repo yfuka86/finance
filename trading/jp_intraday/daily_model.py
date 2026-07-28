@@ -421,14 +421,15 @@ def annualized_stats(daily: pd.DataFrame, col: str = "net") -> dict:
     n = len(r)
     if n == 0:  # 空でもキーを揃える（制約が強すぎてデータ無しの場合など）
         return {"ann_return": 0.0, "ann_vol": 0.0, "sharpe": 0.0,
-                "max_drawdown": 0.0, "total_return": 0.0, "days": 0}
+                "max_drawdown": 0.0, "total_return": 0.0, "days": 0, "win_rate": 0.0}
     ann_ret = float(r.mean() * 252)
     ann_vol = float(r.std(ddof=1) * np.sqrt(252))
     equity = (1 + r).cumprod()
     dd = float((equity / equity.cummax() - 1).min())
     return {"ann_return": ann_ret, "ann_vol": ann_vol,
             "sharpe": ann_ret / ann_vol if ann_vol else 0.0, "max_drawdown": dd,
-            "total_return": float(equity.iloc[-1] - 1), "days": n}
+            "total_return": float(equity.iloc[-1] - 1), "days": n,
+            "win_rate": float((r > 0).mean())}
 
 
 def walk_forward(panel: pd.DataFrame, features: list[str], quantile: float = 0.1,
