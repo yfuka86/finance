@@ -84,6 +84,9 @@ def _scores(min_value_yen: float, strategy: str, markets: tuple | None = None,
 def _summaries(min_value_yen, mode, p, MKT=None, MINCAP=None, MAXCAP=None):
     out = {}
     for k in STRATEGIES:
+        if not mode.startswith("理想") and not _is_flat(k):
+            out[k] = {"unit_na": True}          # ¥単元モード非対応（非フラット）
+            continue
         daily, _ = _book_any(min_value_yen, k, mode, p)
         out[k] = annualized_stats(daily, "net")
     return out
@@ -97,10 +100,22 @@ def _book(frame, mode, p, con):
                              margin_ratio=p["lev"], cost_bps_side=p["cost"], construction=con)
 
 
+def _is_flat(k):
+    """場中フラット（一日信用でシミュレート可能）か。アンサンブルは全メンバーが条件."""
+    spec = STRATEGIES[k]
+    if spec["kind"] == "ensemble":
+        return all(_is_flat(m) for m, _ in spec["members"])
+    return spec.get("holding", "intraday") == "intraday"
+
+
 def _book_any(liq, strat, mode, p):
     """Book for one strategy OR an ensemble (capital split across member sleeves)."""
     from trading.jp_intraday.strategies import _combine_sleeves
     spec = STRATEGIES[strat]
+    if not mode.startswith("理想") and not _is_flat(strat):
+        # ¥単元モードは一日信用（寄成建て/引成返済・保証金即日回転・金利0）前提で、
+        # オーバーナイト/翌日跨ぎには適用不能 → 空を返し UI 側で「単元非対応」と表示。
+        return unit_lot_backtest(pd.DataFrame())
     if spec["kind"] != "ensemble":
         return _book(_scores(liq, strat, MKT, MINCAP, MAXCAP), mode, p, spec.get("construction", "dollar_neutral"))
     sleeves = []
@@ -142,14 +157,24 @@ with st.container(border=True):
                      horizontal=True, key="seg")
     MKT = {"全市場": None, "プライムのみ": ("プライム",),
            "プライム+スタンダード": ("プライム", "スタンダード")}[seg]
-    _CAPS = [0, 100e8, 300e8, 1000e8, 3000e8, 1e12, 3e12, float("inf")]
+    # 注意: float("inf") はウィジェット値の往復（JSON化）で壊れて反対側のつまみに
+    # 伝染し、時価総額≥∞→空パネル→全戦略0.0 になる。有限の番兵 1e15(¥1000兆) を使う。
+    _NOCAP = 1e15
+    _CAPS = [0, 100e8, 300e8, 1000e8, 3000e8, 1e12, 3e12, _NOCAP]
     def _cap_lab(v):
-        return "制限なし" if v in (0, float("inf")) else (f"¥{v/1e12:g}兆" if v >= 1e12 else f"¥{v/1e8:,.0f}億")
+        return "制限なし" if v in (0, _NOCAP) else (f"¥{v/1e12:g}兆" if v >= 1e12 else f"¥{v/1e8:,.0f}億")
     cap_lo, cap_hi = u[1].select_slider(
-        "時価総額バンド（PIT株数×前日終値）", options=_CAPS, value=(0, float("inf")),
+        "時価総額バンド（PIT株数×前日終値）", options=_CAPS, value=(0, _NOCAP),
         format_func=_cap_lab)
-    MINCAP = cap_lo or None
-    MAXCAP = None if cap_hi == float("inf") else cap_hi
+    MINCAP = None if cap_lo in (0, _NOCAP) else cap_lo
+    MAXCAP = None if cap_hi >= _NOCAP else cap_hi
+    v = st.columns([1.4, 2.8])
+    MIN_SH = v[0].select_slider("表示Sharpe下限（一覧の省略）",
+                                options=[None, 0.0, 0.5, 1.0, 2.0], value=0.5,
+                                format_func=lambda x: "全表示" if x is None else f"Sh≥{x:g}")
+    from trading.jp_intraday.strategies import HOLDING_LABEL
+    _ALL_HOLD = list(HOLDING_LABEL.values())
+    HOLD_SEL = v[1].multiselect("保有区分タグ", _ALL_HOLD, default=_ALL_HOLD)
     if mode.startswith("理想"):
         pc = st.columns(3)
         p = {"q": pc[0].select_slider("集中度(分位)", options=[0.02, 0.03, 0.05, 0.10, 0.15, 0.20], value=0.05),
@@ -166,6 +191,8 @@ with st.container(border=True):
              "cost": pc[3].slider("片道bps(一日信用:手数料0)", 3.0, 25.0, 7.0, 1.0)}
         st.caption("発注時の保証金拘束は実務どおり**ストップ高価格×30%**（値幅制限テーブル準拠）で計算し、"
                    "保証金超過日は単元数を自動縮小。ショートは貸借銘柄・売買代金≥¥10億・50単元以内（価格規制回避）。")
+        st.caption("非・場中フラット戦略（オーバーナイト/翌日跨ぎ）は一日信用の前提が成り立たないため "
+                   "**単元モード非対応**（一覧では「単元非対応」表示）。理想バックテストで評価してください。")
 
 is_show = nav.startswith("🔍")
 
@@ -173,41 +200,86 @@ is_show = nav.startswith("🔍")
 # INDEX — dense list
 # =====================================================================
 if not is_show:
+    if _panel(liq, MKT, MINCAP, MAXCAP).empty:
+        st.warning("この制約（市場区分・時価総額・流動性）では対象銘柄が0件です。制約を緩めてください。")
+        st.stop()
     summ = _summaries(liq, mode, p, MKT, MINCAP, MAXCAP)
-    ranked = sorted(STRATEGIES, key=lambda k: summ[k].get("sharpe", 0), reverse=True)
+    from trading.jp_intraday.strategies import HOLDING_LABEL
+    def _hold_label(k):
+        return HOLDING_LABEL.get(STRATEGIES[k].get("holding", "intraday"))
+    ranked_all = sorted(STRATEGIES, key=lambda k: summ[k].get("sharpe", 0), reverse=True)
+    ranked = [k for k in ranked_all
+              if (_hold_label(k) in HOLD_SEL)
+              and (summ[k].get("unit_na")            # 単元非対応は数値なし→Sh下限の対象外
+                   or MIN_SH is None or summ[k].get("sharpe", 0) >= MIN_SH)]
+    hidden_keys = [k for k in ranked_all if k not in ranked]
+    if hidden_keys:
+        st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {len(hidden_keys)}件"
+                   "（Sharpe下限・保有区分タグ。下部の折りたたみから開けます）")
     with st.expander("📊 成績サマリ表（並べ替え可）", expanded=False):
-        tbl = pd.DataFrame([{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
-                             "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
-                             "年率%": round(summ[k].get("ann_return", 0) * 100, 1),
-                             "Sharpe": round(summ[k].get("sharpe", 0), 2),
-                             "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)} for k in ranked])
-        st.dataframe(tbl.style.background_gradient(cmap="Greens", subset=["年率%"])
-                     .background_gradient(cmap="Blues", subset=["Sharpe"]), width="stretch", hide_index=True)
+        rows = [{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
+                 "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
+                 "年率%": round(summ[k].get("ann_return", 0) * 100, 1),
+                 "Sharpe": round(summ[k].get("sharpe", 0), 2),
+                 "勝率%": round(summ[k].get("win_rate", 0) * 100, 1),
+                 "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)}
+                for k in ranked if not summ[k].get("unit_na")]
+        if rows:
+            tbl = pd.DataFrame(rows)
+            st.dataframe(tbl.style.background_gradient(cmap="Greens", subset=["年率%"])
+                         .background_gradient(cmap="Blues", subset=["Sharpe"]), width="stretch", hide_index=True)
+        else:
+            st.caption("数値のある戦略がありません（フィルタ対象がすべて単元非対応、または0件）。")
 
-    W = [0.46, 0.11, 0.10, 0.11, 0.12]
+    W = [0.42, 0.10, 0.09, 0.09, 0.10, 0.11]
     h = st.columns(W, vertical_alignment="center")
-    for col, txt in zip(h, ["戦略 / 概要", "年率%", "Sharpe", "最大DD%", ""]):
+    for col, txt in zip(h, ["戦略 / 概要", "年率%", "Sharpe", "勝率%", "最大DD%", ""]):
         col.markdown(f"<span style='font-size:12px;color:gray'>{txt}</span>", unsafe_allow_html=True)
     st.markdown("<hr>", unsafe_allow_html=True)
     def _clr(v):
         return "var(--pos)" if v >= 0 else "var(--neg)"
     kind_of = {"ensemble": "合成"}
-    for k in ranked:
+
+    def _row(k):
         spec, s = STRATEGIES[k], summ[k]
         ann, sh = s.get("ann_return", 0) * 100, s.get("sharpe", 0)
         kind = kind_of.get(spec["kind"]) or _KIND.get(spec["kind"], spec["kind"])
         c = st.columns(W, vertical_alignment="center")
+        hold = _hold_label(k)
+        chips = (f"<span style='font-size:10px;color:var(--primary);background:var(--primary-weak);"
+                 f"border-radius:4px;padding:1px 6px'>{kind}</span> "
+                 f"<span style='font-size:10px;color:#0e7490;background:#ecfeff;"
+                 f"border-radius:4px;padding:1px 6px'>{hold}</span>")
+        for tg in spec.get("tags", []):
+            chips += (f" <span style='font-size:10px;color:#a16207;background:#fefce8;"
+                      f"border-radius:4px;padding:1px 6px'>{tg}</span>")
+        if s.get("unit_na"):
+            chips += (" <span style='font-size:10px;color:#6b7280;background:#f3f4f6;"
+                      "border-radius:4px;padding:1px 6px'>単元非対応</span>")
         c[0].markdown(
-            f"<div style='line-height:1.25'><b>{spec['title']}</b>"
-            f" <span style='font-size:10px;color:var(--primary);background:var(--primary-weak);"
-            f"border-radius:4px;padding:1px 6px'>{kind}</span><br>"
+            f"<div style='line-height:1.25'><b>{spec['title']}</b> {chips}<br>"
             f"<span style='font-size:11px;color:var(--muted)'>{spec['thesis'][:56]}…</span></div>",
             unsafe_allow_html=True)
-        c[1].markdown(f"<span style='font-size:15px;font-weight:600;color:{_clr(ann)}'>{ann:.1f}</span>", unsafe_allow_html=True)
-        c[2].markdown(f"<span style='font-size:15px;font-weight:700;color:{_clr(sh)}'>{sh:.2f}</span>", unsafe_allow_html=True)
-        c[3].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
-        c[4].button("詳細 ▶", key=f"open_{k}", on_click=_open, args=(k,), width="stretch")
+        if s.get("unit_na"):
+            for i in (1, 2, 3, 4):
+                c[i].markdown("<span style='font-size:14px;color:var(--muted)'>—</span>",
+                              unsafe_allow_html=True)
+        else:
+            wr = s.get("win_rate", 0) * 100
+            c[1].markdown(f"<span style='font-size:15px;font-weight:600;color:{_clr(ann)}'>{ann:.1f}</span>", unsafe_allow_html=True)
+            c[2].markdown(f"<span style='font-size:15px;font-weight:700;color:{_clr(sh)}'>{sh:.2f}</span>", unsafe_allow_html=True)
+            c[3].markdown(f"<span style='font-size:15px;color:{_clr(wr - 50)}'>{wr:.1f}</span>", unsafe_allow_html=True)
+            c[4].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
+        c[5].button("詳細 ▶", key=f"open_{k}", on_click=_open, args=(k,), width="stretch")
         st.markdown("<hr>", unsafe_allow_html=True)
+
+    for k in ranked:
+        _row(k)
+    if hidden_keys:
+        with st.expander(f"🫥 フィルタで非表示の {len(hidden_keys)}件を開く"
+                         "（Sharpe下限未満・保有区分タグ対象外）", expanded=False):
+            for k in hidden_keys:
+                _row(k)
     st.stop()
 
 # =====================================================================
@@ -218,6 +290,11 @@ strat = st.selectbox("戦略を切替", list(STRATEGIES), key="strat",
 spec = STRATEGIES[strat]
 con = spec.get("construction", "dollar_neutral") if spec["kind"] != "ensemble" else "capital_split"
 is_ml = spec["kind"] == "ml"
+if not mode.startswith("理想") and not _is_flat(strat):
+    st.info("この戦略は場中フラットではない（オーバーナイト/翌日跨ぎ保有）ため、"
+            "¥単元シミュレーション（一日信用・寄成建て/引成返済・片側銘柄数の前提）は非対応です。"
+            "上部のモードを**理想バックテスト**に切り替えて評価してください。")
+    st.stop()
 daily, blot = _book_any(liq, strat, mode, p)
 if daily.empty:
     st.warning("この制約（市場区分・時価総額・流動性）ではデータまたはML学習行数が不足し、"
@@ -230,12 +307,13 @@ st.markdown(f"### {spec['title']}　<span style='font-size:12px;color:gray'>{_KI
 st.info(f"**考え方**: {spec['thesis']}\n\n**具体的な取引**: {spec['rule']}")
 
 sret = annualized_stats(daily, "net"); sg = annualized_stats(daily, "gross")
-c = st.columns(5)
+c = st.columns(6)
 c[0].metric("年率リターン(ネット)", f"{sret['ann_return']*100:.1f}%", f"グロス {sg['ann_return']*100:.1f}%")
 c[1].metric("Sharpe", f"{sret['sharpe']:.2f}")
-c[2].metric("最大DD", f"{sret['max_drawdown']*100:.1f}%")
-c[3].metric("年率ボラ", f"{sret['ann_vol']*100:.1f}%")
-c[4].metric("累積リターン", f"{sret['total_return']*100:.0f}%")
+c[2].metric("日次勝率", f"{sret['win_rate']*100:.1f}%")
+c[3].metric("最大DD", f"{sret['max_drawdown']*100:.1f}%")
+c[4].metric("年率ボラ", f"{sret['ann_vol']*100:.1f}%")
+c[5].metric("累積リターン", f"{sret['total_return']*100:.0f}%")
 if not mode.startswith("理想") and "margin_used_yen" in daily.columns:
     st.caption(f"信用取引の実態: 平均建玉 ¥{daily['deployed_yen'].mean()/1e6:.1f}百万"
                f"（実効倍率 {daily['deployed_yen'].mean()/p['capital']:.2f}x）／"

@@ -2,6 +2,7 @@
 
 日本株の**場中フラット戦略**（寄付きで建て・引けで手仕舞い・オーバーナイト保有なし）の
 リサーチ〜ライブ執行までの一式。個別株のみ・ドルニュートラルL/S・auカブコム(kabuステーションAPI)執行。
+リサーチ側はオーバーナイト/翌日跨ぎ保有の戦略も検証可能（タグで区別・ライブ執行は場中フラットのみ）。
 
 > エージェント向けの作業規約・確定知見は **[AGENTS.md](AGENTS.md)**（正本）。
 > ライブ運用の詳細は **[trading/jp_intraday/live/README.md](trading/jp_intraday/live/README.md)**。
@@ -55,7 +56,13 @@ powershell -ExecutionPolicy Bypass -File scripts\download_data_win.ps1 -Url "<�
 ```bash
 PYTHONPATH=. python scripts/collect_jp_daily_history.py   # 日次（冪等・不足日のみ）
 PYTHONPATH=. python scripts/collect_jp_derivatives.py     # 先物/指数/空売り
+PYTHONPATH=. python scripts/collect_jp_master.py          # 銘柄マスタ（貸借/市場区分。当日分はスキップ）
 PYTHONPATH=. python scripts/collect_jp_minutes_2y.py      # 分足2年（任意・5GB）
+```
+
+**環境再構築後の検証（推奨）** — 確定ベースライン4項目の再現チェック:
+```bash
+PYTHONPATH=. python scripts/verify_baseline.py            # 4/4 PASS を確認（Sharpe±10%許容）
 ```
 
 ## 管理画面（ローカル）
@@ -64,6 +71,9 @@ PYTHONPATH=. python scripts/collect_jp_minutes_2y.py      # 分足2年（任意�
 PYTHONPATH=. streamlit run trading/jp_intraday/dashboard.py   # → http://localhost:8501
 ```
 - **一覧(index)**: 全戦略の成績リスト＋概要 → 「詳細▶」で個別画面(show)
+  - 表示Sharpe下限フィルタ（既定 Sh≥0.5・非表示件数を表示）／保有区分タグで絞り込み
+  - タグチップ: 保有区分（場中フラット/オーバーナイト/翌日跨ぎ）・ML/ルール・実験的
+  - 非フラット戦略は**¥単元モード非対応**（一日信用前提のため。理想バックテストで評価）
 - **モード**: 💰単元取引（予算¥1000万単位・信用倍率・保証金=ストップ高×30%忠実）/ 理想バックテスト
 - **ユニバース制約**: 流動性・市場区分（プライムのみ等）・時価総額バンド
 - **日次トレード明細**: 任意の日の銘柄・単元数・建玉¥・損益¥

@@ -168,6 +168,12 @@ def verify_shortable(client: KabuClientProtocol, kabu_symbols: list[str],
 
 def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataFrame, dict]:
     spec = STRATEGIES[cfg.strategy]
+    members = spec.get("members", [(cfg.strategy, 1.0)])
+    for m, _ in members:
+        if STRATEGIES[m].get("holding", "intraday") != "intraday":
+            raise NotImplementedError(
+                f"ライブ執行は場中フラット(intraday)のみ対応。'{m}' は "
+                f"{STRATEGIES[m].get('holding')} 保有のためライブ不可")
     panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
     data_date = _assert_fresh(panel, cfg)
     last = panel[panel["date"].eq(panel["date"].max())].copy()
