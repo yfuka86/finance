@@ -477,6 +477,16 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
     if gross_leverage is not None:  # backward-compat alias
         margin_ratio = gross_leverage
     margin_ratio = min(margin_ratio, 1.0 / MARGIN_REQ)
+    if frame.empty or ("open" not in frame.columns and "raw_open" not in frame.columns):
+        # 強いユニバース制約でウォークフォワードが学習不能 → score_frame の型付き空
+        # フレーム（価格列なし）が来る。理想モード同様、空の日次/明細を返す。
+        daily = pd.DataFrame({c: pd.Series(dtype=float) for c in
+                              ["pnl_yen", "cost_yen", "long_yen", "short_yen", "n_long",
+                               "n_short", "total_lots", "margin_used_yen", "net_yen",
+                               "deployed_yen", "margin_util", "net", "gross"]})
+        daily.insert(0, "date", pd.Series(dtype="datetime64[ns]"))
+        return daily, pd.DataFrame(columns=["date", "symbol", "px", "units",
+                                            "position_yen", "pnl_yen", "side_label"])
     f = frame.copy()
     px = f["raw_open"].fillna(f["open"]) if "raw_open" in f.columns else f["open"]
     f["px"] = pd.to_numeric(px, errors="coerce")
