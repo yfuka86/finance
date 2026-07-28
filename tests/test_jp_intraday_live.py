@@ -19,6 +19,15 @@ class SymbolTest(unittest.TestCase):
 
 
 class ConfigGateTest(unittest.TestCase):
+    def test_margin_ratio_scales_gross_target(self):
+        # 本番推奨: ¥20M×信用2.0倍 → グロス目標¥40M（max_gross も自動整合）
+        cfg = LiveConfig()
+        self.assertEqual(cfg.margin_ratio, 2.0)
+        self.assertEqual(cfg.names_per_side, 8)
+        self.assertEqual(cfg.max_gross_yen, cfg.capital_yen * cfg.margin_ratio)
+        with self.assertRaises(ValueError):
+            LiveConfig(margin_ratio=4.0).validate()   # 保証金率30% → 3.3x が上限
+
     def test_order_gating_locks(self):
         self.assertFalse(LiveConfig(env="test", dry_run=True).will_send_orders)
         self.assertTrue(LiveConfig(env="test", dry_run=False).paper_orders_enabled)

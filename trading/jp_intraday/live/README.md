@@ -3,6 +3,53 @@
 日本株の**場中フラット（寄付き建て・引け手仕舞い・オーバーナイトなし）**L/S を
 auカブコム証券の **kabuステーションAPI** で執行し、結果を **a-tokyo.jp** の Web 管理画面へ送る構成。
 
+## 🎯 本番推奨構成（これを使う・2026-07確定）
+
+**使うモデル: `LIVE_STRATEGY=ensemble_core`**（唯一の本命。変更しない）
+- 中身: **ml_mag_adaptive**（ridge ML・|予測|比例ウェイト）50% ＋ **svdn_concentrated**
+  （セクターボラ集中・ルール系）50% の資本分割。クラスタ間相関0.31で分散が効く。
+  56組合せ全探索でIS両コスト帯首位、敵対的検証済み。
+- **MLモデルファイル**: `data/live_models/ridge_2026.json`（2018〜2025年末で学習済み）。
+  **2026年中はこのファイルのまま使う**。再学習は**年1回、2027年年初**に
+  `python -m trading.jp_intraday.live.run_live train`（四半期/月次再学習は年次に勝てない・検証済み）。
+- **サイズ: 元本¥20M・信用倍率2.0倍（グロス目標¥40M）・8銘柄/側/スリーブ・一日信用**
+  → `.env`: `LIVE_CAPITAL_YEN=20000000` `LIVE_MARGIN_RATIO=2.0` `LIVE_NAMES_PER_SIDE=8`
+  （執行では2スリーブ統合で実質L/S各13〜16銘柄・平均実効レバ~1.5x になる。正常）
+- **執行: 寄成(FrontOrderType=13)建て → 引成(16)返済のみ**。日中の指値・バリア・
+  遅延エントリーは全て検証で棄却済み。**勝手に足さない**。
+
+### この構成の精緻シミュレーション（2018-01〜2026-07・2,065営業日・7bps想定）
+
+| 期間 | 年率 | Sharpe | 日次勝率 | 最大DD |
+|---|---|---|---|---|
+| 全期間 | +53.6% | 2.20 | 54.6% | −20.9% |
+| OOS 2024+ | +100.8% | 3.21 | 58.9% | −17.9% |
+| 2025年 | +86.5% | 2.74 | 59.1% | −17.9% |
+| 2026年(〜7/24) | +106.4% | 3.18 | 55.2% | −12.7% |
+
+- 年別に負けたのは 2018(−2%)・2019(−1%) のみ。2020年以降は6年連続プラス。
+- **日次¥損益の肌感（¥20M・信用2倍）**: 平均 +¥4.3万/日、5%タイル −¥42万、1%タイル −¥69万、
+  **過去最悪日 −¥115万**（元本の−5.8%）。この規模の損失日は普通に来る前提で臨む。
+- 平均拘束保証金 ¥10.7M（元本の54%・ストップ高×30%基準）→ 建余力に余裕あり。
+- コスト感応度: 5bps なら年率+69%/Sh2.8、**10bps でも +30%/Sh1.3**、損益分岐は~13bps。
+  寄成・引成の板中心約定なら実勢2〜5bpsを想定（**最初の数週間で実測すること**）。
+- リスクを抑えるなら信用1.5倍: 年率+40%/Sh2.24/DD−15%（倍率だけ下げれば良い）。
+
+### 明日から始める手順（Day 1）
+
+1. **朝(〜08:30)**: `git pull` →
+   `PYTHONPATH=. python scripts/collect_jp_daily_history.py`（前営業日分の日次を取得）
+2. `python -m trading.jp_intraday.live.run_live preflight` → `positions_after=0` を確認
+3. **08:55** `run_live plan` … 発注前の最終確認（銘柄・単元数・グロス¥40M以下・shorts_banned）
+4. **08:59** `run_live entry` … 寄成発注（冪等・二重発注防止つき）
+5. **14:55** `run_live exit` … 引成返済（全フラット化・再実行安全）
+6. **15:30** `run_live state` … 結果を https://trade.a-tokyo.jp へ送信
+7. 当面は**約定価格 vs 寄値/引値の実測スリッページ**を記録（7bps想定の検証が最優先）
+
+**段階導入（推奨）**: Day1-2 は `KABU_ENV=test`＋`KABU_DRY_RUN=0`（検証環境ペーパー）→
+問題なければ `KABU_ENV=prod`＋`KABU_DRY_RUN=0`＋`KABU_LIVE_CONFIRMED=1` で実弾。
+3重ロックの明示解除が必要なので誤って実弾になることはない。
+
 ```
 [Windows PC] kabuステーション(常駐/ログイン)
    └ localhost:18081(検証)/18080(本番) REST/WS
@@ -61,7 +108,8 @@ pytest tests/test_jp_intraday_live.py -q     # オフライン単体テスト
    KABU_LIVE_CONFIRMED=0
    LIVE_STRATEGY=ensemble_core   # 本命（ML+svdn集中の50/50）
    LIVE_CAPITAL_YEN=20000000
-   LIVE_NAMES_PER_SIDE=10
+   LIVE_MARGIN_RATIO=2.0       # 信用倍率（グロス目標=元本×2.0=¥40M。上限3.3）
+   LIVE_NAMES_PER_SIDE=8       # R6検証済みの本番値
    LIVE_MARGIN_TYPE=3          # 一日信用(手数料0/金利~0)
    LIVE_COST_BPS_SIDE=7        # 一日信用の実勢スリッページ目安
    REPORT_URL=https://trade.a-tokyo.jp/api/report

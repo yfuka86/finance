@@ -14,7 +14,7 @@ Set in the repo-root .env (never commit real values):
   KABU_ENV=mock|test|prod   KABU_API_PASSWORD=...   KABU_ORDER_PASSWORD=...
   KABU_DRY_RUN=1  KABU_LIVE_CONFIRMED=0
   LIVE_STRATEGY=sector_vol_double_neutral  LIVE_CAPITAL_YEN=20000000
-  LIVE_NAMES_PER_SIDE=15  LIVE_MARGIN_TYPE=3  LIVE_ACCOUNT_TYPE=4
+  LIVE_NAMES_PER_SIDE=8  LIVE_MARGIN_RATIO=2.0  LIVE_MARGIN_TYPE=3  LIVE_ACCOUNT_TYPE=4
   LIVE_MIN_VALUE_YEN=500000000  LIVE_MAX_GROSS_YEN=20000000
   LIVE_COST_BPS_SIDE=7
   REPORT_URL=https://trade.a-tokyo.jp/api/report  REPORT_TOKEN=...
@@ -47,11 +47,12 @@ class LiveConfig:
     live_confirmed: bool = False
     strategy: str = "ensemble_core"
     capital_yen: float = 20_000_000
-    names_per_side: int = 10
+    names_per_side: int = 8
+    margin_ratio: float = 2.0          # 信用倍率: グロス建玉目標 = 保証金 × これ
     margin_type: int = 3
     account_type: int = 4
     min_value_yen: float = 5e8
-    max_gross_yen: float = 20_000_000
+    max_gross_yen: float = 40_000_000  # 既定 = capital × margin_ratio（from_envで自動整合）
     cost_bps_side: float = 7.0
     report_url: str = ""
     report_token: str = ""
@@ -60,6 +61,8 @@ class LiveConfig:
     def from_env(cls) -> "LiveConfig":
         """Read the environment freshly (so tests / re-runs see current values)."""
         _load_local_env()
+        capital = float(os.environ.get("LIVE_CAPITAL_YEN", "20000000"))
+        margin_ratio = float(os.environ.get("LIVE_MARGIN_RATIO", "2.0"))
         return cls(
             env=os.environ.get("KABU_ENV", "mock"),
             api_password=os.environ.get("KABU_API_PASSWORD", ""),
@@ -69,12 +72,13 @@ class LiveConfig:
             dry_run=_b("KABU_DRY_RUN", "1"),
             live_confirmed=_b("KABU_LIVE_CONFIRMED", "0"),
             strategy=os.environ.get("LIVE_STRATEGY", "ensemble_core"),
-            capital_yen=float(os.environ.get("LIVE_CAPITAL_YEN", "20000000")),
-            names_per_side=int(os.environ.get("LIVE_NAMES_PER_SIDE", "10")),
+            capital_yen=capital,
+            names_per_side=int(os.environ.get("LIVE_NAMES_PER_SIDE", "8")),
+            margin_ratio=margin_ratio,
             margin_type=int(os.environ.get("LIVE_MARGIN_TYPE", "3")),
             account_type=int(os.environ.get("LIVE_ACCOUNT_TYPE", "4")),
             min_value_yen=float(os.environ.get("LIVE_MIN_VALUE_YEN", "500000000")),
-            max_gross_yen=float(os.environ.get("LIVE_MAX_GROSS_YEN", "20000000")),
+            max_gross_yen=float(os.environ.get("LIVE_MAX_GROSS_YEN", str(capital * margin_ratio))),
             cost_bps_side=float(os.environ.get("LIVE_COST_BPS_SIDE", "7")),
             report_url=os.environ.get("REPORT_URL", ""),
             report_token=os.environ.get("REPORT_TOKEN", ""),
@@ -115,6 +119,8 @@ class LiveConfig:
             errs.append("LIVE_MARGIN_TYPE must be 1(制度) or 3(一日信用)")
         if self.names_per_side < 1:
             errs.append("LIVE_NAMES_PER_SIDE must be >= 1")
+        if not (1.0 <= self.margin_ratio <= 3.3):
+            errs.append("LIVE_MARGIN_RATIO must be in [1.0, 3.3] (保証金率30%)")
         if self.capital_yen <= 0 or self.max_gross_yen <= 0:
             errs.append("capital / max_gross must be > 0")
         if errs:
