@@ -56,7 +56,13 @@ powershell -ExecutionPolicy Bypass -File scripts\download_data_win.ps1 -Url "<�
 ```bash
 PYTHONPATH=. python scripts/collect_jp_daily_history.py   # 日次（冪等・不足日のみ）
 PYTHONPATH=. python scripts/collect_jp_derivatives.py     # 先物/指数/空売り
+PYTHONPATH=. python scripts/collect_jp_master.py          # 銘柄マスタ（貸借/市場区分。当日分はスキップ）
 PYTHONPATH=. python scripts/collect_jp_minutes_2y.py      # 分足2年（任意・5GB）
+```
+
+**環境再構築後の検証（推奨）** — 確定ベースライン4項目の再現チェック:
+```bash
+PYTHONPATH=. python scripts/verify_baseline.py            # 4/4 PASS を確認（Sharpe±10%許容）
 ```
 
 ## 管理画面（ローカル）
