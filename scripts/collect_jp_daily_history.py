@@ -22,7 +22,8 @@ import pandas as pd
 import jquantsapi
 from data.collectors.config import JQUANTS_API_KEY
 
-START, END = "2018-01-01", "2026-07-24"
+import datetime as _dt
+START, END = "2018-01-01", _dt.date.today().isoformat()  # ENDは常に当日（不足日のみ取得）
 OUT = Path("data/jp_daily_history")
 # Keep RAW open/close too (O/C) for accurate ¥ unit-lot sizing, alongside adjusted.
 KEEP = ["Date", "Code", "O", "C", "AdjO", "AdjH", "AdjL", "AdjC", "AdjVo", "Va"]
