@@ -4,7 +4,7 @@
 # (このスクリプト自体は何も上書きしない)。ログは data\live_reports\task_logs\ に残す。
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("collect", "plan", "entry", "exit", "state", "train", "preflight")]
+    [ValidateSet("collect", "plan", "entry", "exit", "state", "train", "preflight", "probe")]
     [string]$Action
 )
 
@@ -22,6 +22,9 @@ $py = Join-Path $root ".venv\Scripts\python.exe"
 if ($Action -eq "collect") {
     # 寄付き前の日次データ更新 (冪等・不足日のみ取得)
     & $py scripts\collect_jp_daily_history.py *>> $log
+} elseif ($Action -eq "probe") {
+    # 発注経路プローブ (約定不能指値→即取消。口座抑止の検知)
+    & $py scripts\preflight_order_probe.py *>> $log
 } else {
     & $py -m trading.jp_intraday.live.run_live $Action *>> $log
 }
