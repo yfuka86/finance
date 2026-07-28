@@ -14,7 +14,8 @@ import pandas as pd
 import jquantsapi
 from data.collectors.config import JQUANTS_API_KEY
 
-START, END = "2018-01-01", "2026-07-24"
+import datetime as _dt
+START, END = "2018-01-01", _dt.date.today().isoformat()  # ENDは常に当日（不足日のみ取得）
 FUT_PRODUCTS = ("NK225F", "NK225MF", "TOPIXF", "JN400F", "DJIAF", "NKVIF", "REITF")
 FUT_COLS = ["Code", "ProdCat", "Date", "O", "H", "L", "C",
             "MO", "MC", "EO", "EC", "Vo", "OI", "Settle", "LTD"]
