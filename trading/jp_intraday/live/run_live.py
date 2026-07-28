@@ -80,7 +80,8 @@ def main() -> None:
 
     cfg = LiveConfig.from_env()
     if args.action == "preflight":
-        cfg = LiveConfig(**{**cfg.__dict__, "env": "mock"})  # offline mock (harmless in-memory)
+        # offline mock (harmless in-memory); 板の別環境指定もモックでは無効化
+        cfg = LiveConfig(**{**cfg.__dict__, "env": "mock", "data_env": ""})
     cfg.validate()
     print("CONFIG:", cfg.summary(), flush=True)
     client = _build_client(cfg)
