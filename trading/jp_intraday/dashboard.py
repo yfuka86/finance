@@ -206,9 +206,10 @@ if not is_show:
               if (_hold_label(k) in HOLD_SEL)
               and (summ[k].get("unit_na")            # 単元非対応は数値なし→Sh下限の対象外
                    or MIN_SH is None or summ[k].get("sharpe", 0) >= MIN_SH)]
-    hidden = len(ranked_all) - len(ranked)
-    if hidden:
-        st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {hidden}件（Sharpe下限・保有区分タグ）")
+    hidden_keys = [k for k in ranked_all if k not in ranked]
+    if hidden_keys:
+        st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {len(hidden_keys)}件"
+                   "（Sharpe下限・保有区分タグ。下部の折りたたみから開けます）")
     with st.expander("📊 成績サマリ表（並べ替え可）", expanded=False):
         rows = [{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
                  "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
@@ -231,7 +232,8 @@ if not is_show:
     def _clr(v):
         return "var(--pos)" if v >= 0 else "var(--neg)"
     kind_of = {"ensemble": "合成"}
-    for k in ranked:
+
+    def _row(k):
         spec, s = STRATEGIES[k], summ[k]
         ann, sh = s.get("ann_return", 0) * 100, s.get("sharpe", 0)
         kind = kind_of.get(spec["kind"]) or _KIND.get(spec["kind"], spec["kind"])
@@ -261,6 +263,14 @@ if not is_show:
             c[3].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
         c[4].button("詳細 ▶", key=f"open_{k}", on_click=_open, args=(k,), width="stretch")
         st.markdown("<hr>", unsafe_allow_html=True)
+
+    for k in ranked:
+        _row(k)
+    if hidden_keys:
+        with st.expander(f"🫥 フィルタで非表示の {len(hidden_keys)}件を開く"
+                         "（Sharpe下限未満・保有区分タグ対象外）", expanded=False):
+            for k in hidden_keys:
+                _row(k)
     st.stop()
 
 # =====================================================================
