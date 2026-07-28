@@ -123,7 +123,7 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
-_PANEL_SCHEMA_VERSION = 2  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
+_PANEL_SCHEMA_VERSION = 3  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
