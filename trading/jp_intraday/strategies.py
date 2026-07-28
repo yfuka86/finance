@@ -15,6 +15,11 @@ from .daily_model import (
     BASE_FEATURES, FUT_FEATURES, _ls_weights, walk_forward_predictions,
 )
 
+# 保有区分 (spec["holding"], 省略時 "intraday"):
+#   intraday  = 場中フラット（寄→引・夜間なし） / overnight = 引→翌寄 / cc1 = 引→翌引
+HOLDING_RET = {"intraday": "intraday_ret", "overnight": "ret_on_fwd", "cc1": "ret_cc_fwd"}
+HOLDING_LABEL = {"intraday": "場中フラット", "overnight": "オーバーナイト", "cc1": "翌日跨ぎ"}
+
 # name -> spec. kind "xs": cross-sectional rank of `score`. kind "ml": trained ridge.
 STRATEGIES: dict[str, dict] = {
     "gap_reversal": {
@@ -152,6 +157,24 @@ STRATEGIES: dict[str, dict] = {
                   "βマッチ（0.25グロス）のTOPIXロングで市場中立化。5年ネットSh 3.95@3bps/2.96@7bps・DD−8%・β≈0（検証済み）。7bps帯の最強スリーブ。",
         "rule": "残差ギャップ上位（上ギャップ）を空売り（グロス0.5）＋TOPIX(ETF/ミニ先物)を0.25ロング。両方寄→引で手仕舞い。",
     },
+    "on_day_reversal": {
+        "kind": "xs", "holding": "overnight",
+        "score": lambda p: -(p["intraday_ret"] - p["intraday_ret"].groupby(p["date"]).transform("mean")),
+        "need": ["intraday_ret"], "construction": "dollar_neutral", "tags": ["実験的"],
+        "title": "🌙 日中反転の夜間持ち（実験枠）",
+        "thesis": "実験枠（未検証）: 当日日中に大きく下げた銘柄を引けで買い翌朝寄りで売る（上げは逆）。"
+                  "夜間リターンの平均回帰を検証するための土台。シグナルは当日引け時点で確定（PIT）。",
+        "rule": "引けで当日日中リターン（市場平均比）下位を買い・上位を売り、翌日の寄付きで全て手仕舞い。夜間のみ保有。",
+    },
+    "cc1_st_reversal": {
+        "kind": "xs", "holding": "cc1",
+        "score": lambda p: -(p["ret"] - p["ret"].groupby(p["date"]).transform("mean")),
+        "need": ["ret"], "construction": "dollar_neutral", "tags": ["実験的"],
+        "title": "📅 短期リバーサル1日（実験枠）",
+        "thesis": "実験枠（未検証）: 古典的な短期リバーサル。当日終値ベースの騰落（市場平均比）を"
+                  "引けで逆張りし翌日引けまで1日保有。日跨ぎ戦略の検証土台。",
+        "rule": "引けで当日騰落下位を買い・上位を売り、翌日の引けで手仕舞い（1営業日保有）。",
+    },
     "ensemble_core": {
         "kind": "ensemble", "members": [("ml_mag_adaptive", 0.5), ("svdn_concentrated", 0.5)],
         "title": "🏆 コア・アンサンブル（ML強度×集中svdn）",
@@ -198,8 +221,14 @@ def score_frame(panel: pd.DataFrame, name: str) -> pd.DataFrame:
         frame = frame.merge(panel[cols], on=["date", "symbol"], how="left")
         frame = frame.assign(_s=frame["pred"])
     else:
-        frame = panel.dropna(subset=spec["need"] + ["intraday_ret"]).copy()
+        ret_col = HOLDING_RET[spec.get("holding", "intraday")]
+        frame = panel.dropna(subset=spec["need"] + [ret_col]).copy()
+        # スコアは必ず元の列で計算（エイリアス前！ 当日intraday_retをシグナルに使う戦略があるため）
         frame = frame.assign(_s=spec["score"](frame))
+        if ret_col != "intraday_ret":
+            # 下流（book/blotter/unit_lot）は intraday_ret 列名で「取りに行くリターン」を
+            # 参照するため、保有区分のフォワードリターンをここでエイリアスする。
+            frame["intraday_ret"] = frame[ret_col]
         frame = frame[np.isfinite(frame["_s"])]
     return frame
 

@@ -150,6 +150,13 @@ with st.container(border=True):
         format_func=_cap_lab)
     MINCAP = cap_lo or None
     MAXCAP = None if cap_hi == float("inf") else cap_hi
+    v = st.columns([1.4, 2.8])
+    MIN_SH = v[0].select_slider("表示Sharpe下限（一覧の省略）",
+                                options=[None, 0.0, 0.5, 1.0, 2.0], value=0.5,
+                                format_func=lambda x: "全表示" if x is None else f"Sh≥{x:g}")
+    from trading.jp_intraday.strategies import HOLDING_LABEL
+    _ALL_HOLD = list(HOLDING_LABEL.values())
+    HOLD_SEL = v[1].multiselect("保有区分タグ", _ALL_HOLD, default=_ALL_HOLD)
     if mode.startswith("理想"):
         pc = st.columns(3)
         p = {"q": pc[0].select_slider("集中度(分位)", options=[0.02, 0.03, 0.05, 0.10, 0.15, 0.20], value=0.05),
@@ -174,7 +181,16 @@ is_show = nav.startswith("🔍")
 # =====================================================================
 if not is_show:
     summ = _summaries(liq, mode, p, MKT, MINCAP, MAXCAP)
-    ranked = sorted(STRATEGIES, key=lambda k: summ[k].get("sharpe", 0), reverse=True)
+    from trading.jp_intraday.strategies import HOLDING_LABEL
+    def _hold_label(k):
+        return HOLDING_LABEL.get(STRATEGIES[k].get("holding", "intraday"))
+    ranked_all = sorted(STRATEGIES, key=lambda k: summ[k].get("sharpe", 0), reverse=True)
+    ranked = [k for k in ranked_all
+              if (_hold_label(k) in HOLD_SEL)
+              and (MIN_SH is None or summ[k].get("sharpe", 0) >= MIN_SH)]
+    hidden = len(ranked_all) - len(ranked)
+    if hidden:
+        st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {hidden}件（Sharpe下限・保有区分タグ）")
     with st.expander("📊 成績サマリ表（並べ替え可）", expanded=False):
         tbl = pd.DataFrame([{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
                              "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
@@ -197,10 +213,16 @@ if not is_show:
         ann, sh = s.get("ann_return", 0) * 100, s.get("sharpe", 0)
         kind = kind_of.get(spec["kind"]) or _KIND.get(spec["kind"], spec["kind"])
         c = st.columns(W, vertical_alignment="center")
+        hold = _hold_label(k)
+        chips = (f"<span style='font-size:10px;color:var(--primary);background:var(--primary-weak);"
+                 f"border-radius:4px;padding:1px 6px'>{kind}</span> "
+                 f"<span style='font-size:10px;color:#0e7490;background:#ecfeff;"
+                 f"border-radius:4px;padding:1px 6px'>{hold}</span>")
+        for tg in spec.get("tags", []):
+            chips += (f" <span style='font-size:10px;color:#a16207;background:#fefce8;"
+                      f"border-radius:4px;padding:1px 6px'>{tg}</span>")
         c[0].markdown(
-            f"<div style='line-height:1.25'><b>{spec['title']}</b>"
-            f" <span style='font-size:10px;color:var(--primary);background:var(--primary-weak);"
-            f"border-radius:4px;padding:1px 6px'>{kind}</span><br>"
+            f"<div style='line-height:1.25'><b>{spec['title']}</b> {chips}<br>"
             f"<span style='font-size:11px;color:var(--muted)'>{spec['thesis'][:56]}…</span></div>",
             unsafe_allow_html=True)
         c[1].markdown(f"<span style='font-size:15px;font-weight:600;color:{_clr(ann)}'>{ann:.1f}</span>", unsafe_allow_html=True)
