@@ -123,6 +123,7 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
+_PANEL_SCHEMA_VERSION = 2  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
@@ -149,8 +150,8 @@ def load_panel_cached(min_value_yen: float = 5e8, markets: tuple | None = None,
     for pat in _PANEL_INPUT_GLOBS:
         files += sorted(_glob.glob(pat))
     stat = [(f, os.path.getmtime(f), os.path.getsize(f)) for f in files]
-    key = _json.dumps([stat, min_value_yen, markets, min_mktcap_yen, max_mktcap_yen,
-                       with_futures], default=str)
+    key = _json.dumps([_PANEL_SCHEMA_VERSION, stat, min_value_yen, markets, min_mktcap_yen,
+                       max_mktcap_yen, with_futures], default=str)
     h = hashlib.md5(key.encode()).hexdigest()[:16]
     cdir = Path(_PANEL_CACHE_DIR)
     cdir.mkdir(parents=True, exist_ok=True)
@@ -259,6 +260,10 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     # 空売り価格規制トリガー判定用（前日安値 vs 前日の基準値=前々日終値）
     p["prev_low"] = g["low"].shift(1)
     p["prev_close2"] = g["close"].shift(2)
+    # 保有区分別のフォワードリターン（戦略が"取りに行く"リターン。特徴量ではない）
+    # overnight: 当日引け→翌日寄り / cc1: 当日引け→翌日引け。シグナルは当日引けまでの情報のみ。
+    p["ret_on_fwd"] = g["open"].shift(-1) / p["close"] - 1
+    p["ret_cc_fwd"] = g["close"].shift(-1) / p["close"] - 1
     p["gap_abs"] = p["residual_gap"].abs()
     cc = g["close"].pct_change(fill_method=None)
     p["ret"] = cc
