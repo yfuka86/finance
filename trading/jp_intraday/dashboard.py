@@ -81,14 +81,14 @@ def _scores(min_value_yen: float, strategy: str, markets: tuple | None = None,
 
 
 @st.cache_data(show_spinner="全戦略を評価中…")
-def _summaries(min_value_yen, mode, p, MKT=None, MINCAP=None, MAXCAP=None):
+def _summaries(min_value_yen, mode, p, MKT=None, MINCAP=None, MAXCAP=None, period="2024-01-01"):
     out = {}
     for k in STRATEGIES:
         if not mode.startswith("理想") and not _is_flat(k):
             out[k] = {"unit_na": True}          # ¥単元モード非対応（非フラット）
             continue
         daily, _ = _book_any(min_value_yen, k, mode, p)
-        out[k] = annualized_stats(daily, "net")
+        out[k] = annualized_stats(_period_filter(daily, period), "net")
     return out
 
 
@@ -98,6 +98,16 @@ def _book(frame, mode, p, con):
                                 cost_bps_side=p["cost"], construction=con)
     return unit_lot_backtest(frame, capital_yen=p["capital"], names_per_side=p["nps"],
                              margin_ratio=p["lev"], cost_bps_side=p["cost"], construction=con)
+
+
+def _period_filter(daily, period):
+    """OOS絶対規律: 評価期間で日次を切る（'last1y'はデータ末尾から1年）。"""
+    if daily.empty:
+        return daily
+    d = daily.copy()
+    d["date"] = pd.to_datetime(d["date"])
+    start = d["date"].max() - pd.DateOffset(years=1) if period == "last1y" else pd.Timestamp(period)
+    return d[d["date"] >= start]
 
 
 def _is_flat(k):
@@ -168,13 +178,19 @@ with st.container(border=True):
         format_func=_cap_lab)
     MINCAP = None if cap_lo in (0, _NOCAP) else cap_lo
     MAXCAP = None if cap_hi >= _NOCAP else cap_hi
-    v = st.columns([1.4, 2.8])
-    MIN_SH = v[0].select_slider("表示Sharpe下限（一覧の省略）",
+    v = st.columns([1.3, 1.5, 2.0])
+    _PERIODS = {"OOS 2024+（既定）": "2024-01-01", "リサーチOOS 2024-08+": "2024-08-01",
+                "直近1年": "last1y"}
+    PERIOD = _PERIODS[v[0].radio("評価期間（OOSのみ・IS表示は廃止）", list(_PERIODS),
+                                 help="OOS絶対規律: 選択に使った期間(IS)の成績は表示しない。"
+                                      "ML予測は全期間ウォークフォワードだが、戦略・構成の選択が"
+                                      "参照した期間を除外するためOOS期間のみ評価する。")]
+    MIN_SH = v[1].select_slider("表示Sharpe下限（一覧の省略）",
                                 options=[None, 0.0, 0.5, 1.0, 2.0], value=0.5,
                                 format_func=lambda x: "全表示" if x is None else f"Sh≥{x:g}")
     from trading.jp_intraday.strategies import HOLDING_LABEL
     _ALL_HOLD = list(HOLDING_LABEL.values())
-    HOLD_SEL = v[1].multiselect("保有区分タグ", _ALL_HOLD, default=_ALL_HOLD)
+    HOLD_SEL = v[2].multiselect("保有区分タグ", _ALL_HOLD, default=_ALL_HOLD)
     if mode.startswith("理想"):
         pc = st.columns(3)
         p = {"q": pc[0].select_slider("集中度(分位)", options=[0.02, 0.03, 0.05, 0.10, 0.15, 0.20], value=0.05),
@@ -203,7 +219,7 @@ if not is_show:
     if _panel(liq, MKT, MINCAP, MAXCAP).empty:
         st.warning("この制約（市場区分・時価総額・流動性）では対象銘柄が0件です。制約を緩めてください。")
         st.stop()
-    summ = _summaries(liq, mode, p, MKT, MINCAP, MAXCAP)
+    summ = _summaries(liq, mode, p, MKT, MINCAP, MAXCAP, PERIOD)
     from trading.jp_intraday.strategies import HOLDING_LABEL
     def _hold_label(k):
         return HOLDING_LABEL.get(STRATEGIES[k].get("holding", "intraday"))
@@ -301,6 +317,12 @@ if daily.empty:
                "バックテストを構築できません。制約を緩めてください。")
     st.stop()
 daily["date"] = pd.to_datetime(daily["date"]); blot["date"] = pd.to_datetime(blot["date"])
+# OOS絶対規律: 表示・集計は選択に使っていない期間のみ（blotterも同期間に揃える）
+daily = _period_filter(daily, PERIOD)
+if daily.empty:
+    st.warning("選択した評価期間にデータがありません。")
+    st.stop()
+blot = blot[blot["date"] >= daily["date"].min()]
 
 st.markdown(f"### {spec['title']}　<span style='font-size:12px;color:gray'>{_KIND.get(spec['kind'])}/{con}／{mode}</span>",
             unsafe_allow_html=True)
