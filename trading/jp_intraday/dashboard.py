@@ -84,6 +84,9 @@ def _scores(min_value_yen: float, strategy: str, markets: tuple | None = None,
 def _summaries(min_value_yen, mode, p, MKT=None, MINCAP=None, MAXCAP=None):
     out = {}
     for k in STRATEGIES:
+        if not mode.startswith("理想") and not _is_flat(k):
+            out[k] = {"unit_na": True}          # ¥単元モード非対応（非フラット）
+            continue
         daily, _ = _book_any(min_value_yen, k, mode, p)
         out[k] = annualized_stats(daily, "net")
     return out
@@ -97,10 +100,22 @@ def _book(frame, mode, p, con):
                              margin_ratio=p["lev"], cost_bps_side=p["cost"], construction=con)
 
 
+def _is_flat(k):
+    """場中フラット（一日信用でシミュレート可能）か。アンサンブルは全メンバーが条件."""
+    spec = STRATEGIES[k]
+    if spec["kind"] == "ensemble":
+        return all(_is_flat(m) for m, _ in spec["members"])
+    return spec.get("holding", "intraday") == "intraday"
+
+
 def _book_any(liq, strat, mode, p):
     """Book for one strategy OR an ensemble (capital split across member sleeves)."""
     from trading.jp_intraday.strategies import _combine_sleeves
     spec = STRATEGIES[strat]
+    if not mode.startswith("理想") and not _is_flat(strat):
+        # ¥単元モードは一日信用（寄成建て/引成返済・保証金即日回転・金利0）前提で、
+        # オーバーナイト/翌日跨ぎには適用不能 → 空を返し UI 側で「単元非対応」と表示。
+        return unit_lot_backtest(pd.DataFrame())
     if spec["kind"] != "ensemble":
         return _book(_scores(liq, strat, MKT, MINCAP, MAXCAP), mode, p, spec.get("construction", "dollar_neutral"))
     sleeves = []
@@ -173,8 +188,8 @@ with st.container(border=True):
              "cost": pc[3].slider("片道bps(一日信用:手数料0)", 3.0, 25.0, 7.0, 1.0)}
         st.caption("発注時の保証金拘束は実務どおり**ストップ高価格×30%**（値幅制限テーブル準拠）で計算し、"
                    "保証金超過日は単元数を自動縮小。ショートは貸借銘柄・売買代金≥¥10億・50単元以内（価格規制回避）。")
-        st.caption("⚠️ 非・場中フラット戦略（オーバーナイト/翌日跨ぎ）の¥単元計算は**寄値で単元数を近似**"
-                   "（実際の建値は引け）。実験枠の参考値であり、ライブ執行は場中フラットのみ対応。")
+        st.caption("非・場中フラット戦略（オーバーナイト/翌日跨ぎ）は一日信用の前提が成り立たないため "
+                   "**単元モード非対応**（一覧では「単元非対応」表示）。理想バックテストで評価してください。")
 
 is_show = nav.startswith("🔍")
 
@@ -189,7 +204,8 @@ if not is_show:
     ranked_all = sorted(STRATEGIES, key=lambda k: summ[k].get("sharpe", 0), reverse=True)
     ranked = [k for k in ranked_all
               if (_hold_label(k) in HOLD_SEL)
-              and (MIN_SH is None or summ[k].get("sharpe", 0) >= MIN_SH)]
+              and (summ[k].get("unit_na")            # 単元非対応は数値なし→Sh下限の対象外
+                   or MIN_SH is None or summ[k].get("sharpe", 0) >= MIN_SH)]
     hidden = len(ranked_all) - len(ranked)
     if hidden:
         st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {hidden}件（Sharpe下限・保有区分タグ）")
@@ -198,7 +214,8 @@ if not is_show:
                              "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
                              "年率%": round(summ[k].get("ann_return", 0) * 100, 1),
                              "Sharpe": round(summ[k].get("sharpe", 0), 2),
-                             "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)} for k in ranked])
+                             "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)}
+                            for k in ranked if not summ[k].get("unit_na")])
         st.dataframe(tbl.style.background_gradient(cmap="Greens", subset=["年率%"])
                      .background_gradient(cmap="Blues", subset=["Sharpe"]), width="stretch", hide_index=True)
 
@@ -223,13 +240,21 @@ if not is_show:
         for tg in spec.get("tags", []):
             chips += (f" <span style='font-size:10px;color:#a16207;background:#fefce8;"
                       f"border-radius:4px;padding:1px 6px'>{tg}</span>")
+        if s.get("unit_na"):
+            chips += (" <span style='font-size:10px;color:#6b7280;background:#f3f4f6;"
+                      "border-radius:4px;padding:1px 6px'>単元非対応</span>")
         c[0].markdown(
             f"<div style='line-height:1.25'><b>{spec['title']}</b> {chips}<br>"
             f"<span style='font-size:11px;color:var(--muted)'>{spec['thesis'][:56]}…</span></div>",
             unsafe_allow_html=True)
-        c[1].markdown(f"<span style='font-size:15px;font-weight:600;color:{_clr(ann)}'>{ann:.1f}</span>", unsafe_allow_html=True)
-        c[2].markdown(f"<span style='font-size:15px;font-weight:700;color:{_clr(sh)}'>{sh:.2f}</span>", unsafe_allow_html=True)
-        c[3].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
+        if s.get("unit_na"):
+            for i in (1, 2, 3):
+                c[i].markdown("<span style='font-size:14px;color:var(--muted)'>—</span>",
+                              unsafe_allow_html=True)
+        else:
+            c[1].markdown(f"<span style='font-size:15px;font-weight:600;color:{_clr(ann)}'>{ann:.1f}</span>", unsafe_allow_html=True)
+            c[2].markdown(f"<span style='font-size:15px;font-weight:700;color:{_clr(sh)}'>{sh:.2f}</span>", unsafe_allow_html=True)
+            c[3].markdown(f"<span style='font-size:15px;color:var(--neg)'>{s.get('max_drawdown',0)*100:.1f}</span>", unsafe_allow_html=True)
         c[4].button("詳細 ▶", key=f"open_{k}", on_click=_open, args=(k,), width="stretch")
         st.markdown("<hr>", unsafe_allow_html=True)
     st.stop()
@@ -242,6 +267,11 @@ strat = st.selectbox("戦略を切替", list(STRATEGIES), key="strat",
 spec = STRATEGIES[strat]
 con = spec.get("construction", "dollar_neutral") if spec["kind"] != "ensemble" else "capital_split"
 is_ml = spec["kind"] == "ml"
+if not mode.startswith("理想") and not _is_flat(strat):
+    st.info("この戦略は場中フラットではない（オーバーナイト/翌日跨ぎ保有）ため、"
+            "¥単元シミュレーション（一日信用・寄成建て/引成返済・片側銘柄数の前提）は非対応です。"
+            "上部のモードを**理想バックテスト**に切り替えて評価してください。")
+    st.stop()
 daily, blot = _book_any(liq, strat, mode, p)
 if daily.empty:
     st.warning("この制約（市場区分・時価総額・流動性）ではデータまたはML学習行数が不足し、"
