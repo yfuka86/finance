@@ -13,6 +13,7 @@ sources at read time. Run SOLO (concurrent collectors trip 429s).
 Window default 2021-09-01..2026-07-24; Premium allows up to 20y — widen START to
 extend. Training is done locally, so everything lands on this machine.
 """
+import datetime as _dt
 import glob
 import time
 from pathlib import Path
@@ -22,7 +23,10 @@ import pandas as pd
 import jquantsapi
 from data.collectors.config import JQUANTS_API_KEY
 
-START, END = "2018-01-01", "2026-07-24"
+# END は「前営業日まで」を毎朝取り込めるよう動的にする (旧: "2026-07-24" 固定。
+# 固定のままだと翌営業日以降のデータが永久に取れず、ライブの鮮度チェックで停止する)
+START = "2018-01-01"
+END = _dt.date.today().isoformat()
 OUT = Path("data/jp_daily_history")
 # Keep RAW open/close too (O/C) for accurate ¥ unit-lot sizing, alongside adjusted.
 KEEP = ["Date", "Code", "O", "C", "AdjO", "AdjH", "AdjL", "AdjC", "AdjVo", "Va"]
