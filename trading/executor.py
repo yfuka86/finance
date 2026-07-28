@@ -33,8 +33,9 @@ from trading.config import KABU_MARGIN_TRADE_TYPE, TARGET_NOTIONAL_PER_LEG
 # JP ETF の銘柄コード (kabuステーションAPI は4桁コード。"1617.T" -> "1617")
 JP_CODES = {t: t.replace(".T", "") for t in JP_TICKERS}
 
-# /symbol が売買単位を返さない場合のフォールバック (NEXT FUNDS TOPIX-17 は 10口)
-DEFAULT_TRADING_UNIT = 10
+# 売買単位は銘柄ごとに違う (本番実測: 1629.T のみ10、他16銘柄は1)。
+# 取得できなかったときに既定値で代用すると発注数量が桁違いになるため、
+# 推測せずにその銘柄をスキップする。
 
 
 def compute_today_signal(us_ret=None, jp_ret=None, **params):
@@ -57,15 +58,16 @@ def compute_today_signal(us_ret=None, jp_ret=None, **params):
 # --- 建玉サイジング ---
 
 def _trading_unit(client, code):
+    """売買単位を取得する。取得できなければ None (推測しない)。"""
     try:
         info = client.symbol(code)
     except KabuApiError as e:
-        print(f"    /symbol 取得失敗 ({e.message}) → 売買単位 {DEFAULT_TRADING_UNIT} を仮定")
-        return DEFAULT_TRADING_UNIT
+        print(f"    /symbol 取得失敗: {e.message}")
+        return None
     unit = info.get("TradingUnit")
     if not unit:
-        print(f"    売買単位が空 → {DEFAULT_TRADING_UNIT} を仮定")
-        return DEFAULT_TRADING_UNIT
+        print("    売買単位が取得できません (検証環境では常に空)")
+        return None
     return int(unit)
 
 
@@ -95,6 +97,9 @@ def size_orders(client, targets, notional_per_leg=TARGET_NOTIONAL_PER_LEG):
         unit = _trading_unit(client, code)
         if price is None:
             print(f"  [SKIP] {ticker} ({code}): 参照価格が取得できず数量を決められません")
+            continue
+        if unit is None:
+            print(f"  [SKIP] {ticker} ({code}): 売買単位が不明なため発注しません")
             continue
         lots = int(notional_per_leg // (price * unit))
         if lots < 1:
