@@ -17,6 +17,11 @@
   **個別株のみ**（master MktNm≠プライム/スタンダード/グロース=ETF/ETN/REIT/投信を除外。
   ただし現行masterに無い＝上場廃止銘柄は個別株として残しサバイバーシップ回避）。
   ショートは制度信用貸借(MrgnNm=='貸借')のみ。単元=100株の整数ロット。学習は過去年→翌年OOS。
+  - 保有区分: `STRATEGIES[k]["holding"]` = intraday(既定)/overnight(引→翌寄)/cc1(引→翌引)。
+    非intradayは `ret_on_fwd`/`ret_cc_fwd`（パネル列）を `score_frame` がエイリアス。
+    **スコア計算はエイリアス前に行う**（当日intraday_retをシグナルに使う戦略を壊さないため）。
+    ライブ執行はintradayのみ（executorが他区分をNotImplementedErrorで拒否）。
+    パネル列を追加したら `daily_model._PANEL_SCHEMA_VERSION` をインクリメント（キャッシュ無効化）。
 - `trading/bybit/` … Bybit 無期限先物の戦略群・バックテスト。
 - `screener/` … 日本株ファンダ・スクリーナ + ダッシュボード。
 - `backtest/`, `scripts/` … 米日セクターのリードラグ等の実験・最適化スクリプト。
