@@ -463,7 +463,9 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
                       margin_ratio: float = 2.0, cost_bps_side: float = 7.0,
                       lot_size: int = 100, construction: str = "dollar_neutral",
                       short_min_value_yen: float = 1e9,
-                      gross_leverage: float | None = None):
+                      gross_leverage: float | None = None,
+                      require_shortable: bool = True,
+                      apply_short_reg_cap: bool = True):
     """信用取引に忠実な ¥ 単元バックテスト（一日信用・寄成建て/引成返済）.
 
     - ``capital_yen`` は委託保証金（現金）。``margin_ratio`` は信用倍率
@@ -472,6 +474,9 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
       拘束合計が保証金を超える日は全銘柄の単元数を比例縮小（両サイド均衡維持）。
     - ショートは制度貸借かつ前日売買代金 ≥ ``short_min_value_yen``、
       1銘柄 ``MAX_SHORT_LOTS`` 単元以内（空売り価格規制の適用除外を維持）。
+    - **実験用**: ``require_shortable=False``（貸借限定を解除）/
+      ``short_min_value_yen=0``（流動性フロア解除）/ ``apply_short_reg_cap=False``
+      （50単元キャップ解除）で売り制約を個別に外せる（既定は全て本番同等）。
     Returns (daily, blotter). blotter には units（単元数）と拘束保証金を含む。
     """
     if gross_leverage is not None:  # backward-compat alias
@@ -503,7 +508,7 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
     rank_hi = f["_s"].groupby(f["date"]).rank(method="first", ascending=False)
     f.loc[rank_hi <= names_per_side, "side"] = 1                   # highest score -> long
     # Shorts: 制度信用貸借のみ + 流動性フロア（一日信用在庫切れ/プレミアム料リスク回避）.
-    pool = f[f["shortable"] != False] if "shortable" in f.columns else f  # noqa: E712
+    pool = f[f["shortable"] != False] if (require_shortable and "shortable" in f.columns) else f  # noqa: E712
     if "prev_value" in pool.columns and short_min_value_yen:
         pool = pool[pool["prev_value"] >= short_min_value_yen]
     rank_lo = pool["_s"].groupby(pool["date"]).rank(method="first", ascending=True)
@@ -538,7 +543,7 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
     trig_today = (sel["px"] <= pd.to_numeric(sel.get("prev_close"), errors="coerce") * 0.9)
     triggered = (trig_prev | trig_today).fillna(True)              # 不明時は保守的にキャップ
     short_mask = sel["side"].lt(0)
-    capped = short_mask & triggered
+    capped = (short_mask & triggered) if apply_short_reg_cap else pd.Series(False, index=sel.index)
     sel.loc[capped, "units"] = sel.loc[capped, "units"].clip(upper=MAX_SHORT_LOTS)
     sel = sel[sel["units"] >= 1]                                   # must afford >=1 lot
 
