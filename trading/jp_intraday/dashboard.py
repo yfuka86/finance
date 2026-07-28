@@ -210,14 +210,18 @@ if not is_show:
     if hidden:
         st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {hidden}件（Sharpe下限・保有区分タグ）")
     with st.expander("📊 成績サマリ表（並べ替え可）", expanded=False):
-        tbl = pd.DataFrame([{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
-                             "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
-                             "年率%": round(summ[k].get("ann_return", 0) * 100, 1),
-                             "Sharpe": round(summ[k].get("sharpe", 0), 2),
-                             "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)}
-                            for k in ranked if not summ[k].get("unit_na")])
-        st.dataframe(tbl.style.background_gradient(cmap="Greens", subset=["年率%"])
-                     .background_gradient(cmap="Blues", subset=["Sharpe"]), width="stretch", hide_index=True)
+        rows = [{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
+                 "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
+                 "年率%": round(summ[k].get("ann_return", 0) * 100, 1),
+                 "Sharpe": round(summ[k].get("sharpe", 0), 2),
+                 "最大DD%": round(summ[k].get("max_drawdown", 0) * 100, 1)}
+                for k in ranked if not summ[k].get("unit_na")]
+        if rows:
+            tbl = pd.DataFrame(rows)
+            st.dataframe(tbl.style.background_gradient(cmap="Greens", subset=["年率%"])
+                         .background_gradient(cmap="Blues", subset=["Sharpe"]), width="stretch", hide_index=True)
+        else:
+            st.caption("数値のある戦略がありません（フィルタ対象がすべて単元非対応、または0件）。")
 
     W = [0.46, 0.11, 0.10, 0.11, 0.12]
     h = st.columns(W, vertical_alignment="center")
