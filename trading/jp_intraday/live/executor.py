@@ -35,10 +35,15 @@ def _today() -> str:
 
 
 # ── signal (pure) ───────────────────────────────────────────────────
-def open_prices(client: KabuClientProtocol, symbols) -> dict:
-    """Pre-open indicative price per symbol (CalcPrice preferred, then CurrentPrice)."""
+def open_prices(client: KabuClientProtocol, symbols, throttle_s: float = 0.0) -> dict:
+    """Pre-open indicative price per symbol (CalcPrice preferred, then CurrentPrice).
+
+    throttle_s: 実接続時は照会10件/秒制限に合わせ0.105s程度を渡す（mockは0）。
+    """
     out = {}
     for s in symbols:
+        if throttle_s:
+            time.sleep(throttle_s)
         try:
             b = client.board(s)
         except Exception:
@@ -178,7 +183,8 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
     data_date = _assert_fresh(panel, cfg)
     last = panel[panel["date"].eq(panel["date"].max())].copy()
 
-    opens = open_prices(client, list(last["symbol"]))
+    opens = open_prices(client, list(last["symbol"]),
+                        throttle_s=0.105 if cfg.env != "mock" else 0.0)  # 照会10件/秒制限
     coverage = len(opens) / max(len(last), 1)
     if coverage < 0.8 and cfg.env == "prod":
         raise RuntimeError(f"board coverage {coverage:.0%} < 80% — aborting (partial cross-section)")
@@ -254,7 +260,10 @@ def _marker(action: str):
 def enter(client: KabuClientProtocol, cfg: LiveConfig, plan: pd.DataFrame, force: bool = False) -> list[dict]:
     """Place 寄成 信用新規 orders. Idempotent: skips held/working names and same-day re-runs."""
     marker = _marker("entry")
-    if marker.exists() and not force:
+    # mock（preflight等）はマーカーを書かない・見ない: 朝にpreflight→本番entryの順で
+    # 実行してもブロックされないように（マーカーは実発注環境の二重実行防止専用）。
+    use_marker = cfg.env != "mock"
+    if use_marker and marker.exists() and not force:
         raise RuntimeError(f"entry already ran today ({marker.name}). Re-run with force=True only if sure.")
     held = {to_kabu_symbol(p.get("Symbol")) for p in client.positions(product=2)}
     held |= {to_kabu_symbol(o.get("Symbol")) for o in client.orders(product=2)}
@@ -267,16 +276,24 @@ def enter(client: KabuClientProtocol, cfg: LiveConfig, plan: pd.DataFrame, force
         intent = {"action": "OPEN", "symbol": ksym, "side": r["side"], "qty": int(r["qty"]),
                   "front": FRONT_OPEN, "est_price": r["est_price"]}
         if cfg.will_send_orders:
-            try:
-                intent["response"] = client.send_margin_open(
-                    r["symbol"], r["side"], int(r["qty"]), front_order_type=FRONT_OPEN,
-                    margin_type=cfg.margin_type, account_type=cfg.account_type)
-            except KabuAPIError as exc:
-                intent["error"] = str(exc)
+            if cfg.env != "mock":
+                time.sleep(0.25)               # 発注5件/秒制限（kabu API仕様）
+            for attempt in range(3):
+                try:
+                    intent["response"] = client.send_margin_open(
+                        r["symbol"], r["side"], int(r["qty"]), front_order_type=FRONT_OPEN,
+                        margin_type=cfg.margin_type, account_type=cfg.account_type)
+                    intent.pop("error", None)
+                    break
+                except KabuAPIError as exc:    # Result≠0=受付拒否（レート超過含む）。再試行安全
+                    intent["error"] = str(exc)
+                    if attempt < 2:
+                        time.sleep(1.5)
         else:
             intent["response"] = {"dry_run": True}
         results.append(intent)
-    marker.write_text(json.dumps({"time": _today(), "orders": results}, ensure_ascii=False, default=str))
+    if use_marker:
+        marker.write_text(json.dumps({"time": _today(), "orders": results}, ensure_ascii=False, default=str))
     return results
 
 
@@ -303,6 +320,8 @@ def exit_all(client: KabuClientProtocol, cfg: LiveConfig, only_kabu_symbols: set
             results.append(intent)
             continue
         if cfg.will_send_orders:
+            if cfg.env != "mock":
+                time.sleep(0.25)               # 発注5件/秒制限
             for attempt in range(retries + 1):
                 try:
                     intent["response"] = client.send_margin_close(

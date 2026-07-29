@@ -56,3 +56,13 @@ class DailyGapTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CodeNormalizationTest(unittest.TestCase):
+    def test_four_char_alnum_codes_are_padded(self):
+        # 318A(英字入り新形式)も 5桁形 318A0 に正規化されること（regexバグの回帰防止）
+        import pandas as pd
+        from trading.jp_intraday.daily_gap import _normalize_codes
+        df = pd.DataFrame({"Date": ["2026-01-05"] * 3, "Code": ["1301", "318A", "13010"]})
+        out = _normalize_codes(df.copy())
+        self.assertEqual(sorted(out["Code"]), ["13010", "13010", "318A0"])
