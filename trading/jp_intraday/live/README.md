@@ -215,6 +215,8 @@ gcloud run deploy atokyo-trade --source trading/jp_intraday/webapp \
 - 手動で通したいとき: `powershell -File scripts\ensure_kabu_login.ps1 -Force`
 - **UI自動化なので対話セッションが必要**。RDP はログオフせず**切断**すること。
 - 終了コード: 0=ログイン済/成功, 1=タイムアウト, 2=設定不備, 3=認証コードが通らない（要手動）
+- タスクは**失敗時に5分間隔で2回まで自動リトライ**（`RestartCount=2` / `RestartInterval=PT5M`）。
+  それでも 08:44 の plan ログが 401 なら手動介入（`-Force` を実行）。
 - ランナー `scripts/run_live_task.ps1` は `PYTHONUTF8=1` を強制（タスクスケジューラの stdout は
   cp932 で、CONFIG 行の ¥ / 絵文字印字が UnicodeEncodeError で落ちる実障害があった）
 
