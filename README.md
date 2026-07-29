@@ -59,6 +59,7 @@ powershell -ExecutionPolicy Bypass -File scripts\download_data_win.ps1 -Url "<�
 PYTHONPATH=. python scripts/collect_jp_daily_history.py   # 日次（冪等・不足日のみ）
 PYTHONPATH=. python scripts/collect_jp_derivatives.py     # 先物/指数/空売り
 PYTHONPATH=. python scripts/collect_jp_master.py          # 銘柄マスタ（貸借/市場区分。当日分はスキップ）
+PYTHONPATH=. python scripts/collect_jp_margin_flows.py    # 需給: 週次信用残/売買内訳/空売り残高報告
 PYTHONPATH=. python scripts/collect_jp_minutes_2y.py      # 分足2年（任意・5GB）
 ```
 
