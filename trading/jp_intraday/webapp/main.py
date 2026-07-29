@@ -204,6 +204,7 @@ async def home():
     plan_html = "<p>本日のプランはまだありません。</p>"
     if latest_plan:
         pr = (latest_plan.get("data", {}) or {}).get("plan", [])
+        pr = sorted(pr, key=lambda x: -abs(float(x.get("est_yen", 0))))  # 建玉量順
         cells = "".join(
             f"<tr><td>{x.get('symbol')}</td><td>{x.get('name','')}</td>"
             f"<td>{x.get('side_label')}</td><td>{x.get('qty')}</td>"
