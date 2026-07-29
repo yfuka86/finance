@@ -128,3 +128,42 @@ class ShortableCheckTest(unittest.TestCase):
         # フラグ不明（空dict）は不可扱いにしない
         cache2 = {"9999": {}}
         self.assertEqual(verify_shortable(c, ["9999"], cache2), set())
+
+
+class ShadowMonitorTest(unittest.TestCase):
+    def test_tp_sl_trigger_once_and_fill_proxy(self):
+        from trading.jp_intraday.live.shadow import ShadowMonitor
+        m = ShadowMonitor(tp_pct=2.0, sl_pct=2.0)
+        # ロング: +2%到達でTP発動（1回のみ）→次サンプルでfill_proxy
+        ev = m.process_sample("09:10:00", "1301", "LONG", 1000.0, {"CurrentPrice": 1021.0})
+        self.assertEqual([e["type"] for e in ev], ["trigger"])
+        self.assertEqual(ev[0]["kind"], "TP")
+        ev2 = m.process_sample("09:11:00", "1301", "LONG", 1000.0, {"CurrentPrice": 1018.0})
+        kinds = [e["type"] for e in ev2]
+        self.assertIn("fill_proxy", kinds)          # F1想定の約定proxy
+        self.assertNotIn("trigger", kinds)          # 再発動しない
+        self.assertAlmostEqual(ev2[0]["gap_bps"], (1018/1021 - 1) * 1e4, places=6)
+
+    def test_short_sl_direction(self):
+        from trading.jp_intraday.live.shadow import ShadowMonitor
+        m = ShadowMonitor()
+        # ショートの損失=価格上昇。+2%上昇でSL発動、TPは発動しない
+        ev = m.process_sample("10:00:00", "9984", "SHORT", 5000.0, {"CurrentPrice": 5101.0})
+        self.assertEqual(len(ev), 1)
+        self.assertEqual(ev[0]["kind"], "SL")
+
+    def test_run_shadow_loop_writes_summary(self):
+        import datetime as dt
+        from trading.jp_intraday.live.shadow import run_shadow
+        client = MockKabuClient({"1301": 1000.0})
+        cfg = LiveConfig(env="mock")
+        # 建玉を1つ作る（mockの建玉APIを利用）
+        client.send_margin_open("13010", SIDE_BUY, 100, front_order_type=13,
+                                margin_type=3, account_type=4)
+        client._prices["1301"] = 1030.0   # +3% -> TP発動相当
+        times = [dt.datetime(2026, 7, 30, 9, 1), dt.datetime(2026, 7, 30, 9, 2),
+                 dt.datetime(2026, 7, 30, 15, 33)]
+        summary = run_shadow(client, cfg, until="15:32", interval_s=0,
+                             sleep=lambda s: None, now_fn=lambda: times.pop(0))
+        self.assertGreaterEqual(summary["samples"], 1)
+        self.assertEqual(summary["n_tp"] + summary["n_sl"], len(summary["triggers"]))
