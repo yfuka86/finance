@@ -62,5 +62,21 @@ class DailyModelTest(unittest.TestCase):
         pd.testing.assert_series_equal(b["pred"], a["pred"])
 
 
+class ForwardReturnGuardTest(unittest.TestCase):
+    def test_fwd_returns_nan_when_next_row_is_far(self):
+        # フィルタで翌行が抜けた銘柄の ret_on_fwd/ret_cc_fwd は NaN（数週間後の
+        # 「翌日」や未調整併合ジャンプを跨ぐ偽アルファの回帰防止・2026-07-29発見）
+        panel = build_daily_features(_daily(years=2), min_value_yen=0)
+        sym = panel["symbol"].iloc[0]
+        sub = panel[panel["symbol"] == sym].sort_values("date")
+        gap_days = sub["date"].diff().dt.days.shift(-1)
+        far = gap_days > 4
+        if far.any():
+            self.assertTrue(sub.loc[far, "ret_on_fwd"].isna().all())
+            self.assertTrue(sub.loc[far, "ret_cc_fwd"].isna().all())
+        near = gap_days <= 4
+        self.assertTrue(sub.loc[near, "ret_on_fwd"].notna().mean() > 0.9)
+
+
 if __name__ == "__main__":
     unittest.main()
