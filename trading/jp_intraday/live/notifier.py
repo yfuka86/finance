@@ -28,11 +28,23 @@ TIMEOUT = 8.0
 ENV_MARK = {"prod": "🔴本番", "test": "🟠検証", "mock": "⚪モック"}
 
 
+def dashboard_url_from_env() -> str:
+    """DASHBOARD_URL、無ければ REPORT_URL（.../api/report）から画面のURLを導く。"""
+    url = os.environ.get("DASHBOARD_URL", "").strip()
+    if url:
+        return url.rstrip("/")
+    report = os.environ.get("REPORT_URL", "").strip()
+    if report:
+        return report.rstrip("/").removesuffix("/api/report").rstrip("/")
+    return ""
+
+
 @dataclass(frozen=True)
 class SlackConfig:
     token: str = ""
     channel: str = ""
     enabled: bool = True
+    dashboard_url: str = ""
 
     @classmethod
     def from_env(cls) -> "SlackConfig":
@@ -41,6 +53,7 @@ class SlackConfig:
             token=os.environ.get("SLACK_BOT_TOKEN", "").strip(),
             channel=os.environ.get("SLACK_CHANNEL", "").strip(),
             enabled=os.environ.get("SLACK_NOTIFY", "1").strip().lower() not in ("0", "false", "no"),
+            dashboard_url=dashboard_url_from_env(),
         )
 
     @property
@@ -53,6 +66,9 @@ def post(text: str, cfg: SlackConfig | None = None) -> dict:
     cfg = cfg or SlackConfig.from_env()
     if not cfg.usable:
         return {"sent": False, "reason": "slack not configured (SLACK_BOT_TOKEN/SLACK_CHANNEL)"}
+    if cfg.dashboard_url:
+        # 通知だけで完結しないので、どの投稿からも1タップで明細に飛べるようにする
+        text = f"{text}\n<{cfg.dashboard_url}|📈 管理画面をひらく>"
     body = json.dumps({"channel": cfg.channel, "text": text,
                        "unfurl_links": False, "unfurl_media": False}).encode()
     req = urllib.request.Request(

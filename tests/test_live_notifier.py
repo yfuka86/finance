@@ -36,7 +36,21 @@ class PostTest(unittest.TestCase):
             res = post("hello", CFG)
         self.assertTrue(res["sent"])
         self.assertEqual(opener.body["channel"], "C0TEST")
-        self.assertEqual(opener.body["text"], "hello")
+        self.assertEqual(opener.body["text"], "hello")   # URL未設定ならリンク行は付かない
+
+    def test_dashboard_link_is_appended_to_every_post(self):
+        opener = fake_urlopen({"ok": True})
+        cfg = SlackConfig(token="t", channel="c", dashboard_url="https://trade.a-tokyo.jp")
+        with mock.patch("urllib.request.urlopen", opener):
+            post("hello", cfg)
+        self.assertIn("<https://trade.a-tokyo.jp|📈 管理画面をひらく>", opener.body["text"])
+
+    def test_dashboard_url_derived_from_report_url(self):
+        with mock.patch.dict("os.environ", {"REPORT_URL": "https://trade.a-tokyo.jp/api/report",
+                                            "DASHBOARD_URL": ""}, clear=False):
+            self.assertEqual(notifier.dashboard_url_from_env(), "https://trade.a-tokyo.jp")
+        with mock.patch.dict("os.environ", {"DASHBOARD_URL": "https://example.test/x/"}, clear=False):
+            self.assertEqual(notifier.dashboard_url_from_env(), "https://example.test/x")
 
     def test_slack_level_error_is_not_success(self):
         # Slack は失敗も HTTP 200 + ok:false で返す（not_in_channel など）

@@ -18,14 +18,18 @@ param(
 $ErrorActionPreference = "Continue"
 
 $root = Split-Path -Parent $PSScriptRoot
-$token = ""; $channel = ""
+$token = ""; $channel = ""; $dash = ""; $report = ""
 $envFile = Join-Path $root ".env"
 if (Test-Path $envFile) {
     foreach ($l in Get-Content $envFile -Encoding UTF8) {
         if ($l -match '^\s*SLACK_BOT_TOKEN\s*=\s*(.+?)\s*$') { $token = $Matches[1].Trim('"').Trim("'") }
         if ($l -match '^\s*SLACK_CHANNEL\s*=\s*(.+?)\s*$') { $channel = $Matches[1].Trim('"').Trim("'") }
+        if ($l -match '^\s*DASHBOARD_URL\s*=\s*(.+?)\s*$') { $dash = $Matches[1].Trim('"').Trim("'") }
+        if ($l -match '^\s*REPORT_URL\s*=\s*(.+?)\s*$') { $report = $Matches[1].Trim('"').Trim("'") }
     }
 }
+# DASHBOARD_URL 未設定なら REPORT_URL(.../api/report) から画面のURLを導く
+if (-not $dash -and $report) { $dash = ($report -replace '/api/report/?$', '').TrimEnd('/') }
 if (-not $token -or -not $channel) {
     Write-Host "SLACK_BOT_TOKEN / SLACK_CHANNEL が .env にありません（通知スキップ）"
     exit 1
@@ -47,6 +51,8 @@ if ($Test) {
     Write-Host "-Title / -Text / -Test のいずれかを指定してください"
     exit 2
 }
+
+if ($dash) { $body += "`n<$dash|📈 管理画面をひらく>" }   # どの通知からも1タップで明細へ
 
 try {
     $json = @{ channel = $channel; text = $body; unfurl_links = $false } | ConvertTo-Json -Compress

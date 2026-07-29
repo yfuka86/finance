@@ -234,6 +234,8 @@ SLACK_BOT_TOKEN=xoxb-...      SLACK_CHANNEL=C0BLLFT2Y0H      SLACK_NOTIFY=1
 | イベント要約 | `live/notifier.py`（`reporter.report` から自動） | plan / entry / exit / state |
 | 失敗アラート | `scripts/notify_slack.ps1`（ランナーとログインスクリプトから） | タスクの非0終了・自動ログイン失敗 |
 
+- **どの投稿にも管理画面リンク**（`<https://trade.a-tokyo.jp|📈 管理画面をひらく>`）が付く。
+  URL は `DASHBOARD_URL`、未設定なら `REPORT_URL` の `/api/report` を落として導出。
 - **fail-soft が原則**: Slack が落ちていても発注フローは止まらない（`post()` は例外を投げない）。
 - **モック環境（preflight）は通知しない**。毎朝の preflight で二重に流れるため。
 - entry/exit は失敗があれば銘柄とエラー本文を添える。state は**引け後に建玉が残っていたら
