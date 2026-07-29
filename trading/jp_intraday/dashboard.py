@@ -17,7 +17,7 @@ from trading.jp_intraday.strategies import (
     STRATEGIES, book_from_scores, score_frame, unit_lot_backtest, walk_forward_folds,
 )
 
-st.set_page_config(page_title="JP場中戦略 管理画面", layout="wide")
+st.set_page_config(page_title="JP戦略 管理画面", layout="wide")
 _KIND = {"xs": "ルール", "ml": "ML"}
 ss = st.session_state
 ss.setdefault("strat", list(STRATEGIES)[0])
@@ -148,9 +148,9 @@ def _open(k):
 
 
 # ── TOP CONTROL BAR ─────────────────────────────────────────────────
-st.markdown("## 📈 JP場中フラット戦略 管理画面")
-st.markdown("<span style='font-size:12px;color:var(--muted)'>寄付き建て・引け手仕舞い（オーバーナイトなし）／"
-            "個別株のみ／ML=過去学習・翌年OOS</span>", unsafe_allow_html=True)
+st.markdown("## 📈 JP戦略 管理画面")
+st.markdown("<span style='font-size:12px;color:var(--muted)'>個別株L/S／ML=過去学習・翌年OOS／"
+            "保有区分タグ=場中フラット・オーバーナイト・翌日跨ぎ</span>", unsafe_allow_html=True)
 def _yen_label(v_million: int) -> str:
     return f"¥{v_million/100:g}億" if v_million >= 100 else f"¥{v_million*100:,}万"
 
