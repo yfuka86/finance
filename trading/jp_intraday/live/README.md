@@ -142,17 +142,34 @@ gcloud run deploy atokyo-trade --source trading/jp_intraday/webapp \
 ```
 ※ ヘルスチェックは `/api/health`（`/healthz` はCloud Run予約パスでアプリに届かない）。
 
-## 本番移行チェックリスト（実弾前に必須）
-- [ ] 検証環境(18081)で `plan`→`entry`→`exit` が期待通り（板取得・寄成/引成・返済HoldID）
-- [ ] 一日信用の建余力・貸借銘柄・空売り規制（50単元/価格規制）をハンドリング
-- [ ] 寄成の想定始値 vs 実約定のズレ（板の予想始値精度）を検証
-- [ ] `LIVE_MAX_GROSS_YEN` 安全弁・1銘柄上限・全体上限
-- [ ] 障害時の未決済ポジション手仕舞い手順（`exit`再実行・手動）
-- [ ] 少額（例 ¥100万・数銘柄）で本番を数日 → 段階増資
+## 本番移行チェックリスト（2026-07-29 Windows VPSで実施済みの記録）
+- [x] 検証環境(18081)は**板が全null・注文はスタブ**（受理のみ・OrderId=null・建玉生成なし）と判明。
+      板=本番読取＋発注=検証の `HybridKabuClient`（`KABU_ENV=test`＋`KABU_DATA_ENV=prod`）で
+      plan coverage 96.5%・ペーパー発注19件受理まで確認
+- [x] **信用注文は Exchange=9(SOR) 必須**。東証直指定(1)は 100368 で全拒否（実測）。
+      指値・寄指（板寄せ系）とも SOR で受理→取消確認。`kabu_client` は SOR 既定＋東証フォールバック
+- [x] 発注パスワード・一日信用(MarginTradeType=3)・一般口座(AccountType=2) の実受理を確認。
+      特定口座(4)は 100203「特定口座設定約諾書」未確認で発注不可 → 約諾解消まで
+      `LIVE_ACCOUNT_TYPE=2` で運用（一般口座分の損益は確定申告で自己計算）
+- [x] `LIVE_MAX_GROSS_YEN` 安全弁・比例縮小・売建可否チェックは preflight/リハーサルで動作確認
+- [x] 毎営業日 08:50 に発注経路プローブ（約定不能指値→即取消、`scripts/preflight_order_probe.py`）。
+      entry(08:59) 前に口座抑止・認証切れをダッシュボードで検知できる
+- [ ] 寄成の想定始値 vs 実約定のズレ（板の予想始値精度）— 実弾初日以降に計測
+- [ ] 少額（¥5M・5銘柄/側から）で本番を数日 → 段階増資
 
-## 未検証・要注意（この環境では実接続テスト不可）
-- kabuステーションは Windows 常駐が必須のため、Linux/CIでは動作確認不可。仕様準拠で実装済みだが
-  **必ず検証環境で実接続テスト**してから本番へ。
+## Windows VPS 運用（タスクスケジューラ登録済み・平日JST）
+| 07:40 collect | 08:50 probe | 08:55 plan | 08:59 entry | 14:55 exit | 15:40 state |
+|---|---|---|---|---|---|
+
+- 大引けは **15:30**（2024-11-05以降・15:25からプレ・クロージング）。exit 14:55 発注→15:30 板寄せ約定
+- **kabuステーションの自動ログイン設定が必須**。夜間セッション切れで /token が 401 になり
+  entry が不発になる（2026-07-29 朝に実発生）
+- ランナー `scripts/run_live_task.ps1` は `PYTHONUTF8=1` を強制（タスクスケジューラの stdout は
+  cp932 で、CONFIG 行の ¥ / 絵文字印字が UnicodeEncodeError で落ちる実障害があった）
+
+## 未検証・要注意
 - 板の「予想始値」フィールド名は環境差があり得るため、`executor._est_open` を実データで要確認。
+- 返済 (CashMargin=3) の SOR 可否は建玉が無いと実測できないため、SOR→東証の順で自動フォールバック
+  実装とした。実弾初日の exit ログで確定させること。
 - ML戦略は年次学習済みモデル（data/live_models/ridge_YYYY.json）で稼働。年初に
   `python -m trading.jp_intraday.live.run_live train` を1回実行して更新する（年次で十分・R4検証済み）。
