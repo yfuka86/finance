@@ -11,6 +11,9 @@ param(
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:PYTHONPATH = "."
+# タスクスケジューラ実行時は stdout が cp932 になり ¥ や絵文字の print で
+# UnicodeEncodeError で落ちる (2026-07-28 の exit で実発生)。UTF-8 を強制する。
+$env:PYTHONUTF8 = "1"
 
 $logDir = Join-Path $root "data\live_reports\task_logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
