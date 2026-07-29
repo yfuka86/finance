@@ -57,6 +57,7 @@ class MockKabuClient:
         self._positions.append({
             "Symbol": to_kabu_symbol(symbol), "Side": str(side), "LeavesQty": int(qty),
             "HoldQty": 0, "ExecutionID": oid, "ExecutionDay": kw.get("execution_day", 0),
+            "Price": self._price(symbol),   # 建値（実APIと同様・シャドー監視が参照）
         })
         self._orders.append({"ID": oid, "Symbol": to_kabu_symbol(symbol), "Side": str(side),
                              "OrderQty": int(qty), "State": 3, "CashMargin": 2})

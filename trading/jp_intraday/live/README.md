@@ -151,7 +151,23 @@ python -m trading.jp_intraday.live.run_live plan      # 08:55 立案（発注し
 python -m trading.jp_intraday.live.run_live entry     # 08:59 寄成 新規建て（冪等）
 python -m trading.jp_intraday.live.run_live exit      # 14:55 引成 返済（全フラット・再実行安全）
 python -m trading.jp_intraday.live.run_live state     # 建玉/資産を管理画面へ送信
+python -m trading.jp_intraday.live.run_live shadow    # 09:01〜15:32 仮想TP/SL監視（発注なし・下記）
 ```
+
+## 🕶 シャドーTP/SL監視（Windows反映待ち・2026-07-29追加）
+
+日中利確/損切りオーバーレイ（検証済み・導入保留、AGENTS.md参照）の導入判断材料を集める。
+**発注は一切しない**（read-only APIのみ）。建玉の仮想 TP+2% / SL−2% 発動を1分間隔で検知し、
+検知時の気配と次サンプル価格（リサーチのF1「次バーopen約定」仮定の実測対応物）を記録する。
+
+- **Windowsでの有効化（タスクスケジューラに1本追加するだけ）**:
+  平日 09:01 起動で `python -m trading.jp_intraday.live.run_live shadow`
+  （`PYTHONUTF8=1` 必須・他タスクと同じ要領。15:32に自動終了しサマリをWebへ送信）
+- 出力: `data/live_reports/shadow_YYYY-MM-DD.jsonl`（全サンプル+trigger/fill_proxyイベント）
+- **閾値は事前登録値（+2%/−2%）で固定。シャドー期間中の変更禁止**（実測の意味が消える）
+- **導入判断（1〜2ヶ月後・ユーザー承認必須）**: fill_proxy と気配の乖離から実測スリッページを
+  集計し、実測コスト込みで確認窓のΔSh+0.2相当が残るなら導入検討。特に見るべきは
+  寄付き後30分（発動の6割超が集中する高ボラ帯）の乖離bps。
 タスクスケジューラ（Windows）で上記を平日にスケジュールすれば全自動。半自動運用なら
 `plan`で内容を確認 → 手動で`entry`。
 
