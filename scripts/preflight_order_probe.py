@@ -28,12 +28,16 @@ def main() -> int:
 
     c = KabuClient(cfg.api_password, cfg.order_password, env="prod")
     c.authenticate()
+    # 09:00前は寄指(前場)=21 で板寄せ経路まで検証、それ以降は通常指値=20。
+    # 市場は信用新規で必須の SOR(9) (東証直指定は100368で拒否される・実測)。
+    front = 21 if dt.datetime.now().time() < dt.time(9, 0) else 20
     body = {
-        "Password": cfg.order_password, "Symbol": PROBE_SYMBOL, "Exchange": 1,
+        "Password": cfg.order_password, "Symbol": PROBE_SYMBOL,
+        "Exchange": KabuClient.EXCHANGE_SOR,
         "SecurityType": 1, "Side": "2", "CashMargin": 2,
         "MarginTradeType": cfg.margin_type, "DelivType": 0,
         "AccountType": cfg.account_type, "Qty": PROBE_QTY,
-        "FrontOrderType": 20, "Price": PROBE_PRICE, "ExpireDay": 0,
+        "FrontOrderType": front, "Price": PROBE_PRICE, "ExpireDay": 0,
     }
     result: dict = {"probe": "order_path", "symbol": PROBE_SYMBOL}
     ok = False

@@ -163,29 +163,52 @@ class KabuClient:
             raise KabuAPIError(f"order rejected: {resp} (sent {body.get('Symbol')})")
         return resp
 
+    # 信用注文の市場コード。本番実測 (2026-07-29):
+    #   Exchange=1(東証) の信用新規は 100368「信用新規注文は抑止されております」で全拒否。
+    #   Exchange=9(SOR) なら受理される (指値・寄指の板寄せ系とも確認済み)。
+    # SOR対象外銘柄等に備え、9で拒否されたら1で一度だけ再試行する。
+    EXCHANGE_SOR = 9
+    EXCHANGE_TSE = 1
+
+    def _send_with_exchange_fallback(self, body: dict) -> dict:
+        body = dict(body, Exchange=self.EXCHANGE_SOR)
+        try:
+            return self._send(body)
+        except KabuAPIError as first:
+            try:
+                return self._send(dict(body, Exchange=self.EXCHANGE_TSE))
+            except KabuAPIError:
+                raise first  # 元エラー (SOR側) のほうが原因を語ることが多い
+
     def send_margin_open(self, symbol: str, side: str, qty: int, *,
                          front_order_type: int = FRONT_OPEN, margin_type: int = 3,
-                         exchange: int = 1, account_type: int = 4) -> dict:
-        """信用新規建て (default 一日信用=3, 寄成=13). qty in shares (multiple of 100)."""
-        return self._send({
-            "Password": self._order_password, "Symbol": to_kabu_symbol(symbol), "Exchange": exchange,
+                         exchange: int = None, account_type: int = 4) -> dict:
+        """信用新規建て (default 一日信用=3, 寄成=13, SOR). qty in shares (multiple of 100)."""
+        body = {
+            "Password": self._order_password, "Symbol": to_kabu_symbol(symbol),
             "SecurityType": 1, "Side": str(side), "CashMargin": 2,
             "MarginTradeType": margin_type, "DelivType": 0, "AccountType": account_type,
             "Qty": int(qty), "FrontOrderType": int(front_order_type), "Price": 0, "ExpireDay": 0,
-        })
+        }
+        if exchange is not None:  # 明示指定時はフォールバックせずそのまま
+            return self._send(dict(body, Exchange=exchange))
+        return self._send_with_exchange_fallback(body)
 
     def send_margin_close(self, symbol: str, side: str, qty: int, hold_id: str, *,
                           front_order_type: int = FRONT_CLOSE, margin_type: int = 3,
-                          exchange: int = 1, account_type: int = 4) -> dict:
-        """信用返済 (default 引成=16). ``side`` is the CLOSING side (opposite of the position).
-        ``hold_id`` is the position's ExecutionID from ``positions()``."""
-        return self._send({
-            "Password": self._order_password, "Symbol": to_kabu_symbol(symbol), "Exchange": exchange,
+                          exchange: int = None, account_type: int = 4) -> dict:
+        """信用返済 (default 引成=16, SOR→東証フォールバック). ``side`` is the CLOSING side
+        (opposite of the position). ``hold_id`` is the position's ExecutionID from ``positions()``."""
+        body = {
+            "Password": self._order_password, "Symbol": to_kabu_symbol(symbol),
             "SecurityType": 1, "Side": str(side), "CashMargin": 3,
             "MarginTradeType": margin_type, "DelivType": 2, "FundType": "11",
             "AccountType": account_type, "Qty": int(qty), "FrontOrderType": int(front_order_type),
             "Price": 0, "ExpireDay": 0, "ClosePositions": [{"HoldID": hold_id, "Qty": int(qty)}],
-        })
+        }
+        if exchange is not None:
+            return self._send(dict(body, Exchange=exchange))
+        return self._send_with_exchange_fallback(body)
 
     def cancel_order(self, order_id: str) -> dict:
         return self._request("PUT", "/cancelorder",
