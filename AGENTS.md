@@ -64,7 +64,11 @@
     PUT /unregister/all で回避 (無いと plan の板coverage が4%に落ちる)
   - 参照系レート制限10req/s (11件目から429)・**Session再利用必須** (無いと1req/秒)
   - kabuステーションは夜間セッション切れで**毎朝ログインが必要** → 自動ログイン設定必須
-    (2026-07-29朝: 未設定で 401、entry不発の実障害)
+    (2026-07-29朝: 未設定で 401、entry不発の実障害)。ログイン画面はWebView2の多段フォーム
+    (口座番号→パスワード→**毎回メールのワンタイムコード**。端末を信頼する設定は無い)。
+    `ensure_kabu_login.ps1` がUIAutomationで進め、コードは `fetch_otp.ps1`(Gmail IMAP・
+    アプリパスワード)が取得。**投入時刻以降に届いたメールのみ**採用し古いコードを使わない。
+    資格情報は2つともDPAPI暗号化 (`.kabu_creds.xml` / `.gmail_otp.xml`・平文の.envに置かない)
   - タスクスケジューラ実行は stdout=cp932 → **PYTHONUTF8=1 必須** (¥/絵文字printで
     UnicodeEncodeError クラッシュの実障害)
   - 検証環境(18081)は板が全null・注文はスタブ (受理のみ・建玉生成なし)。板=本番読取+

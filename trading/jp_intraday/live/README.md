@@ -190,6 +190,31 @@ gcloud run deploy atokyo-trade --source trading/jp_intraday/webapp \
 - 大引けは **15:30**（2024-11-05以降・15:25からプレ・クロージング）。exit 14:55 発注→15:30 板寄せ約定
 - **kabuステーションの自動ログイン設定が必須**。夜間セッション切れで /token が 401 になり
   entry が不発になる（2026-07-29 朝に実発生）
+
+### 朝の自動ログイン（07:25 `TradeBot-00-KabuLogin`）
+
+`scripts\ensure_kabu_login.ps1` が冪等に実行される（API が 200 なら何もしない）。
+未ログインなら KabuS.exe を再起動し、WebView2 の多段フォームを UIAutomation で進める:
+
+| 段 | 画面 | 自動化 |
+|---|---|---|
+| [1] | 口座番号（AutoId=`username`）→「次へ」 | DPAPI 保存の資格情報 |
+| [2] | パスワード（IsPassword）→「ログイン」 | 同上 |
+| [3] | **ワンタイム認証コード**（AutoId=`code`）→「続ける」 | Gmail(IMAP) から自動取得 |
+
+- kabuステーションは**毎回**メール認証コードを要求する（「この端末を信頼する」は無い）。
+  `scripts\fetch_otp.ps1` → `trading/jp_intraday/live/otp_mail.py` が Gmail を IMAP で読む。
+- **古いコードを使い回さない**のが安全弁: パスワード投入時刻より後に届いたメールしか見ない。
+  メールボックスは readonly で開く（既読化も削除もしない）。試行は既定2回まで。
+- 資格情報は 2ファイルとも DPAPI 暗号化（このユーザー・このマシンでしか復号できない）:
+  - `data\live_reports\.kabu_creds.xml` … `scripts\setup_kabu_credentials.ps1`
+  - `data\live_reports\.gmail_otp.xml` … `scripts\setup_gmail_otp.ps1`
+    （Gmail の**アプリパスワード**16桁。2段階認証をONにすると発行できる。通常のGoogleパスワード不可）
+- 設定確認: `powershell -File scripts\fetch_otp.ps1 -Probe`（直近7日の該当メールを一覧）。
+  差出人が既定パターンに合わなければ `.env` の `OTP_MAIL_FROM` で上書きする。
+- 手動で通したいとき: `powershell -File scripts\ensure_kabu_login.ps1 -Force`
+- **UI自動化なので対話セッションが必要**。RDP はログオフせず**切断**すること。
+- 終了コード: 0=ログイン済/成功, 1=タイムアウト, 2=設定不備, 3=認証コードが通らない（要手動）
 - ランナー `scripts/run_live_task.ps1` は `PYTHONUTF8=1` を強制（タスクスケジューラの stdout は
   cp932 で、CONFIG 行の ¥ / 絵文字印字が UnicodeEncodeError で落ちる実障害があった）
 

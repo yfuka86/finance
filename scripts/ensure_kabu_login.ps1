@@ -11,7 +11,8 @@
 # ログイン画面は WebView2（Chromium）で描画された多段フォーム:
 #   [1] 口座番号(8桁) を AutoId=username に入力 → 「次へ」
 #   [2] パスワード入力 → 「ログイン」
-#   [3] 環境によっては メール認証コード を要求される（未対応・検出したらログに出して停止）
+#   [3] メールのワンタイム認証コード（毎回要求される。端末を信頼する設定は無い）
+#       → scripts\fetch_otp.ps1 が Gmail(IMAP) から取得して自動入力する
 # 要素は UIAutomation で AutomationId / Name を手がかりに毎回探索する（DOM変更に弱いため
 # 見つからなければ状態をログに落として終了し、手動ログインに委ねる）。
 #
@@ -20,7 +21,9 @@
 [CmdletBinding()]
 param(
     [switch]$Force,
-    [int]$LoginTimeoutSec = 240,
+    [int]$LoginTimeoutSec = 420,   # 2FAメールの到着待ちを含むので長め
+    [int]$OtpTimeoutSec = 180,     # 1回あたりのメール待ち時間
+    [int]$MaxCodeTries = 2,        # 認証コードの入力試行上限（誤コードでの締め出し防止）
     [string]$ApiPassword
 )
 $ErrorActionPreference = "Stop"
@@ -133,7 +136,10 @@ $creds = if (Test-Path $credPath) { Import-Clixml $credPath } else { $null }
 
 # ── 段階的にログインを進める ──────────────────────────────────
 $stepAccount = $false; $stepPassword = $false
+$codeTries = 0
+$pwSubmittedEpoch = 0
 $deadline = (Get-Date).AddSeconds($LoginTimeoutSec)
+$today = Join-Path $logDir ("kabulogin_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
 
 while ((Get-Date) -lt $deadline) {
     if (Test-KabuApi) { Log "ログイン完了（API応答OK）"; exit 0 }
@@ -141,12 +147,35 @@ while ((Get-Date) -lt $deadline) {
 
     $els = Get-Elements $p.Id
 
-    # 認証コード要求の検出（メール等の二段階認証）→ 自動化対象外なので通知して終了
-    $codePrompt = Find-One $els "Text" $null '認証コード|ワンタイム|確認コード|セキュリティコード'
-    if ($codePrompt) {
-        Log "STOP: 二段階認証（認証コード）を要求されました: [$($codePrompt.Current.Name)]"
-        Log "  自動入力は未対応です。手動でログインしてください。"
-        exit 3
+    # [3] ワンタイム認証コード（メール）— 入力欄が出たら Gmail から取りに行く。
+    #     パスワード投入時刻より後に届いたメールだけを見るので古いコードは使わない。
+    $codeEl = Find-One $els "Edit" "code" '認証コード|ワンタイム|確認コード'
+    if ($codeEl) {
+        if ($codeTries -ge $MaxCodeTries) {
+            Log "STOP: 認証コードを $codeTries 回試しましたが通りませんでした（手動確認が必要）"
+            exit 3
+        }
+        $codeTries++
+        $since = if ($pwSubmittedEpoch -gt 0) { $pwSubmittedEpoch - 90 }
+        else { [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() - 180 }
+        Log "[3] 認証コードを要求されました → Gmail から取得します（$codeTries/$MaxCodeTries 回目）"
+        $remain = [int]([Math]::Max(30, ($deadline - (Get-Date)).TotalSeconds - 30))
+        $otp = & (Join-Path $PSScriptRoot "fetch_otp.ps1") -SinceEpoch $since `
+            -TimeoutSec ([Math]::Min($OtpTimeoutSec, $remain)) -LogPath $today
+        $otp = ($otp | Select-Object -Last 1)
+        if ($LASTEXITCODE -ne 0 -or -not ($otp -match '^\d{4,8}$')) {
+            Log "[3] コードを取得できませんでした（fetch_otp exit=$LASTEXITCODE）"
+            Start-Sleep -Seconds 5
+            continue
+        }
+        $masked = $otp.Substring(0, 1) + ('*' * ($otp.Length - 2)) + $otp.Substring($otp.Length - 1)
+        if (Set-Text $codeEl $otp) { Log "[3] 認証コードを入力: $masked" }
+        $otp = $null
+        Start-Sleep -Milliseconds 400
+        $go = Find-One (Get-Elements $p.Id) "Button" $null '続ける|認証|送信|ログイン|^次へ$'
+        if ($go -and (Invoke-El $go)) { Log "[3] 「$($go.Current.Name)」を押下"; Start-Sleep -Seconds 5 }
+        else { Log "[3] 送信ボタンが見つかりません" }
+        continue
     }
 
     # [1] 口座番号
@@ -182,7 +211,12 @@ while ((Get-Date) -lt $deadline) {
             Log "[2] パスワードを入力: $ok"
             Start-Sleep -Milliseconds 400
             $btn = Find-One (Get-Elements $p.Id) "Button" $null 'ログイン|^次へ$|送信'
-            if ($btn -and (Invoke-El $btn)) { Log "[2] 「$($btn.Current.Name)」を押下"; $stepPassword = $true; Start-Sleep -Seconds 3 }
+            if ($btn -and (Invoke-El $btn)) {
+                # 認証コードメールはこの押下の後に届く。以降の到着分だけを見るため時刻を控える。
+                # PS5.1 の Get-Date -UFormat %s はローカル時刻基準でズレるため使わない
+                $pwSubmittedEpoch = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                Log "[2] 「$($btn.Current.Name)」を押下"; $stepPassword = $true; Start-Sleep -Seconds 3
+            }
             else { Log "[2] ログインボタンが見つかりません" }
             continue
         }
