@@ -220,6 +220,27 @@ gcloud run deploy atokyo-trade --source trading/jp_intraday/webapp \
 - ランナー `scripts/run_live_task.ps1` は `PYTHONUTF8=1` を強制（タスクスケジューラの stdout は
   cp932 で、CONFIG 行の ¥ / 絵文字印字が UnicodeEncodeError で落ちる実障害があった）
 
+### Slack 通知
+
+`.env`（Git管理外）に設定。必要スコープは **`chat:write` のみ**、bot をチャンネルに
+`/invite` しておくこと（未招待だと `not_in_channel` で送信できない）。
+
+```
+SLACK_BOT_TOKEN=xoxb-...      SLACK_CHANNEL=C0BLLFT2Y0H      SLACK_NOTIFY=1
+```
+
+| 経路 | 実装 | 送るもの |
+|---|---|---|
+| イベント要約 | `live/notifier.py`（`reporter.report` から自動） | plan / entry / exit / state |
+| 失敗アラート | `scripts/notify_slack.ps1`（ランナーとログインスクリプトから） | タスクの非0終了・自動ログイン失敗 |
+
+- **fail-soft が原則**: Slack が落ちていても発注フローは止まらない（`post()` は例外を投げない）。
+- **モック環境（preflight）は通知しない**。毎朝の preflight で二重に流れるため。
+- entry/exit は失敗があれば銘柄とエラー本文を添える。state は**引け後に建玉が残っていたら
+  🚨 を出す**（場中フラット戦略なので返済漏れの検知が主目的）。
+- 疎通確認: `python -m trading.jp_intraday.live.notifier --test` /
+  `powershell -File scripts\notify_slack.ps1 -Test`
+
 ## 未検証・要注意
 - 板の「予想始値」フィールド名は環境差があり得るため、`executor._est_open` を実データで要確認。
 - 返済 (CashMargin=3) の SOR 可否は建玉が無いと実測できないため、SOR→東証の順で自動フォールバック

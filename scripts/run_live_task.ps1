@@ -34,6 +34,13 @@ if ($Action -eq "collect") {
 $code = $LASTEXITCODE
 "exit=$code time=$(Get-Date -Format o)" | Add-Content $log
 
+# 失敗は必ず Slack に出す。python が起動しなかった場合も拾えるようランナー側で行う
+# (正常時のイベント通知は python の notifier がイベントごとに送る)。
+if ($code -ne 0) {
+    $tail = (Get-Content $log -Tail 25 -Encoding UTF8 -ErrorAction SilentlyContinue) -join "`n"
+    & (Join-Path $PSScriptRoot "notify_slack.ps1") -Title "$Action 失敗 (exit=$code)" -Detail $tail | Out-Null
+}
+
 # ログの肥大化防止: 30日より古いログを削除
 Get-ChildItem $logDir -Filter *.log |
     Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } |

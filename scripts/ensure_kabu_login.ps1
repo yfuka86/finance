@@ -41,11 +41,23 @@ $credPath = Join-Path $root "data\live_reports\.kabu_creds.xml"
 $logDir = Join-Path $root "data\live_reports\task_logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 
+$logFile = Join-Path $logDir ("kabulogin_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
+
 function Log($msg) {
     $line = "{0} {1}" -f (Get-Date -Format "HH:mm:ss"), $msg
     Write-Host $line
-    Add-Content -Path (Join-Path $logDir ("kabulogin_{0}.log" -f (Get-Date -Format "yyyyMMdd"))) `
-        -Value $line -Encoding utf8
+    Add-Content -Path $logFile -Value $line -Encoding utf8
+}
+
+# 失敗は Slack に出して終わる。朝ここで転ぶと entry が不発になるので気付けることが最重要。
+function Fail([int]$code, [string]$msg) {
+    Log "ERROR: $msg"
+    try {
+        $tail = (Get-Content $logFile -Tail 20 -Encoding UTF8 -ErrorAction SilentlyContinue) -join "`n"
+        & (Join-Path $PSScriptRoot "notify_slack.ps1") `
+            -Title "kabuステーション 自動ログイン失敗 (exit=$code)" -Detail $tail | Out-Null
+    } catch {}
+    exit $code
 }
 
 # ── .env から APIパスワード ────────────────────────────────────
@@ -57,7 +69,7 @@ if (-not $ApiPassword) {
         }
     }
 }
-if (-not $ApiPassword) { Log "ERROR: KABU_API_PASSWORD が取得できません"; exit 2 }
+if (-not $ApiPassword) { Fail 2 "KABU_API_PASSWORD が取得できません" }
 
 function Test-KabuApi {
     try {
@@ -124,7 +136,7 @@ if ($procs) {
     $procs | Stop-Process -Force -ErrorAction SilentlyContinue
     for ($i = 0; $i -lt 20 -and (Get-Process KabuS -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 500 }
 }
-if (-not (Test-Path $exe)) { Log "ERROR: $exe がありません"; exit 2 }
+if (-not (Test-Path $exe)) { Fail 2 "$exe がありません" }
 $p = Start-Process $exe -PassThru
 Log "起動: PID $($p.Id)"
 
@@ -152,8 +164,7 @@ while ((Get-Date) -lt $deadline) {
     $codeEl = Find-One $els "Edit" "code" '認証コード|ワンタイム|確認コード'
     if ($codeEl) {
         if ($codeTries -ge $MaxCodeTries) {
-            Log "STOP: 認証コードを $codeTries 回試しましたが通りませんでした（手動確認が必要）"
-            exit 3
+            Fail 3 "認証コードを $codeTries 回試しましたが通りませんでした（手動確認が必要）"
         }
         $codeTries++
         $since = if ($pwSubmittedEpoch -gt 0) { $pwSubmittedEpoch - 90 }
@@ -225,7 +236,7 @@ while ((Get-Date) -lt $deadline) {
 }
 
 # タイムアウト時は画面に何が出ているかを残す（次回の調整用）
-Log "ERROR: $LoginTimeoutSec 秒以内にログインできませんでした"
+Log "$LoginTimeoutSec 秒以内にログインできませんでした"
 try {
     foreach ($e in (Get-Elements $p.Id)) {
         $t = $e.Current.ControlType.ProgrammaticName -replace 'ControlType\.', ''
@@ -234,4 +245,4 @@ try {
         }
     }
 } catch {}
-exit 1
+Fail 1 "ログインできませんでした（上の画面ダンプを確認して手動ログインしてください）"
