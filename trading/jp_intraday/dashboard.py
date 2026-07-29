@@ -367,6 +367,8 @@ if pick is not None:
     d["日中%"] = (d["intraday_ret"] * 100).round(2)
     if mode.startswith("理想"):
         d["寄与bps"] = (d["pnl"] * 1e4).round(1)
+        if "weight" in d.columns:                       # 建玉量（|ウェイト|）順
+            d = d.reindex(d["weight"].abs().sort_values(ascending=False).index)
         longs, shorts = d[d.side == "LONG"], d[d.side == "SHORT"]
         m = st.columns(3)
         m[0].metric("当日ネット寄与", f"{d['pnl'].sum()*100:.2f}%")
@@ -375,12 +377,13 @@ if pick is not None:
         show = ["symbol", "name", "sector", "ギャップ%", "日中%", "寄与bps"]
         lc, rc = st.columns(2)
         lc.caption(f"買い 上位/{len(longs)}"); lc.dataframe(longs.head(12)[show], width="stretch", hide_index=True)
-        rc.caption(f"売り 上位/{len(shorts)}"); rc.dataframe(shorts.tail(12)[show].iloc[::-1], width="stretch", hide_index=True)
+        rc.caption(f"売り 上位/{len(shorts)}"); rc.dataframe(shorts.head(12)[show], width="stretch", hide_index=True)
     else:
         d["株価"] = d["px"].round(0)
         d["単元数"] = d["units"].astype(int)
         d["株数"] = d["単元数"] * 100
         d["建玉¥"] = d["position_yen"].round(0); d["損益¥"] = d["pnl_yen"].round(0)
+        d = d.reindex(d["position_yen"].abs().sort_values(ascending=False).index)  # 建玉量順
         longs, shorts = d[d.side_label == "LONG"], d[d.side_label == "SHORT"]
         m = st.columns(6)
         m[0].metric("当日損益", f"¥{d['pnl_yen'].sum():,.0f}")
