@@ -123,7 +123,7 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
-_PANEL_SCHEMA_VERSION = 3  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
+_PANEL_SCHEMA_VERSION = 4  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
@@ -262,8 +262,14 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     p["prev_close2"] = g["close"].shift(2)
     # 保有区分別のフォワードリターン（戦略が"取りに行く"リターン。特徴量ではない）
     # overnight: 当日引け→翌日寄り / cc1: 当日引け→翌日引け。シグナルは当日引けまでの情報のみ。
-    p["ret_on_fwd"] = g["open"].shift(-1) / p["close"] - 1
-    p["ret_cc_fwd"] = g["close"].shift(-1) / p["close"] - 1
+    # 汚染ガード（2026-07-29 敵対的検証で発見）: shift(-1)はフィルタ済みパネル上のため、
+    # 流動性フィルタ等で翌行が抜けた銘柄では「翌日」が数週間後になり、未調整の株式併合
+    # ジャンプ(+959%等)を跨いで偽アルファを生む（ml_overnight幻影の主因の一つ）。
+    # 翌行との暦日差が4日超（週末+祝日を超える間隔）の場合はNaN化して保有不能扱いにする。
+    _next_date = g["date"].shift(-1)
+    _fwd_ok = (_next_date - p["date"]).dt.days <= 4
+    p["ret_on_fwd"] = (g["open"].shift(-1) / p["close"] - 1).where(_fwd_ok)
+    p["ret_cc_fwd"] = (g["close"].shift(-1) / p["close"] - 1).where(_fwd_ok)
     p["gap_abs"] = p["residual_gap"].abs()
     cc = g["close"].pct_change(fill_method=None)
     p["ret"] = cc
