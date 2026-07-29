@@ -183,8 +183,10 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
     data_date = _assert_fresh(panel, cfg)
     last = panel[panel["date"].eq(panel["date"].max())].copy()
 
-    opens = open_prices(client, list(last["symbol"]),
-                        throttle_s=0.105 if cfg.env != "mock" else 0.0)  # 照会10件/秒制限
+    # 照会10件/秒制限のスロットルは KabuClient 側 (MIN_INTERVAL=0.105s) に一本化。
+    # ここでも sleep すると二重で 0.21s/件 → 全ユニバースの板取得が5分超になり
+    # 08:52開始でも寄付きに間に合わなくなる (実測: クライアント側のみで ~6件/秒)。
+    opens = open_prices(client, list(last["symbol"]), throttle_s=0.0)
     coverage = len(opens) / max(len(last), 1)
     if coverage < 0.8 and cfg.env == "prod":
         raise RuntimeError(f"board coverage {coverage:.0%} < 80% — aborting (partial cross-section)")
