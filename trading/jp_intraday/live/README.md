@@ -48,8 +48,12 @@ auカブコム証券の **kabuステーションAPI** で執行し、結果を *
    `PYTHONPATH=. python scripts/collect_jp_daily_history.py`（前営業日分。当日分が無いのは正常）
 2. `python -m trading.jp_intraday.live.run_live preflight` → `positions_after=0` と
    **data_dateが前営業日**であることを確認（preflightは本番entryをブロックしない・修正済み）
-3. **08:56** `run_live entry` … 板取得(~80秒)+寄成発注（発注0.25秒間隔・自動リトライ・冪等）。
-   **08:59開始だと寄付きに間に合わないリスクがあるため08:56厳守**
+3. **08:48** `run_live entry` … 板取得(~80秒・**シグナル気配は08:50までのスナップショット**)
+   → 寄成発注（0.25秒間隔・自動リトライ・冪等、〜08:53頃完了）。
+   **確定間際の気配は使わない（使えない）前提の運用**: バックテストは確定寄値でシグナルを
+   計算しているため、08:50気配とのズレは選択ノイズになる。検証済みのノイズ予算:
+   **銘柄固有σ=25bpsまで劣化ゼロ・σ≈51bpsで単元Sh−10%**（共通モードのズレはデミーンで無効。
+   脆弱なのはsvdnスリーブのみ）。measure_quote_vs_open.py の実測σが40bps超で常態化したら要相談
 4. **14:55** `run_live exit` … 引成返済（15:20までに送信完了をログで確認）
 5. **15:30** `run_live state` … 結果を https://trade.a-tokyo.jp へ送信
 
@@ -99,6 +103,21 @@ pytest tests/test_jp_intraday_live.py -q     # オフライン単体テスト
 - `KABU_ENV=prod` … 本番(18080)。**実発注は3ロック全一致時のみ**：`env=prod` かつ `KABU_DRY_RUN=0`
   かつ `KABU_LIVE_CONFIRMED=1`。
 手順：`preflight`(どこでも) → `test`でペーパー発注 → `prod`少額 → 段階増資。
+
+### 売り建て規制銘柄の回避（2026-07-30 追加・実発注拒否の実障害対応）
+- **二重ガード**: ①パネルの `short_restricted` フラグ（J-Quants 日々公表・規制銘柄の
+  Restricted=増担保 / RestrictedByJSF=日証金貸株申込制限。公表翌日から適用・バックテストと
+  ライブで同一に除外） ②プラン時に kabu `/regulations` を実照会し売り方向規制を除外→次点繰上げ。
+- **ショートの時価総額フロア**: `LIVE_MIN_MKTCAP_SHORT_YEN`（**既定0=なし**。規律付き最適化
+  =選択窓2021-24でグリッド選択→確認窓2025+で1回確認、の結果フロアなしが最適。
+  30億〜500億のどの値も選択窓Sh−0.2〜0.3の明確なコスト。¥30-100億のショートは
+  アルファ源で、規制回避は上記ガード2枚が直接担うためフロアは冗長な保険と判明）。
+  ⚠️小型ショートは一日信用プレミアム料が7bps想定を超え得る→実測記録で監視、
+  超過が常態なら新しい窓で再検討。
+- 規制除外自体の影響はプラス（OOS24+ Sh 3.21→3.25・DD −17.9%→−15.4%。規制銘柄の
+  ショートは踏み上げ・逆日歩リスク源だったため）。
+- データ更新: 朝の `collect_jp_daily_history.py` に加えて **`collect_jp_margin_flows.py` も
+  毎朝実行**（margin_alert の当年分を更新。冪等・数分）。
 
 ### 空売り可否・価格規制の取り扱い（重要）
 - **単元=100株**。空売り価格規制の適用除外は「1注文50単元(=5,000株)以下」。当戦略のショートは
@@ -151,7 +170,23 @@ python -m trading.jp_intraday.live.run_live plan      # 08:55 立案（発注し
 python -m trading.jp_intraday.live.run_live entry     # 08:59 寄成 新規建て（冪等）
 python -m trading.jp_intraday.live.run_live exit      # 14:55 引成 返済（全フラット・再実行安全）
 python -m trading.jp_intraday.live.run_live state     # 建玉/資産を管理画面へ送信
+python -m trading.jp_intraday.live.run_live shadow    # 09:01〜15:32 仮想TP/SL監視（発注なし・下記）
 ```
+
+## 🕶 シャドーTP/SL監視（Windows反映待ち・2026-07-29追加）
+
+日中利確/損切りオーバーレイ（検証済み・導入保留、AGENTS.md参照）の導入判断材料を集める。
+**発注は一切しない**（read-only APIのみ）。建玉の仮想 TP+2% / SL−2% 発動を1分間隔で検知し、
+検知時の気配と次サンプル価格（リサーチのF1「次バーopen約定」仮定の実測対応物）を記録する。
+
+- **Windowsでの有効化（タスクスケジューラに1本追加するだけ）**:
+  平日 09:01 起動で `python -m trading.jp_intraday.live.run_live shadow`
+  （`PYTHONUTF8=1` 必須・他タスクと同じ要領。15:32に自動終了しサマリをWebへ送信）
+- 出力: `data/live_reports/shadow_YYYY-MM-DD.jsonl`（全サンプル+trigger/fill_proxyイベント）
+- **閾値は事前登録値（+2%/−2%）で固定。シャドー期間中の変更禁止**（実測の意味が消える）
+- **導入判断（1〜2ヶ月後・ユーザー承認必須）**: fill_proxy と気配の乖離から実測スリッページを
+  集計し、実測コスト込みで確認窓のΔSh+0.2相当が残るなら導入検討。特に見るべきは
+  寄付き後30分（発動の6割超が集中する高ボラ帯）の乖離bps。
 タスクスケジューラ（Windows）で上記を平日にスケジュールすれば全自動。半自動運用なら
 `plan`で内容を確認 → 手動で`entry`。
 

@@ -465,7 +465,9 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
                       short_min_value_yen: float = 1e9,
                       gross_leverage: float | None = None,
                       require_shortable: bool = True,
-                      apply_short_reg_cap: bool = True):
+                      apply_short_reg_cap: bool = True,
+                      exclude_short_restricted: bool = True,
+                      short_min_mktcap_yen: float | None = None):
     """信用取引に忠実な ¥ 単元バックテスト（一日信用・寄成建て/引成返済）.
 
     - ``capital_yen`` は委託保証金（現金）。``margin_ratio`` は信用倍率
@@ -509,6 +511,10 @@ def unit_lot_backtest(frame: pd.DataFrame, capital_yen: float = 2e7, names_per_s
     f.loc[rank_hi <= names_per_side, "side"] = 1                   # highest score -> long
     # Shorts: 制度信用貸借のみ + 流動性フロア（一日信用在庫切れ/プレミアム料リスク回避）.
     pool = f[f["shortable"] != False] if (require_shortable and "shortable" in f.columns) else f  # noqa: E712
+    if exclude_short_restricted and "short_restricted" in pool.columns:
+        pool = pool[~pool["short_restricted"].fillna(False)]   # 増担保/日証金規制銘柄は売建不可
+    if short_min_mktcap_yen and "mktcap_yen" in pool.columns:
+        pool = pool[pool["mktcap_yen"] >= short_min_mktcap_yen]
     if "prev_value" in pool.columns and short_min_value_yen:
         pool = pool[pool["prev_value"] >= short_min_value_yen]
     rank_lo = pool["_s"].groupby(pool["date"]).rank(method="first", ascending=True)

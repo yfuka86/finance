@@ -33,8 +33,9 @@ UNIT_OOS = "2024-01-01"       # 本番換算のOOS24+（暦年境界）
 EXPECTED = [
     ("リサーチ @3bps OOS24-08+", {"sharpe": 8.77}),
     ("リサーチ @7bps OOS24-08+", {"sharpe": 7.14}),
-    ("単元¥20M 8/側 2.0x 7bps 全期間", {"sharpe": 2.20, "ann_return": 0.536, "max_drawdown": -0.21}),
-    ("単元¥20M 8/側 2.0x 7bps OOS24+", {"sharpe": 3.21, "ann_return": 1.008, "max_drawdown": -0.18}),
+    # 2026-07-30 更新: 規制銘柄のショート除外を既定化（実行不能ショートの排除=現実性修正）
+    ("単元¥20M 8/側 2.0x 7bps 全期間", {"sharpe": 2.19, "ann_return": 0.525, "max_drawdown": -0.21}),
+    ("単元¥20M 8/側 2.0x 7bps OOS24+", {"sharpe": 3.25, "ann_return": 1.005, "max_drawdown": -0.15}),
 ]
 
 

@@ -64,7 +64,7 @@ def _plan_symbols_today() -> set:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="kabuステーション 場中フラット トレーダー")
-    ap.add_argument("action", choices=["train", "preflight", "plan", "entry", "exit", "state"])
+    ap.add_argument("action", choices=["train", "preflight", "plan", "entry", "exit", "state", "shadow"])
     ap.add_argument("--force", action="store_true", help="entry: allow same-day re-run")
     args = ap.parse_args()
 
@@ -110,6 +110,13 @@ def main() -> None:
         print(f"exit orders: {len(res)} (will_send={cfg.will_send_orders}, restrict={bool(only)})")
         print(json.dumps(res, ensure_ascii=False, default=str, indent=2)[:2000])
         reporter.report(cfg, "exit", {"orders": res}, _now())
+
+    elif args.action == "shadow":
+        # 発注なしの仮想TP/SL監視（導入判断用の実測。詳細は live/shadow.py と README）
+        from .shadow import run_shadow
+        summary = run_shadow(client, cfg)
+        print(json.dumps(summary, ensure_ascii=False, default=str, indent=2)[:2000])
+        reporter.report(cfg, "shadow_summary", summary, _now())
 
     elif args.action == "state":
         state = {"positions": client.positions(product=2), "margin": client.wallet_margin()}

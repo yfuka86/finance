@@ -141,6 +141,10 @@ class KabuClient:
     def symbol_info(self, symbol: str, exchange: int = 1) -> dict:
         return self._request("GET", f"/symbol/{to_kabu_symbol(symbol)}@{exchange}")
 
+    def regulations(self, symbol: str, exchange: int = 1) -> dict:
+        """規制情報（新規売停止・注文制限等）。売建候補の発注前チェック用."""
+        return self._request("GET", f"/regulations/{to_kabu_symbol(symbol)}@{exchange}")
+
     # ── account state ───────────────────────────────────────────────
     def positions(self, product: int = 2) -> list:
         """product: 0=all,1=現物,2=信用,3=先物,4=OP."""
@@ -239,6 +243,9 @@ class HybridKabuClient:
 
     def symbol_info(self, symbol: str, exchange: int = 1) -> dict:
         return self._data.symbol_info(symbol, exchange)
+
+    def regulations(self, symbol: str, exchange: int = 1) -> dict:
+        return self._data.regulations(symbol, exchange) if hasattr(self._data, "regulations") else {}
 
     # 口座・発注系 → 検証
     def positions(self, product: int = 2) -> list:
