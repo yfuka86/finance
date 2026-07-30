@@ -24,10 +24,20 @@ q = pd.DataFrame(rows)
 q["calc"] = pd.to_numeric(q["calc"], errors="coerce")
 q = q.dropna(subset=["calc"])
 
+# 年によって列構成が違う（2025は調整済みのみ・2026は生のO/Cを持つ）。
+# 気配は未調整価格なので **生のO/C しか使えない**（AdjOと突き合わせると分割銘柄で誤差が出る）。
+# 生の列を持たないファイルは黙って飛ばす（分析対象は直近数日なので実害なし）。
+import pyarrow.parquet as pq  # noqa: E402
+
 daily = []
 for f in sorted(glob.glob("data/jp_daily_history/daily_adj_202[5-9].parquet")):
-    d = pd.read_parquet(f, columns=["Date", "Code", "O", "C"])
-    daily.append(d)
+    names = set(pq.ParquetFile(f).schema_arrow.names)
+    if not {"O", "C"} <= names:
+        print(f"skip {f}（生のO/C列なし: {sorted(names & {'AdjO', 'AdjC', 'O', 'C'})}）")
+        continue
+    daily.append(pd.read_parquet(f, columns=["Date", "Code", "O", "C"]))
+if not daily:
+    raise SystemExit("生のO/Cを持つ日次ファイルがありません（collect_jp_daily_history を実行）")
 d = pd.concat(daily, ignore_index=True)
 d["day"] = pd.to_datetime(d["Date"]).dt.strftime("%Y-%m-%d")
 d["symbol"] = d["Code"].astype(str).map(lambda s: s[:-1] if len(s) == 5 else s)

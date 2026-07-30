@@ -4,7 +4,8 @@
 # (このスクリプト自体は何も上書きしない)。ログは data\live_reports\task_logs\ に残す。
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("collect", "plan", "entry", "exit", "state", "train", "preflight", "probe")]
+    [ValidateSet("collect", "plan", "entry", "exit", "state", "train", "preflight", "probe",
+        "quotesnap", "cost", "shadow")]
     [string]$Action
 )
 
