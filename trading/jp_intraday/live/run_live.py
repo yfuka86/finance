@@ -64,7 +64,7 @@ def _plan_symbols_today() -> set:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="kabuステーション 場中フラット トレーダー")
-    ap.add_argument("action", choices=["train", "preflight", "plan", "entry", "exit", "state", "shadow"])
+    ap.add_argument("action", choices=["train", "preflight", "plan", "entry", "exit", "state", "shadow", "quotesnap", "cost"])
     ap.add_argument("--force", action="store_true", help="entry: allow same-day re-run")
     args = ap.parse_args()
 
@@ -117,6 +117,22 @@ def main() -> None:
         summary = run_shadow(client, cfg)
         print(json.dumps(summary, ensure_ascii=False, default=str, indent=2)[:2000])
         reporter.report(cfg, "shadow_summary", summary, _now())
+
+    elif args.action == "quotesnap":
+        # 寄前気配の3時点スナップショット（発注なし。戦略成立性の検証: 気配vs実寄値）
+        from .quotesnap import run_quotesnap
+        panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
+        last = panel[panel["date"].eq(panel["date"].max())]
+        summary = run_quotesnap(client, cfg, list(last["symbol"]))
+        print(json.dumps(summary, ensure_ascii=False, default=str))
+        reporter.report(cfg, "quotesnap", summary, _now())
+
+    elif args.action == "cost":
+        # 実効コストの脚別実測（寄り/引けを分離）。15:40以降に実行する
+        from .costs import record_daily_costs
+        summary = record_daily_costs(client, cfg)
+        print(json.dumps(summary, ensure_ascii=False, default=str, indent=2))
+        reporter.report(cfg, "cost", summary, _now())
 
     elif args.action == "state":
         state = {"positions": client.positions(product=2), "margin": client.wallet_margin()}

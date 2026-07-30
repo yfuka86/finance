@@ -41,11 +41,16 @@ def _retry(fn, tries=8, base=2.0):
 
 
 def _covered_dates() -> set:
-    """Dates already present (>=MIN_ROWS names) across all on-disk sources."""
+    """Dates already present (>=MIN_ROWS names) in the **canonical** stores.
+
+    2026-07-30 修正: data/cache/bars_day_* は**未調整価格**のスナップショット
+    （AdjC列に生値が入っている）。これを「収集済み」と見なすと、その期間だけ調整基準が
+    ずれた区間がパネルに残り、区間境界で×4〜×200の偽リターンを生む（実害を確認）。
+    よってカバレッジ判定は調整済みの正本のみで行い、bars_day_* が埋めている日も
+    正本として取り直す（load_existing_daily 側でも正本を優先するよう修正済み）。
+    """
     sources = (
-        glob.glob("data/cache/bars_day_*.parquet")
-        + glob.glob("data/cache/bars_2*.parquet")
-        + ["data/jp_intraday_reference/daily_20260528_20260724.parquet"]
+        ["data/jp_intraday_reference/daily_20260528_20260724.parquet"]
         + glob.glob("data/jp_daily_history/daily_adj_*.parquet")
     )
     covered = set()

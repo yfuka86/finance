@@ -123,7 +123,7 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
-_PANEL_SCHEMA_VERSION = 5  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
+_PANEL_SCHEMA_VERSION = 8  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
@@ -236,6 +236,9 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
       それ以前の日付は各銘柄の最初の開示値で近似）。
     """
     p = build_gap_panel(daily, min_value_yen=min_value_yen)
+    # 市場の営業日インデックス（フィルタ前の全銘柄の日付集合＝取引所カレンダー相当）
+    _dcol = "Date" if "Date" in daily.columns else "date"
+    daily_dates = pd.to_datetime(daily[_dcol]).unique()
     # Restrict to individual stocks (drop ETF/ETN/REIT/投信 & PRO MARKET). Symbols
     # absent from the current master are DELISTED individual names -> keep them
     # (is_fund NaN -> False) so the backtest is not survivorship-biased.
@@ -299,12 +302,19 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     p["prev_close2"] = g["close"].shift(2)
     # 保有区分別のフォワードリターン（戦略が"取りに行く"リターン。特徴量ではない）
     # overnight: 当日引け→翌日寄り / cc1: 当日引け→翌日引け。シグナルは当日引けまでの情報のみ。
-    # 汚染ガード（2026-07-29 敵対的検証で発見）: shift(-1)はフィルタ済みパネル上のため、
-    # 流動性フィルタ等で翌行が抜けた銘柄では「翌日」が数週間後になり、未調整の株式併合
-    # ジャンプ(+959%等)を跨いで偽アルファを生む（ml_overnight幻影の主因の一つ）。
-    # 翌行との暦日差が4日超（週末+祝日を超える間隔）の場合はNaN化して保有不能扱いにする。
-    _next_date = g["date"].shift(-1)
-    _fwd_ok = (_next_date - p["date"]).dt.days <= 4
+    # 汚染ガード（2026-07-30 R7の検証で強化）: shift(-1)はフィルタ済みパネル上のため、
+    # 流動性フィルタ等で翌行が抜けた銘柄では「翌日」が実際には数セッション先になり、
+    # 複数日分のリターンが「一晩」として計上されて偽アルファを生む。
+    # 旧ガード（暦日差<=4日）では2〜4暦日の飛びを素通りさせ、選択窓の3.57%の行が
+    # 真の翌営業日を指していなかった（該当行の平均+60.4bps vs 真値+16.8bps）。
+    # 正しい判定は「取引所カレンダー上で真に隣接するセッションか」なので、
+    # 全銘柄の日付集合から市場の営業日インデックスを作り、連番+1のみを有効とする。
+    _sessions = pd.Index(sorted(daily_dates)) if daily_dates is not None else \
+        pd.Index(sorted(p["date"].unique()))
+    _sess_no = pd.Series(range(len(_sessions)), index=_sessions)
+    _cur_no = p["date"].map(_sess_no)
+    _next_no = _cur_no.groupby(p["symbol"]).shift(-1)
+    _fwd_ok = _next_no.eq(_cur_no + 1)          # 真の翌営業日のみ
     p["ret_on_fwd"] = (g["open"].shift(-1) / p["close"] - 1).where(_fwd_ok)
     p["ret_cc_fwd"] = (g["close"].shift(-1) / p["close"] - 1).where(_fwd_ok)
     p["gap_abs"] = p["residual_gap"].abs()

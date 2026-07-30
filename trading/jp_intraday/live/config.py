@@ -51,7 +51,7 @@ class LiveConfig:
     margin_ratio: float = 2.0          # 信用倍率: グロス建玉目標 = 保証金 × これ
     margin_type: int = 3
     account_type: int = 4
-    min_value_yen: float = 5e8
+    min_value_yen: float = 1e9   # 全面流動性フロア¥10億（ユーザー決定 2026-07-30・執行品質優先）
     short_min_mktcap_yen: float = 0.0   # 時価総額フロアは規律付き最適化で0が最適（規制回避は専用ガード2枚が担当）
     max_gross_yen: float = 40_000_000  # 既定 = capital × margin_ratio（from_envで自動整合）
     cost_bps_side: float = 7.0
@@ -78,7 +78,7 @@ class LiveConfig:
             margin_ratio=margin_ratio,
             margin_type=int(os.environ.get("LIVE_MARGIN_TYPE", "3")),
             account_type=int(os.environ.get("LIVE_ACCOUNT_TYPE", "4")),
-            min_value_yen=float(os.environ.get("LIVE_MIN_VALUE_YEN", "500000000")),
+            min_value_yen=float(os.environ.get("LIVE_MIN_VALUE_YEN", "1000000000")),
             short_min_mktcap_yen=float(os.environ.get("LIVE_MIN_MKTCAP_SHORT_YEN", "0")),
             max_gross_yen=float(os.environ.get("LIVE_MAX_GROSS_YEN", str(capital * margin_ratio))),
             cost_bps_side=float(os.environ.get("LIVE_COST_BPS_SIDE", "7")),
