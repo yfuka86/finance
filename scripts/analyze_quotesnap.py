@@ -26,12 +26,30 @@
      低い=真のランダム成分がある＝**補正不能**。λではなくR²で系統/ランダムを分ける
   3. **σ_ε（ランダム成分の大きさ）**: R²が低いときだけ意味を持つ。
      全銘柄一律σ250bpsでSharpe半減・310bpsで1.0・500bpsでゼロ（AGENTS §特別気配の現実）
-  4. **選択一致率（戦略に直結する唯一の量）**: 気配で選んだ上位/下位k銘柄と、
-     実寄値で選んだそれの一致率。**順位相関では代替できない**——
-     ±3%クリップは順位相関1.000なのに選択一致12%（テールが全部同値に潰れるため）。
-     svdnスリーブが死ぬのはこの経路。
+  4. **建玉一致率（★判定の本体・`--book`）**: 気配で組んだ建玉と実寄値で組んだ建玉の一致率。
+     これだけが成績に単調に効く（下表）。**順位相関では代替できない**——
+     ±3%クリップは順位相関1.000なのに一致率78.6%・Sharpe81%。
 
-合格基準そのものは、実測が数日分たまってから、この4つの実際の形を見て設計する。
+## 合格基準（事前登録・2026-07-31。実測を見る前に確定させた）
+
+`scripts/quote_distortion_calibration.py` で、既知の歪みを本番と同じ経路
+（ensemble_core ¥20M・8銘柄/側・信用2倍・¥10億フロア・7bps）に注入して作った対応表:
+
+  | 歪み            | 建玉一致率 | OOS24+ Sharpe | 維持率 |
+  |-----------------|-----------|---------------|--------|
+  | なし（基準）      | 100%      | 3.04          | 100%   |
+  | 一様圧縮 λ=0.5   | 100%      | 3.04          | 100%   |
+  | 一様圧縮 λ=0.3   | 100%      | 3.04          | 100%   |
+  | ±3%クリップ      | 78.6%     | 2.45          |  81%   |
+  | ランダム σ=100bps | 53.7%     | 2.21          |  73%   |
+  | ランダム σ=250bps | 36.6%     | 1.40          |  46%   |
+  | ランダム σ=500bps | 30.2%     | 0.83          |  27%   |
+
+**判定**: `--book` の実測建玉一致率をこの表に当てて Sharpe 維持率を読む。
+  - **一致率 ≥75%** → 維持率80%以上。実弾GO可
+  - **50-75%**     → 維持率73-81%。減額（¥5M）で開始し実測を積む
+  - **<50%**       → 維持率46%以下。**実弾NO-GO**（気配前提の作り直しが必要）
+一様圧縮は一致率100%＝**λがいくら小さくても無害**なので、λ単独では絶対に判断しない。
 """
 import argparse
 import glob
@@ -59,7 +77,7 @@ def decompose(gap_quote: np.ndarray, gap_actual: np.ndarray, k: int = 8) -> dict
     out = {"n": len(x), "lam": lam, "r2": r2,
            "sigma_bps": float(resid.std()), "resid_med_bps": float(np.median(np.abs(resid))),
            "rho": float(pd.Series(y).corr(pd.Series(x), method="spearman"))}
-    if len(x) >= 2 * k:                                # 選択一致率（戦略に直結）
+    if len(x) >= 2 * k:                                # 生ギャップ順位の一致率（参考値）
         hit = (len(np.intersect1d(np.argsort(y)[-k:], np.argsort(x)[-k:]))
                + len(np.intersect1d(np.argsort(y)[:k], np.argsort(x)[:k])))
         out["overlap"] = hit / (2 * k)
@@ -74,7 +92,7 @@ def _fmt(d: dict) -> str:
     s = (f"λ={d['lam']:.3f}  R²={d['r2']:.3f}  σ_ε={d['sigma_bps']:.0f}bps  "
          f"順位ρ={d['rho']:.3f}")
     if "overlap" in d:
-        s += f"  選択一致={d['overlap']*100:.0f}%"
+        s += f"  生ギャップ一致={d['overlap']*100:.0f}%"
     return s
 
 
@@ -100,8 +118,9 @@ def selftest() -> None:
     print("    ・λ が小さくても R²≈1 なら決定論的な圧縮＝補正で情報は完全に戻る（①）")
     print("    ・R² が低いときだけ σ_ε が意味を持つ。σ250級で Sharpe 半減（③④）")
     print("    ・**順位ρ は判断に使えない**: ②はρ=1.000（クリップは中間で単調）なのに")
-    print("      選択一致は12%まで落ちる。テールが同値に潰れて上位k本が選べないため。")
-    print("      戦略が見ているのはテールなので、判断は必ず選択一致率で行う。")
+    print("      生ギャップ一致は12%まで落ちる。テールが同値に潰れて上位k本が選べないため。")
+    print("    ・ここの『生ギャップ一致』は素のギャップ順位で測った**参考値**であって、")
+    print("      判定に使う『建玉一致率』(--book) とは別物。判定は必ず --book で行う。")
     print("\n  ※旧版（実ギャップを気配に回帰）は③を λ=0.40 と報告していた。")
     print("    旧docstringの解釈では「圧縮＝補正可能・無害」と読める＝最悪ケースを")
     print("    安全と誤判定する向きのバグだった。")
@@ -123,21 +142,33 @@ def analyze() -> None:
     q["calc"] = pd.to_numeric(q["calc"], errors="coerce")
     q = q.dropna(subset=["calc"])
 
-    daily = [pd.read_parquet(f, columns=["Date", "Code", "O", "C"])
-             for f in sorted(glob.glob("data/jp_daily_history/daily_adj_202[5-9].parquet"))]
-    d = pd.concat(daily, ignore_index=True)
-    d["day"] = pd.to_datetime(d["Date"]).dt.strftime("%Y-%m-%d")
-    d["symbol"] = d["Code"].astype(str).map(lambda s: s[:-1] if len(s) == 5 else s)
-    d = d.rename(columns={"O": "open_actual"})
-    d["prev_close"] = d.sort_values("day").groupby("symbol")["C"].shift(1)
+    # ★実寄値と前日終値は**パネルから**取る。daily_adj_*.parquet の生値列(O/C)は
+    # 2022-2024に列自体が無く、2025も非NaNが3.2%しかない（罠）。ここを直接読むと
+    # 気配の3%だけを見て全体を判断することになる。パネルは調整基準を解決済み。
+    from trading.jp_intraday.daily_model import load_panel_cached
+    panel = load_panel_cached(min_value_yen=1e9)
+    pc = panel["raw_close"].fillna(panel["close"]) if "raw_close" in panel else panel["close"]
+    ref = pd.DataFrame({
+        "day": pd.to_datetime(panel["date"]).dt.strftime("%Y-%m-%d"),
+        # kabuは4桁、パネルは5桁
+        "symbol": panel["symbol"].astype(str).map(lambda x: x[:-1] if len(x) == 5 else x),
+        "gap_actual_pct": panel["overnight_gap"] * 100,   # 真のギャップ（調整基準解決済み）
+        "prev_close_raw": pc,                              # 気配は生値なので生の前日終値と比べる
+    })
 
-    m = q.merge(d[["day", "symbol", "open_actual", "prev_close"]], on=["day", "symbol"], how="inner")
+    n_q = len(q)
+    m = q.merge(ref, on=["day", "symbol"], how="inner")
+    m = m[(m["prev_close_raw"] > 0) & m["gap_actual_pct"].notna()]
     if m.empty:
         raise SystemExit("実寄値データ未着（collect_jp_daily_history 実行後に再試行）")
-    m["dev_bps"] = (m["open_actual"] / m["calc"] - 1) * 1e4
-    m["gap_quote"] = (m["calc"] / m["prev_close"] - 1) * 100
-    m["gap_actual"] = (m["open_actual"] / m["prev_close"] - 1) * 100
+    m["gap_quote"] = (m["calc"] / m["prev_close_raw"] - 1) * 100
+    m["gap_actual"] = m["gap_actual_pct"]
+    m["dev_bps"] = (m["gap_actual"] - m["gap_quote"]) * 100
 
+    cov = len(m) / n_q if n_q else 0
+    if cov < 0.8:
+        print(f"⚠️ 突合できたのは気配 {n_q:,}行中 {len(m):,}行 ({cov*100:.0f}%)。"
+              "欠落が多いと分解が偏るので原因を確認すること\n")
     print(f"対象 {m['day'].nunique()}営業日 / {len(m):,}ペア\n")
     print("【1】乖離の生の分布（時点別の収束カーブ）")
     for snap, g in m.groupby("snap"):
@@ -180,8 +211,88 @@ def analyze() -> None:
     print("　計測器そのものの妥当性は --selftest で確認できる。")
 
 
+# ── 建玉一致率（判定の本体） ────────────────────────────────────
+def book_check() -> None:
+    """実測の気配で組んだ建玉と、実寄値で組んだ建玉を突き合わせる（判定の本体）.
+
+    事前登録した対応表（docstring）に当てて Sharpe 維持率を読む。
+    """
+    from trading.jp_intraday.daily_model import load_panel_cached
+    from trading.jp_intraday.strategies import run_unit_lot
+
+    from scripts.quote_distortion_calibration import (CAPITAL, COST_BPS, MARGIN,
+                                                      NAMES_PER_SIDE, book_overlap,
+                                                      recompute_gap_features)
+
+    rows = []
+    for f in sorted(glob.glob("data/live_reports/quotesnap_*.jsonl")):
+        day = f.split("_")[-1].replace(".jsonl", "")
+        for line in open(f, encoding="utf-8"):
+            r = json.loads(line)
+            r["day"] = day
+            rows.append(r)
+    if not rows:
+        raise SystemExit("quotesnapログがありません（Windowsで run_live quotesnap を実行）。")
+    q = pd.DataFrame(rows)
+    q["calc"] = pd.to_numeric(q["calc"], errors="coerce")
+    q = q.dropna(subset=["calc"])
+    last_snap = sorted(q["snap"].unique())[-1]        # 一番遅い時点＝実運用で使う気配
+    q = q[q["snap"].eq(last_snap)]
+    q["date"] = pd.to_datetime(q["day"])
+    # kabuは4桁、パネルは5桁
+    q["symbol"] = q["symbol"].astype(str).map(lambda s: s if len(s) == 5 else s + "0")
+
+    print(f"パネル構築（本番条件）… 気配は {last_snap} 時点・{q['date'].nunique()}営業日")
+    panel = load_panel_cached(min_value_yen=1e9)
+    days = sorted(set(q["date"]) & set(panel["date"]))
+    if not days:
+        raise SystemExit("気配の日付がパネルに未反映（collect_jp_daily_history 実行後に再試行）")
+
+    alt = panel.merge(q[["date", "symbol", "calc"]], on=["date", "symbol"], how="left")
+    prev_close = alt["raw_close"].fillna(alt["close"]) if "raw_close" in alt else alt["close"]
+    hit = alt["calc"].notna() & alt["date"].isin(days) & (prev_close > 0)
+    print(f"  気配で置換できた行: {int(hit.sum()):,} / 対象日の全行 "
+          f"{int(alt['date'].isin(days).sum()):,}")
+    alt.loc[hit, "overnight_gap"] = (alt.loc[hit, "calc"] / prev_close[hit] - 1).to_numpy()
+    alt = recompute_gap_features(alt.drop(columns=["calc"]))
+
+    _, blot_true = run_unit_lot(panel, "ensemble_core", capital_yen=CAPITAL,
+                                names_per_side=NAMES_PER_SIDE, margin_ratio=MARGIN,
+                                cost_bps_side=COST_BPS)
+    _, blot_q = run_unit_lot(alt, "ensemble_core", capital_yen=CAPITAL,
+                             names_per_side=NAMES_PER_SIDE, margin_ratio=MARGIN,
+                             cost_bps_side=COST_BPS)
+    d = pd.DatetimeIndex(days)
+    bt = blot_true[pd.to_datetime(blot_true["date"]).isin(d)]
+    bq = blot_q[pd.to_datetime(blot_q["date"]).isin(d)]
+    n_ov, y_ov = book_overlap(bt, bq)
+
+    print(f"\n【判定】建玉一致率: 銘柄ベース {n_ov*100:.1f}% / ¥加重 {y_ov*100:.1f}%"
+          f"  （{len(d)}営業日）")
+    if n_ov >= 0.75:
+        print("  → ✅ 事前登録基準: 一致率≥75% ＝ Sharpe維持率80%以上。実弾GO可")
+    elif n_ov >= 0.50:
+        print("  → ⚠️ 事前登録基準: 一致率50-75% ＝ 維持率73-81%。減額(¥5M)で開始し実測を積む")
+    else:
+        print("  → ❌ 事前登録基準: 一致率<50% ＝ 維持率46%以下。**実弾NO-GO**")
+    # 実現P&Lの直接比較（日数が少ないうちは参考値）
+    for lab, b in (("実寄値で選んだ建玉", bt), ("気配で選んだ建玉", bq)):
+        if len(b):
+            pnl = b.groupby("date")["pnl_yen"].sum()
+            print(f"  {lab}: 実現P&L 合計 ¥{pnl.sum():,.0f} / 日次平均 ¥{pnl.mean():,.0f} "
+                  f"（{len(pnl)}日）")
+    print("\n※日数が少ないうちP&L差はノイズが支配する。判定は建玉一致率で行うこと"
+          "（対応表は docstring 参照）。")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--selftest", action="store_true", help="既知の歪みで計測器を検証")
+    ap.add_argument("--book", action="store_true", help="★判定本体: 建玉一致率を実測")
     a = ap.parse_args()
-    selftest() if a.selftest else analyze()
+    if a.selftest:
+        selftest()
+    elif a.book:
+        book_check()
+    else:
+        analyze()
