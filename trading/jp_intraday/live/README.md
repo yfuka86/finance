@@ -48,8 +48,11 @@ auカブコム証券の **kabuステーションAPI** で執行し、結果を *
    `PYTHONPATH=. python scripts/collect_jp_daily_history.py`（前営業日分。当日分が無いのは正常）
 2. `python -m trading.jp_intraday.live.run_live preflight` → `positions_after=0` と
    **data_dateが前営業日**であることを確認（preflightは本番entryをブロックしない・修正済み）
-3. **08:56** `run_live entry` … 板取得(~80秒)+寄成発注（発注0.25秒間隔・自動リトライ・冪等）。
-   **08:59開始だと寄付きに間に合わないリスクがあるため08:56厳守**
+3. **08:48** `run_live entry` … 板取得(~80秒・**シグナル気配は08:50までのスナップショット**)
+   → 寄成発注（0.25秒間隔・自動リトライ・冪等、〜08:53頃完了）。
+   **確定間際の気配は使わない（使えない）前提の運用**: バックテストは確定寄値でシグナルを
+   計算しているため、08:50気配とのズレは選択ノイズになる。ノイズ耐性の検証値と、
+   実測（下記 measure_quote_vs_open.py）で継続監視する
 4. **14:55** `run_live exit` … 引成返済（15:20までに送信完了をログで確認）
 5. **15:30** `run_live state` … 結果を https://trade.a-tokyo.jp へ送信
 
