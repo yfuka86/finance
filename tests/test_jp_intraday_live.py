@@ -167,3 +167,50 @@ class ShadowMonitorTest(unittest.TestCase):
                              sleep=lambda s: None, now_fn=lambda: times.pop(0))
         self.assertGreaterEqual(summary["samples"], 1)
         self.assertEqual(summary["n_tp"] + summary["n_sl"], len(summary["triggers"]))
+
+
+class ShortGuardTest(unittest.TestCase):
+    def _frame(self):
+        import numpy as np
+        n = 40
+        return pd.DataFrame({
+            "date": pd.Timestamp("2026-07-30"), "symbol": [f"{1000+i}0" for i in range(n)],
+            "open": 1000.0, "raw_open": 1000.0, "prev_close": 1000.0,
+            "_s": np.linspace(-1, 1, n), "intraday_ret": 0.0,
+            "shortable": True, "prev_value": 5e9,
+            "short_restricted": [i < 5 for i in range(n)],   # スコア最低=ショート候補側に規制5銘柄
+            "mktcap_yen": [5e9 if i < 10 else 5e10 for i in range(n)],
+        })
+
+    def test_unit_lot_excludes_restricted_shorts(self):
+        from trading.jp_intraday.strategies import unit_lot_backtest
+        f = self._frame()
+        _, blot = unit_lot_backtest(f, capital_yen=2e7, names_per_side=8)
+        shorts = set(blot[blot["side_label"] == "SHORT"]["symbol"])
+        restricted = set(f[f["short_restricted"]]["symbol"])
+        self.assertFalse(shorts & restricted)    # 規制銘柄はショートに入らない
+
+    def test_unit_lot_short_mktcap_floor(self):
+        from trading.jp_intraday.strategies import unit_lot_backtest
+        f = self._frame()
+        f["short_restricted"] = False
+        _, blot = unit_lot_backtest(f, capital_yen=2e7, names_per_side=8,
+                                    short_min_mktcap_yen=1e10)
+        shorts = blot[blot["side_label"] == "SHORT"]["symbol"]
+        small = set(f[f["mktcap_yen"] < 1e10]["symbol"])
+        self.assertFalse(set(shorts) & small)    # 時価総額フロア未満はショートに入らない
+
+    def test_verify_short_regulations_defensive_parse(self):
+        from trading.jp_intraday.live.executor import verify_short_regulations
+        class RegClient:
+            def regulations(self, symbol, exchange=1):
+                if symbol == "7203":
+                    return {"RegulationsInfo": [{"Side": "1", "Product": "2",
+                                                 "Reason": "新規売停止"}]}
+                if symbol == "9984":
+                    return {"RegulationsInfo": [{"Side": "2", "Product": "2"}]}  # 買い規制のみ
+                raise RuntimeError("api down")   # 不明=可
+        cache = {}
+        banned = verify_short_regulations(RegClient(), ["7203", "9984", "6758"], cache)
+        self.assertEqual(banned, {"7203"})
+        self.assertIn("reg:6758", cache)         # エラーでもキャッシュされ再照会しない

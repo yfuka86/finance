@@ -123,12 +123,13 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
-_PANEL_SCHEMA_VERSION = 4  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
+_PANEL_SCHEMA_VERSION = 5  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
     "data/jp_derivatives/indices_*.parquet", "data/jp_derivatives/futures_*.parquet",
     "data/jp_derivatives/short_ratio_*.parquet", "data/jp_intraday_reference/share_snapshots.csv",
+    "data/jp_flows/margin_alert_*.parquet",
 )
 
 
@@ -179,6 +180,37 @@ def load_panel_cached(min_value_yen: float = 5e8, markets: tuple | None = None,
     return panel
 
 
+def _load_short_restrictions() -> pd.DataFrame | None:
+    """(date, symbol) の売り建て規制フラグ（PIT: 公表翌日から適用・7日キャリー）.
+
+    J-Quants margin_alert（日々公表・規制銘柄残高）の PubReason から、売り建てが
+    実務上できない/危険な銘柄を判定:
+      Restricted(取引所規制=増担保等) / RestrictedByJSF(日証金貸株申込制限=売建不能の主犯)。
+    指定中は定期的に再公表されるため、各公表から7暦日先までフラグを維持（週末・祝日跨ぎ）。
+    """
+    import glob
+    files = sorted(glob.glob("data/jp_flows/margin_alert_*.parquet"))
+    if not files:
+        return None
+    a = pd.concat([pd.read_parquet(f, columns=["PubDate", "Code", "PubReason"])
+                   for f in files], ignore_index=True)
+    hard = a["PubReason"].str.contains("'Restricted': '1'") | \
+        a["PubReason"].str.contains("'RestrictedByJSF': '1'")
+    a = a[hard].copy()
+    if a.empty:
+        return None
+    a["pub"] = pd.to_datetime(a["PubDate"])
+    a["symbol"] = a["Code"].astype(str)
+    rows = []
+    for off in range(1, 8):                      # 公表翌日〜+7暦日にフラグ適用
+        r = a[["symbol", "pub"]].copy()
+        r["date"] = r["pub"] + pd.Timedelta(days=off)
+        rows.append(r[["date", "symbol"]])
+    out = pd.concat(rows, ignore_index=True).drop_duplicates()
+    out["short_restricted"] = True
+    return out
+
+
 def _load_share_snapshots() -> pd.DataFrame | None:
     """PIT株数スナップショット（symbol4桁, known_at=開示日, shares）。時価総額フィルタ用."""
     try:
@@ -215,22 +247,27 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
             p = p[p["is_fund"] != True]  # noqa: E712 — keep NaN (delisted) and False
         if markets:
             p = p[p["market"].isin(markets)]
-    if min_mktcap_yen or max_mktcap_yen:
-        snaps = _load_share_snapshots()
-        if snaps is not None:
-            p["sym4"] = p["symbol"].astype(str).map(lambda s: s[:-1] if len(s) == 5 else s)
-            p = p.sort_values("date")
-            p = pd.merge_asof(p, snaps, left_on="date", right_on="known_at",
-                              by="sym4", direction="backward")
-            # 2021-04以前は最初の開示値で近似（株数は緩やかにしか変わらない前提）
-            first = snaps.drop_duplicates("sym4", keep="first").set_index("sym4")["shares"]
-            p["shares"] = p["shares"].fillna(p["sym4"].map(first))
-            p["mktcap_yen"] = p["prev_close"] * p["shares"]
-            if min_mktcap_yen:
-                p = p[p["mktcap_yen"] >= min_mktcap_yen]
-            if max_mktcap_yen:
-                p = p[p["mktcap_yen"] <= max_mktcap_yen]
-            p = p.drop(columns=["known_at"], errors="ignore")
+    snaps = _load_share_snapshots()
+    if snaps is not None:                       # mktcap_yen は常設列（ライブの時価総額フロア用）
+        p["sym4"] = p["symbol"].astype(str).map(lambda s: s[:-1] if len(s) == 5 else s)
+        p = p.sort_values("date")
+        p = pd.merge_asof(p, snaps, left_on="date", right_on="known_at",
+                          by="sym4", direction="backward")
+        # 2021-04以前は最初の開示値で近似（株数は緩やかにしか変わらない前提）
+        first = snaps.drop_duplicates("sym4", keep="first").set_index("sym4")["shares"]
+        p["shares"] = p["shares"].fillna(p["sym4"].map(first))
+        p["mktcap_yen"] = p["prev_close"] * p["shares"]
+        if min_mktcap_yen:
+            p = p[p["mktcap_yen"] >= min_mktcap_yen]
+        if max_mktcap_yen:
+            p = p[p["mktcap_yen"] <= max_mktcap_yen]
+        p = p.drop(columns=["known_at"], errors="ignore")
+    restr = _load_short_restrictions()
+    if restr is not None:                       # 売り建て規制フラグ（PIT・公表翌日から適用）
+        p = p.merge(restr, on=["date", "symbol"], how="left")
+        p["short_restricted"] = p["short_restricted"].fillna(False).astype(bool)
+    else:
+        p["short_restricted"] = False
     p["sector"] = p.get("sector", pd.Series(index=p.index, dtype="object")).fillna("unknown")
     p["name"] = p.get("name", pd.Series(index=p.index, dtype="object")).fillna(p["symbol"])
     sh = p["shortable"] if "shortable" in p.columns else pd.Series(True, index=p.index)
