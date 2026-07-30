@@ -1,22 +1,27 @@
-"""実効コストの脚別実測（寄り/引けを分離して記録する）.
+"""板寄せ執行の監視指標（2026-07-30 全面改訂）.
 
-なぜ分けるか（2026-07-30 R9の実測）: 引け板寄せ(15:30)は日次売買代金の13.5%を占め、
-寄付板寄せ(9:00)の**3.4倍厚い**。つまり同じ建玉でも参加率は寄り側が4倍で、
-実効コストは構造的に非対称なはず。往復合算で持つと入口の悪さが出口に隠される。
+**重要な訂正**: 当初この module は「実約定価格 vs 公式寄値/引値」の乖離を
+実効コストとして測ろうとしていたが、**これは原理的に測れない**。
+寄成・引成は板寄せ＝単一約定価格なので、約定できた限り fill == 公式寄値/引値 で
+**乖離は構造的にゼロ**になる。自分のインパクトは公式価格そのものに内包されており、
+バックテストも同じ価格を使うため、実現P&Lとの突合からは分離不能。
 
-測る量（インプリメンテーション・ショートフォール）:
-  entry脚: (実約定価格 − 公式寄値) / 公式寄値 × 符号   ※買いは高く買うほど正=コスト
-  exit脚 : (公式引値 − 実約定価格) / 公式引値 × 符号   ※売りは安く売るほど正=コスト
-板寄せは単一約定価格なので理論上ゼロで、**残るのは自分の注文が約定価格を動かした分
-（マーケットインパクト）**。したがってこの実測値がそのままインパクトの推定になる。
+したがってこの module が測るのは**コストそのものではなく、コスト前提が崩れる兆候**:
+  1. **参加率** = 自分の約定代金 / その板寄せの総約定代金
+     → インパクトの唯一の観測可能な driver（実測: 寄り¥加重1.0-1.3% / 引け0.44%）
+  2. **数量約定率** = 約定株数 / 発注株数（寄らず・部分約定の検知）
+  3. **|slip|** = fill vs 公式価格の乖離。**0が正常**。非ゼロは
+     SOR が PTS へ回した等の「板寄せ外約定」のシグナル（コストではなく異常検知）
+  4. プレミアム料（一日信用）の発生 — ここだけは桁が違う（上限100bps/日）
 
-公式寄値/引値は J-Quants の日次バーから翌営業日に取得する（当日は kabu の
-board から取れる CurrentPrice を暫定値として使い、翌日に確定値で上書きする）。
+監視閾値（live/README と同一）: 参加率 p90 が 寄り≤3% / 引け≤1.5%、
+数量約定率 ≥98%、|slip| ≤0.5bps。いずれかを外れたらコスト前提の再検討。
 
 実行:
   python -m trading.jp_intraday.live.run_live cost        # 当日分を記録（15:40以降）
   PYTHONPATH=. python scripts/analyze_effective_cost.py   # 蓄積分を集計・閾値判定
 """
+
 from __future__ import annotations
 
 import json
@@ -57,12 +62,18 @@ def _fills_from_orders(orders: list) -> list[dict]:
         vwap = sum(p * q for p, q in px_qty) / qty if qty else None
         if vwap:
             out.append({"symbol": sym, "side": side, "front": front,
-                        "fill_px": vwap, "qty": qty})
+                        "fill_px": vwap, "qty": qty,
+                        "ordered_qty": float(o.get("OrderQty") or 0) or None})
     return out
 
 
 def leg_slippage_bps(fill_px: float, ref_px: float, side: str, leg: str) -> float:
-    """1脚の実効コスト(bps・正=コスト). leg は "entry" か "exit"."""
+    """fill と公式板寄せ価格の乖離(bps・正=不利側).
+
+    **板寄せで約定した限りこれは 0 になる**（単一約定価格のため）。
+    したがって「コストの実測値」ではなく、**板寄せ外約定（SORのPTS迂回等）の
+    異常検知指標**として使う。leg は "entry" か "exit"。
+    """
     if not fill_px or not ref_px:
         return float("nan")
     raw = (fill_px / ref_px - 1.0) * 1e4
@@ -96,11 +107,26 @@ def record_daily_costs(client, cfg, ref_prices: dict | None = None,
             except Exception:  # noqa: BLE001
                 ref = {}
         ref_px = ref.get("open") if leg == "entry" else ref.get("close")
+        # 参加率の分母（その銘柄のその板寄せの総約定代金）を board から拾えれば記録する。
+        # kabu の板情報に板寄せ出来高が無い環境では None のまま（翌日J-Quantsで補完）。
+        auction_val = None
+        try:
+            b = client.board(f["symbol"])
+            vol = b.get("OpeningPriceVolume") if leg == "entry" else b.get("ClosingPriceVolume")
+            if vol and ref_px:
+                auction_val = float(vol) * float(ref_px)
+        except Exception:  # noqa: BLE001
+            pass
+        notional = f["fill_px"] * f["qty"]
         rows.append({
             "day": day, "symbol": f["symbol"], "side": f["side"], "leg": leg,
             "fill_px": f["fill_px"], "qty": f["qty"], "ref_px": ref_px,
+            "ordered_qty": f.get("ordered_qty"),
+            "fill_ratio": (f["qty"] / f["ordered_qty"]) if f.get("ordered_qty") else None,
             "slip_bps": leg_slippage_bps(f["fill_px"], float(ref_px or 0), f["side"], leg),
-            "notional": f["fill_px"] * f["qty"],
+            "notional": notional,
+            "auction_value": auction_val,
+            "participation_pct": (notional / auction_val * 100) if auction_val else None,
         })
     with path.open("a", encoding="utf-8") as fh:
         for r in rows:
@@ -117,6 +143,13 @@ def record_daily_costs(client, cfg, ref_prices: dict | None = None,
                 summary[f"{leg}_bps_wavg"] = float((sub["slip_bps"] * w).sum() / w.sum())
                 summary[f"{leg}_bps_median"] = float(sub["slip_bps"].median())
                 summary[f"{leg}_n"] = int(len(sub))
-        if {"entry_bps_wavg", "exit_bps_wavg"} <= summary.keys():
-            summary["roundtrip_bps"] = summary["entry_bps_wavg"] + summary["exit_bps_wavg"]
+        for leg in ("entry", "exit"):
+            sub = d[(d["leg"] == leg) & d["participation_pct"].notna()]
+            if len(sub):
+                summary[f"{leg}_participation_p50"] = float(sub["participation_pct"].median())
+                summary[f"{leg}_participation_p90"] = float(sub["participation_pct"].quantile(0.9))
+        fr = d["fill_ratio"].dropna()
+        if len(fr):
+            summary["fill_ratio_mean"] = float(fr.mean())
+            summary["fill_ratio_min"] = float(fr.min())
     return summary
