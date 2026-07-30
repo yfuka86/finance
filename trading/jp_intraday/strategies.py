@@ -207,6 +207,37 @@ _SCORE_COLS = ["residual_gap", "vol20_floor", "sector_resid_gap", "prev_intraday
 _BLOTTER_COLS = ["date", "symbol", "name", "sector", "residual_gap", "intraday_ret"]
 
 
+# ── 当日寄値（＝寄前気配）に依存する戦略の判定 ──────────────────
+# 2026-07-31: 「気配値と寄り付き値に有効な関係なし」が実測で確定したため、
+# シグナルに当日寄値を必要とする戦略は**ライブ執行不能**（AGENTS.md の
+# 「★★★結論: 気配前提は棄却され、ensemble_core は執行不能」を参照）。
+# 板寄せクロスに参加するには確定前に発注する必要があり、当日ギャップの事前推定＝
+# 寄前気配が必須になる。その気配が寄値を予測しないので経路が存在しない。
+# 判定はレジストリから機械的に行う（戦略を足しても自動で正しく分類されるように）。
+TODAY_OPEN_COLS = frozenset({
+    "overnight_gap", "residual_gap", "sector_resid_gap", "gap_abs", "gap_z",
+    "idio_gap2", "sector_index_gap", "intraday_ret", "gap_x_nk", "topix_oc",
+})
+
+
+def needs_today_open(name: str) -> bool:
+    """その戦略のシグナルが**当日寄値**を必要とするか（＝寄前気配が必須か）.
+
+    True の戦略は 2026-07-31 の実測によりライブ執行不能。バックテストの数値は
+    シミュレーションとしては有効なので、消さずに「執行不能」と分類して残す。
+    """
+    spec = STRATEGIES[name]
+    if spec.get("kind") == "ensemble":       # 1本でも依存すればアンサンブル全体が依存
+        return any(needs_today_open(m) for m, _ in spec["members"])
+    cols = set(spec.get("need") or ()) | set(spec.get("features") or ())
+    return bool(cols & TODAY_OPEN_COLS)
+
+
+def executable_strategies() -> list[str]:
+    """寄前気配なしで執行できる戦略（＝当日寄値に依存しないもの）."""
+    return [k for k in STRATEGIES if not needs_today_open(k)]
+
+
 def score_frame(panel: pd.DataFrame, name: str) -> pd.DataFrame:
     """Compute a strategy's per-row signal (the expensive part; cache this)."""
     spec = STRATEGIES[name]

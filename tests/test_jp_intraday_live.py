@@ -275,3 +275,40 @@ class OrderRateLimitTest(unittest.TestCase):
         t0 = time.monotonic()
         enter(client, LiveConfig(env="mock"), plan)
         self.assertLess(time.monotonic() - t0, 1.0)
+
+
+class TestQuoteDependenceClassifier(unittest.TestCase):
+    """当日寄値（＝寄前気配）依存の分類（2026-07-31に気配前提が棄却されたため）."""
+
+    def test_ensemble_core_needs_today_open(self):
+        from trading.jp_intraday.strategies import needs_today_open
+        self.assertTrue(needs_today_open("ensemble_core"))
+
+    def test_ensemble_inherits_dependence_from_any_member(self):
+        """アンサンブルは1本でも依存すれば全体が依存（片方だけ見て安全と判断しない）."""
+        from trading.jp_intraday.strategies import STRATEGIES, needs_today_open
+        for k, spec in STRATEGIES.items():
+            if spec.get("kind") == "ensemble":
+                self.assertEqual(needs_today_open(k),
+                                 any(needs_today_open(m) for m, _ in spec["members"]), k)
+
+    def test_prior_day_reversal_is_quote_free(self):
+        from trading.jp_intraday.strategies import needs_today_open
+        self.assertFalse(needs_today_open("prior_day_reversal"))
+
+    def test_executable_strategies_excludes_all_gap_strategies(self):
+        from trading.jp_intraday.strategies import executable_strategies, needs_today_open
+        ex = executable_strategies()
+        self.assertTrue(all(not needs_today_open(k) for k in ex))
+        self.assertNotIn("ensemble_core", ex)
+
+    def test_live_plan_warns_for_quote_dependent_strategy(self):
+        """実発注の前に必ず警告が出ること（スケジューラで気付かず流れるのを防ぐ）."""
+        import warnings as _w
+
+        from trading.jp_intraday.strategies import needs_today_open
+        self.assertTrue(needs_today_open(LiveConfig().strategy))
+        src = open("trading/jp_intraday/live/executor.py", encoding="utf-8").read()
+        self.assertIn("needs_today_open(cfg.strategy)", src)
+        self.assertIn("RuntimeWarning", src)
+        del _w
