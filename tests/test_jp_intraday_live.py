@@ -41,6 +41,17 @@ class ConfigGateTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             LiveConfig(margin_ratio=4.0).validate()   # 保証金率30% → 3.3x が上限
 
+    def test_account_type_default_is_general(self):
+        # 特定(4)は約諾書未確認で100203により発注不可（実障害）。既定は一般(2)。
+        # 約諾解消後に4へ戻す際はこのテストも更新すること。
+        self.assertEqual(LiveConfig().account_type, 2)
+
+    def test_defaults_match_production(self):
+        cfg = LiveConfig()
+        self.assertEqual(cfg.strategy, "ensemble_core")
+        self.assertEqual(cfg.min_value_yen, 1e9)      # ¥10億フロア（2026-07-30〜）
+        self.assertEqual(cfg.short_min_mktcap_yen, 0.0)  # 時価総額フロアは最適化で0が最適
+
     def test_order_gating_locks(self):
         self.assertFalse(LiveConfig(env="test", dry_run=True).will_send_orders)
         self.assertTrue(LiveConfig(env="test", dry_run=False).paper_orders_enabled)
