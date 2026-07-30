@@ -233,9 +233,27 @@ def score_frame(panel: pd.DataFrame, name: str) -> pd.DataFrame:
     return frame
 
 
+def _short_eligible(frame) -> pd.Series:
+    """ショートに選べる行（制度信用貸借かつ売り建て規制なし）.
+
+    2026-07-30 修正: 理想ブック(book_from_scores)にはこの制約が無く、借株不能な銘柄の
+    ショートで成績が水増しされていた（OOS Sh 4.93→1.94 と実測）。単元バックテストと
+    ライブ執行には元から入っていたため、影響は「リサーチの理想ブック表示」のみ。
+    """
+    ok = pd.Series(True, index=frame.index)
+    if "shortable" in frame.columns:
+        ok &= frame["shortable"] != False       # noqa: E712 — NaN(上場廃止)はTrue扱い
+    if "short_restricted" in frame.columns:
+        ok &= ~frame["short_restricted"].fillna(False).astype(bool)
+    return ok
+
+
 def _select_masks(frame, quantile):
     rank = frame["_s"].groupby(frame["date"]).rank(pct=True)
-    long, short = rank.ge(1 - quantile), rank.le(quantile)
+    long = rank.ge(1 - quantile)
+    elig = _short_eligible(frame)               # ショートは借株可能な銘柄のみ
+    s_rank = frame["_s"].where(elig).groupby(frame["date"]).rank(pct=True)
+    short = s_rank.le(quantile).fillna(False) & elig & ~long
     nl = long.groupby(frame["date"]).transform("sum")
     ns = short.groupby(frame["date"]).transform("sum")
     both = nl.gt(0) & ns.gt(0)
@@ -276,7 +294,10 @@ def _w_sector_neutral(frame, quantile):
     """Rank & balance L/S within each 33-sector, then scale to ±0.5 per day."""
     key = [frame["date"], frame["sector"]]
     rank = frame["_s"].groupby(key).rank(pct=True)
-    long, short = rank.ge(1 - quantile), rank.le(quantile)
+    long = rank.ge(1 - quantile)
+    elig = _short_eligible(frame)
+    short = (frame["_s"].where(elig).groupby(key).rank(pct=True).le(quantile)
+             .fillna(False) & elig & ~long)
     nl = long.groupby(key).transform("sum")
     ns = short.groupby(key).transform("sum")
     both = nl.gt(0) & ns.gt(0)
@@ -305,7 +326,9 @@ def _w_magnitude(frame, quantile, cap: float = 3.0, adaptive: bool = False):
                           index=frame.index)
     rank = frame["_s"].groupby(frame["date"]).rank(pct=True)
     long = rank.ge(1 - q_eff)
-    short = rank.le(q_eff)
+    elig = _short_eligible(frame)
+    short = (frame["_s"].where(elig).groupby(frame["date"]).rank(pct=True).le(q_eff)
+             .fillna(False) & elig & ~long)
     w = pd.Series(0.0, index=frame.index)
     for mask, sign in ((long, 0.5), (short, -0.5)):
         mag = frame["_s"].abs().where(mask, 0.0)
@@ -333,7 +356,7 @@ _CONSTRUCTIONS = {
 def _w_sign_neutral(frame):
     """All surviving (already-masked) names traded: score>0 long / <0 short, ±0.5 each."""
     long = frame["_s"].gt(0)
-    short = frame["_s"].lt(0)
+    short = frame["_s"].lt(0) & _short_eligible(frame)   # 借株可能な銘柄のみショート
     nl = long.groupby(frame["date"]).transform("sum")
     ns = short.groupby(frame["date"]).transform("sum")
     both = nl.gt(0) & ns.gt(0)
@@ -348,8 +371,9 @@ HEDGE_COST_BPS_SIDE = 1.0    # TOPIX先物/ETFの往復コスト想定
 
 def _w_pure_short(frame, quantile):
     """Short-only book (bottom quantile, sums to −0.5). Hedge applied in book_from_scores."""
-    rank = frame["_s"].groupby(frame["date"]).rank(pct=True)
-    short = rank.le(quantile)
+    elig = _short_eligible(frame)                        # 借株可能な銘柄のみ
+    short = (frame["_s"].where(elig).groupby(frame["date"]).rank(pct=True)
+             .le(quantile).fillna(False) & elig)
     ns = short.groupby(frame["date"]).transform("sum").replace(0, np.nan)
     w = pd.Series(0.0, index=frame.index)
     w.loc[short] = (-0.5 / ns).loc[short]
