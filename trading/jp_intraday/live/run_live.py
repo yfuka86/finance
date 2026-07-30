@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 
 import pandas as pd
 
@@ -123,7 +124,10 @@ def main() -> None:
         from .quotesnap import run_quotesnap
         panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
         last = panel[panel["date"].eq(panel["date"].max())]
-        summary = run_quotesnap(client, cfg, list(last["symbol"]))
+        # 全銘柄だと1時点=約11分かかり3時点が重なる（板は実測~1秒/銘柄）。
+        # .env の QUOTESNAP_LIMIT で1時点あたりの銘柄数を絞る（0=全銘柄）。
+        summary = run_quotesnap(client, cfg, list(last["symbol"]),
+                                limit=int(os.environ.get("QUOTESNAP_LIMIT", "0")))
         print(json.dumps(summary, ensure_ascii=False, default=str))
         reporter.report(cfg, "quotesnap", summary, _now())
 
