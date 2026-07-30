@@ -245,3 +245,22 @@ class EffectiveCostTest(unittest.TestCase):
         self.assertEqual(len(f), 2)
         self.assertAlmostEqual(f[0]["fill_px"], (1000 * 60 + 1010 * 40) / 100)  # 数量加重
         self.assertEqual(f[1]["fill_px"], 2000.0)
+
+
+class OrderRateLimitTest(unittest.TestCase):
+    def test_order_interval_matches_current_api_limit(self):
+        # kabu Ver5.44.0.0(2026-07-10)で発注は10件/秒に緩和。余裕を見て8件/秒で運用する。
+        # 制限が戻された場合はこのテストが失敗して気付けるようにしておく。
+        from trading.jp_intraday.live.executor import ORDER_INTERVAL_S
+        self.assertGreaterEqual(ORDER_INTERVAL_S, 0.1)   # 10件/秒を超えない
+        self.assertLessEqual(ORDER_INTERVAL_S, 0.25)     # 旧制限より速い
+
+    def test_mock_does_not_throttle(self):
+        # mock(preflight)はスロットルしない＝テストが遅くならないこと
+        import time
+        client = MockKabuClient({"1301": 1000.0})
+        plan = pd.DataFrame([{"symbol": "13010", "kabu_symbol": "1301", "side": SIDE_BUY,
+                              "qty": 100, "est_price": 1000.0}] * 20)
+        t0 = time.monotonic()
+        enter(client, LiveConfig(env="mock"), plan)
+        self.assertLess(time.monotonic() - t0, 1.0)

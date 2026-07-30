@@ -34,6 +34,12 @@ def _today() -> str:
     return dt.date.today().isoformat()
 
 
+# 発注レート制限: 2026-07-10 の kabuステーション Ver5.44.0.0 で 5件/秒 → **10件/秒** に緩和。
+# 余裕を見て 8件/秒相当（0.125s）で運用する。27銘柄の送信が ~6.8s → ~3.4s に短縮され、
+# 寄付き前の余裕が増える。制限が戻された場合はここだけ 0.25 に戻せばよい。
+ORDER_INTERVAL_S = 0.125
+
+
 # ── signal (pure) ───────────────────────────────────────────────────
 def open_prices(client: KabuClientProtocol, symbols, throttle_s: float = 0.0) -> dict:
     """Pre-open indicative price per symbol (CalcPrice preferred, then CurrentPrice).
@@ -317,7 +323,7 @@ def enter(client: KabuClientProtocol, cfg: LiveConfig, plan: pd.DataFrame, force
                   "front": FRONT_OPEN, "est_price": r["est_price"]}
         if cfg.will_send_orders:
             if cfg.env != "mock":
-                time.sleep(0.25)               # 発注5件/秒制限（kabu API仕様）
+                time.sleep(ORDER_INTERVAL_S)   # 発注レート制限（kabu API仕様）
             for attempt in range(3):
                 try:
                     intent["response"] = client.send_margin_open(
@@ -361,7 +367,7 @@ def exit_all(client: KabuClientProtocol, cfg: LiveConfig, only_kabu_symbols: set
             continue
         if cfg.will_send_orders:
             if cfg.env != "mock":
-                time.sleep(0.25)               # 発注5件/秒制限
+                time.sleep(ORDER_INTERVAL_S)   # 発注レート制限
             for attempt in range(retries + 1):
                 try:
                     intent["response"] = client.send_margin_close(
