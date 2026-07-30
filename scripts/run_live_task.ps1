@@ -14,6 +14,9 @@ $env:PYTHONPATH = "."
 # タスクスケジューラ実行時は stdout が cp932 になり ¥ や絵文字の print で
 # UnicodeEncodeError で落ちる (2026-07-28 の exit で実発生)。UTF-8 を強制する。
 $env:PYTHONUTF8 = "1"
+# 出力をブロックバッファさせない。板取得の進捗がリアルタイムでログに出ないと、
+# 遅いのか固まったのかを運用中に判別できない (2026-07-30 の実障害で判明)。
+$env:PYTHONUNBUFFERED = "1"
 
 $logDir = Join-Path $root "data\live_reports\task_logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null

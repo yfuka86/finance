@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import time
 
 import numpy as np
@@ -35,22 +36,51 @@ def _today() -> str:
 
 
 # ── signal (pure) ───────────────────────────────────────────────────
-def open_prices(client: KabuClientProtocol, symbols, throttle_s: float = 0.0) -> dict:
+def _px(board: dict) -> float:
+    px = board.get("CalcPrice") or board.get("CurrentPrice") or 0
+    return float(px) if px else 0.0
+
+
+def open_prices(client: KabuClientProtocol, symbols, throttle_s: float = 0.0,
+                progress: bool = True) -> dict:
     """Pre-open indicative price per symbol (CalcPrice preferred, then CurrentPrice).
 
-    throttle_s: 実接続時は照会10件/秒制限に合わせ0.105s程度を渡す（mockは0）。
+    **1件ずつの直列取得が本番の既定**（2026-07-30 実測で確定）:
+      直列        863銘柄 19分・カバレッジ100%   ← これを使う
+      並列8+登録  863銘柄 16分・カバレッジ63%    ← 却下。有効取得は0.56件/秒でむしろ遅い
+    90銘柄のベンチでは並列が1.45件/秒・成功率100%だったが、全ユニバースの連続実行では
+    再現しない（unregister/all がタイムアウトし始め、登録上限50に達してチャンクごと失敗）。
+    KabuClient.boards() は残してあるが既定では使わない。使うなら KABU_BULK_BOARDS=1。
+
+    throttle_s: 実接続のレート制御は KabuClient 側（MIN_INTERVAL）に一本化済み。
     """
+    syms = list(symbols)
+    bulk = getattr(client, "boards", None)
+    t0 = time.time()
+
+    def _log(done: int, total: int) -> None:
+        # 進捗が出ないと「遅いのか固まったのか」を運用中に判別できない（当日の実障害）
+        el = time.time() - t0
+        eta = el / max(done, 1) * (total - done)
+        print(f"  board {done}/{total} ({done/total:.0%}) 経過{el:.0f}秒 残り~{eta:.0f}秒",
+              flush=True)
+
+    if bulk is not None and os.environ.get("KABU_BULK_BOARDS", "").strip() == "1":
+        boards = bulk(syms, on_progress=_log if progress else None)
+        return {s: _px(b) for s, b in boards.items() if _px(b) > 0}
+
     out = {}
-    for s in symbols:
+    for i, s in enumerate(syms, 1):
         if throttle_s:
             time.sleep(throttle_s)
         try:
             b = client.board(s)
         except Exception:
             continue
-        px = b.get("CalcPrice") or b.get("CurrentPrice") or 0
-        if px and float(px) > 0:
-            out[s] = float(px)
+        if _px(b) > 0:
+            out[s] = _px(b)
+        if progress and i % 45 == 0:
+            _log(i, len(syms))
     return out
 
 
