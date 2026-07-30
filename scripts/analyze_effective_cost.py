@@ -10,11 +10,14 @@
 3.4倍厚い。同じ建玉でも参加率は寄り側が約4倍で、実効コストは構造的に非対称。
 往復合算で持つと入口の悪さが出口に隠れる。
 
-判定閾値（live/README と同一・往復ベース）:
-  5日MA ≤14bps(=片道7bps相当)  : 継続
-  14〜20bps                    : 継続するが増額凍結
-  >20bps が5日継続             : サイズ半減（¥10M）
-  >26bps                       : 停止して原因分析（全期間の損益分岐≈28bps）
+**2026-07-30 全面改訂**: 板寄せは単一約定価格なので「fill vs 公式価格」は構造的にゼロで、
+実効コストの直接測定にはならない（自分のインパクトは公式価格に内包され、バックテストも
+同じ価格を使うため分離不能）。よって監視するのは**コスト前提が崩れる兆候**:
+
+  参加率 p90       : 寄り ≤3% / 引け ≤1.5%   （推定コストの driver。超えるとインパクト増）
+  数量約定率       : ≥98%                    （寄らず・部分約定の検知）
+  |slip| ¥加重     : ≤0.5bps                 （0が正常。非ゼロは板寄せ外約定=SORのPTS迂回等）
+  プレミアム料     : 発生の有無を別建てで記録（上限100bps/日で桁が違う）
 
 実行: PYTHONPATH=. python scripts/analyze_effective_cost.py [--days 30]
 """
@@ -80,7 +83,25 @@ def main() -> None:
     def _wavg(g):
         return (g["slip_bps"] * g["notional"]).sum() / g["notional"].sum()
 
-    print("== 脚別・サイド別の実効コスト（bps・正=コスト・¥加重） ==")
+    print("== 参加率（自分の約定 / その板寄せの総約定代金・%） ==")
+    if "participation_pct" in r.columns and r["participation_pct"].notna().any():
+        for leg, lim in (("entry", 3.0), ("exit", 1.5)):
+            sub = r[(r["leg"] == leg) & r["participation_pct"].notna()]
+            if len(sub):
+                p50, p90 = sub["participation_pct"].median(), sub["participation_pct"].quantile(0.9)
+                ok = "✅" if p90 <= lim else "⚠️"
+                lab = "寄成" if leg == "entry" else "引成"
+                print(f"  {lab}: p50 {p50:.2f}% / p90 {p90:.2f}% (閾値 p90≤{lim}%) {ok}")
+    else:
+        print("  （板寄せ出来高が未取得。翌日J-Quantsで補完するか board のフィールド名を確認）")
+
+    if "fill_ratio" in r.columns and r["fill_ratio"].notna().any():
+        fr = r["fill_ratio"].dropna()
+        ok = "✅" if fr.mean() >= 0.98 else "⚠️"
+        print(f"\n== 数量約定率: 平均 {fr.mean()*100:.1f}% / 最小 {fr.min()*100:.1f}% "
+              f"(閾値 ≥98%) {ok} ==")
+
+    print("\n== |slip|（板寄せ外約定の検知・0が正常） ==")
     for leg in ("entry", "exit"):
         sub = r[r["leg"] == leg]
         if sub.empty:
@@ -97,17 +118,15 @@ def main() -> None:
     print("\n== 日次の往復コスト推移（直近10日） ==")
     print(daily.tail(10).round(2).to_string())
 
-    ma5 = daily["roundtrip"].tail(5).mean()
-    print(f"\n== 判定: 5日移動平均の往復コスト = {ma5:.2f} bps ==")
-    if ma5 <= 14:
-        print("  → ✅ 継続（想定7bps/side以内）")
-    elif ma5 <= 20:
-        print("  → ⚠️ 継続するが増額凍結（10bps/side水準）")
-    elif ma5 <= 26:
-        print("  → 🔻 5日継続ならサイズ半減（¥10M）を検討")
+    ma5 = daily["roundtrip"].tail(5).abs().mean()
+    print(f"\n== 判定: |slip| 5日平均(往復) = {ma5:.2f} bps ==")
+    if ma5 <= 0.5:
+        print("  → ✅ 正常（板寄せで約定できている）")
     else:
-        print("  → 🛑 停止して原因分析（損益分岐≈28bps往復に接近）")
-    print("\n参考: 本番前提は片道7bps=往復14bps。実勢が片道3bpsなら年率で最大+17pt相当の上振れ。")
+        print("  → ⚠️ 板寄せ外での約定が疑われる（SORのPTS迂回・寄らず等）。約定明細を確認")
+    print("\n参考: オフライン推定の板寄せ実効コストは 寄り1.5bps/引け0.5bps（往復2.0・レンジ0.6-4.5）。")
+    print("      現行の計画値は対称2.0bps/side（往復4bps）。verify_baselineの7bps期待値は")
+    print("      環境再現アンカーとして据え置き、正本の差し替えはライブ実測40営業日の合格後。")
 
 
 if __name__ == "__main__":
