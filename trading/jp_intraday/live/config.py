@@ -52,7 +52,7 @@ class LiveConfig:
     margin_type: int = 3
     account_type: int = 4
     min_value_yen: float = 5e8
-    short_min_mktcap_yen: float = 10_000_000_000   # ショートは時価総額≥¥100億（規制常連の小型を回避）
+    short_min_mktcap_yen: float = 0.0   # 時価総額フロアは規律付き最適化で0が最適（規制回避は専用ガード2枚が担当）
     max_gross_yen: float = 40_000_000  # 既定 = capital × margin_ratio（from_envで自動整合）
     cost_bps_side: float = 7.0
     report_url: str = ""
@@ -79,7 +79,7 @@ class LiveConfig:
             margin_type=int(os.environ.get("LIVE_MARGIN_TYPE", "3")),
             account_type=int(os.environ.get("LIVE_ACCOUNT_TYPE", "4")),
             min_value_yen=float(os.environ.get("LIVE_MIN_VALUE_YEN", "500000000")),
-            short_min_mktcap_yen=float(os.environ.get("LIVE_MIN_MKTCAP_SHORT_YEN", "10000000000")),
+            short_min_mktcap_yen=float(os.environ.get("LIVE_MIN_MKTCAP_SHORT_YEN", "0")),
             max_gross_yen=float(os.environ.get("LIVE_MAX_GROSS_YEN", str(capital * margin_ratio))),
             cost_bps_side=float(os.environ.get("LIVE_COST_BPS_SIDE", "7")),
             report_url=os.environ.get("REPORT_URL", ""),
