@@ -60,10 +60,15 @@ def load_existing_daily() -> pd.DataFrame:
     import glob
 
     frames = []
+    # 優先順位が重要（2026-07-30 修正）: drop_duplicates は先勝ちなので、**調整基準が最新で
+    # 一貫している正本 daily_adj_* を先頭に置く**。古い bars_day_* スナップショットを先に
+    # 置くと、その後に分割した銘柄で「旧基準の区間」と「新基準の区間」が継ぎ足され、
+    # 境界日に×4〜×200の偽リターンが発生していた（2025-12-19/2026-04-27で54銘柄）。
+    # bars_day_* は正本が覆わない過去日を埋めるフォールバックとしてのみ使う。
     sources = (
-        sorted(glob.glob("data/cache/bars_day_*.parquet"))
+        sorted(glob.glob("data/jp_daily_history/daily_adj_*.parquet"))
         + ["data/jp_intraday_reference/daily_20260528_20260724.parquet"]
-        + sorted(glob.glob("data/jp_daily_history/daily_adj_*.parquet"))
+        + sorted(glob.glob("data/cache/bars_day_*.parquet"))
     )
     for path in sources:
         try:
