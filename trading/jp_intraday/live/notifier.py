@@ -153,6 +153,12 @@ def format_event(event: str, data: dict, env: str, stamp: str) -> str | None:
             lines += _fail_lines(orders)
         return "\n".join(lines)
 
+    if event == "quotesnap":
+        # 気配vs実寄値の実測（発注なし）。件数が想定より少なければ取得に失敗している
+        counts = data.get("counts") or {}
+        line = " / ".join(f"{k} {v}件" for k, v in counts.items()) or "記録なし"
+        return f"📸 *quotesnap* {head}\n{line}"
+
     if event == "state":
         pos = data.get("positions") or []
         margin = data.get("margin") or {}
