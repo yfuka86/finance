@@ -40,10 +40,25 @@ def _load_records() -> pd.DataFrame:
 
 
 def _official_prices() -> pd.DataFrame:
-    """J-Quants 日次バーの公式寄値/引値（未調整）。翌営業日に確定する."""
+    """公式寄値/引値。翌営業日に確定する.
+
+    ★罠: daily_adj_*.parquet の**生値列 O/C は 2022-2024 に列自体が無く、2025 も
+    非NaNが3.2%しかない**。columns=["O","C"] を決め打ちで読むと古い年で
+    ArrowInvalid、新しい年でもデータの3%しか拾えない。列の有無を見て、
+    生値が薄い場合は調整値(AdjO/AdjC)にフォールバックする（約定価格との突合は
+    調整イベント日以外では一致する）。
+    """
+    import pyarrow.parquet as pq
     frames = []
-    for f in sorted(glob.glob("data/jp_daily_history/daily_adj_202[5-9].parquet")):
-        frames.append(pd.read_parquet(f, columns=["Date", "Code", "O", "C"]))
+    for f in sorted(glob.glob("data/jp_daily_history/daily_adj_202[4-9].parquet")):
+        cols = set(pq.ParquetFile(f).schema.names)
+        want = ["Date", "Code"] + (["O", "C"] if {"O", "C"} <= cols else ["AdjO", "AdjC"])
+        d = pd.read_parquet(f, columns=want).rename(columns={"AdjO": "O", "AdjC": "C"})
+        if d["O"].notna().mean() < 0.5 and {"AdjO", "AdjC"} <= cols:   # 生値が薄い年は調整値で補完
+            adj = pd.read_parquet(f, columns=["Date", "Code", "AdjO", "AdjC"])
+            d["O"] = d["O"].fillna(adj["AdjO"])
+            d["C"] = d["C"].fillna(adj["AdjC"])
+        frames.append(d)
     if not frames:
         return pd.DataFrame(columns=["day", "symbol", "open", "close"])
     d = pd.concat(frames, ignore_index=True)
