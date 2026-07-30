@@ -108,6 +108,10 @@ def _sleeve_rows(scored: pd.DataFrame, cfg: LiveConfig, side_cap: float,
     n = cfg.names_per_side
     longs = scored.nlargest(n, "_s")
     short_pool = scored[scored["shortable"] & (scored["prev_value"] >= 1e9)]
+    if "short_restricted" in short_pool.columns:   # 増担保/日証金規制=売建発注が拒否される
+        short_pool = short_pool[~short_pool["short_restricted"].fillna(False)]
+    if cfg.short_min_mktcap_yen and "mktcap_yen" in short_pool.columns:
+        short_pool = short_pool[short_pool["mktcap_yen"].fillna(0) >= cfg.short_min_mktcap_yen]
     shorts = short_pool.nsmallest(n, "_s")
     shorts = shorts[~shorts["symbol"].isin(set(longs["symbol"]))]
     MAX_SHORT_LOTS = 50
@@ -142,6 +146,39 @@ def _sleeve_rows(scored: pd.DataFrame, cfg: LiveConfig, side_cap: float,
                              "residual_gap": float(r.get("residual_gap", 0.0)),
                              "est_yen": lots * 100 * float(r["today_open"])})
     return rows
+
+
+def verify_short_regulations(client, kabu_symbols: list[str], cache: dict) -> set:
+    """kabu /regulations で売り方向の規制（新規売停止・増担保等）を実チェック。
+
+    レスポンスのフィールド名は環境差があり得るため防御的にパースする:
+    RegulationsInfo配列の各要素で Side が売('1')または全('0')かつ Product が
+    信用(2,3)または全(0) のエントリがあれば売建規制ありとみなす。
+    取得不能時は「不明=可」（発注時エラーで最終捕捉）。
+    Returns: 売建規制と確認された銘柄集合。
+    """
+    banned = set()
+    fetch = getattr(client, "regulations", None)
+    if fetch is None:
+        return banned
+    for k in kabu_symbols:
+        key = f"reg:{k}"
+        if key in cache:
+            info = cache[key]
+        else:
+            try:
+                info = fetch(k) or {}
+            except Exception:  # noqa: BLE001
+                info = {}
+            cache[key] = info
+        entries = info.get("RegulationsInfo") or info.get("RegulationList") or []
+        for e in entries if isinstance(entries, list) else []:
+            side = str(e.get("Side", ""))
+            product = str(e.get("Product", ""))
+            if side in ("0", "1") and product in ("0", "2", "3"):
+                banned.add(k)
+                break
+    return banned
 
 
 def verify_shortable(client: KabuClientProtocol, kabu_symbols: list[str],
@@ -231,6 +268,7 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
             break
         shorts = plan[plan["side_label"] == "SHORT"]
         newly = verify_shortable(client, [s for s in shorts["kabu_symbol"]], info_cache)
+        newly |= verify_short_regulations(client, [s for s in shorts["kabu_symbol"]], info_cache)
         newly -= {to_kabu_symbol(s) for s in banned_symbols}
         if not newly:
             break

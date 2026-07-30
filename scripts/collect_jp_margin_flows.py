@@ -90,6 +90,17 @@ def main() -> None:
         _collect_daily(client, year, OUT / f"breakdown_{year}.parquet", "Date",
                        lambda dd: client.get_mkt_breakdown(date_yyyymmdd=dd))
 
+        # 増担保・規制銘柄（日々公表銘柄残高＋規制区分。売り建て可否ガードの正本）
+        p = OUT / f"margin_alert_{year}.parquet"
+        if year >= this_year or not p.exists():
+            df = _retry(lambda: client.get_mkt_margin_alert_range(
+                start_dt=f"{year}0101", end_dt=f"{year}1231"))
+            if len(df):
+                df["PubReason"] = df["PubReason"].astype(str)  # dict列→str(parquet安全)
+                df.to_parquet(p, index=False)
+            print(f"{year} margin_alert: {len(df)} rows", flush=True)
+            time.sleep(5)
+
         # 空売り残高報告: 開示日ごと
         _collect_daily(client, year, OUT / f"short_positions_{year}.parquet", "DiscDate",
                        lambda dd: client.get_mkt_short_sale_report(disclosed_date=dd))
