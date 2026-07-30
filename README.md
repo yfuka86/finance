@@ -4,6 +4,7 @@
 リサーチ〜ライブ執行までの一式。個別株のみ・ドルニュートラルL/S・auカブコム(kabuステーションAPI)執行。
 リサーチ側はオーバーナイト/翌日跨ぎ保有の戦略も検証可能（タグで区別・ライブ執行は場中フラットのみ）。
 
+> **現在地のサマリは [STATUS.md](STATUS.md)**（1枚もの・Windows側はまずここを読む）。
 > エージェント向けの作業規約・確定知見は **[AGENTS.md](AGENTS.md)**（正本）。
 > ライブ運用の詳細は **[trading/jp_intraday/live/README.md](trading/jp_intraday/live/README.md)**。
 
