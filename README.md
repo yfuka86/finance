@@ -33,7 +33,7 @@ trading/jp_intraday/        本体（リサーチ+ライブ）
   live/                       kabuステーションAPI ライブ執行（README必読）
   webapp/                     Web報告先 https://trade.a-tokyo.jp（Cloud Run）
 scripts/                    データ収集（冪等）・実験ランナー・GCS同期
-tests/                      33テスト（リーク防止・単元計算・ライブ安全機構）
+tests/                      リーク防止・単元計算・ライブ安全機構（`pytest tests/ -q` で全green）
 data/                       ほぼ.gitignore（下記「データの入手」参照）
 ```
 
@@ -42,7 +42,7 @@ data/                       ほぼ.gitignore（下記「データの入手」参
 ```bash
 pip install -r requirements.txt
 # .env（Git管理外）: JQUANTS_API_KEY, EDINET_API_KEY,（ライブ用）KABU_*, REPORT_*
-PYTHONPATH=. python -m pytest tests/ -q          # 33 passed を確認
+PYTHONPATH=. python -m pytest tests/ -q          # 全green を確認
 ```
 
 ### データの入手（2通り）
@@ -91,7 +91,7 @@ PYTHONPATH=. streamlit run trading/jp_intraday/dashboard.py   # → http://local
 ```bash
 python -m trading.jp_intraday.live.run_live preflight  # どのOSでも: モックで全フロー検証
 python -m trading.jp_intraday.live.run_live train      # 年1回: MLモデル更新
-# Windows+kabuステーション: plan(08:55) → entry(08:59寄成) → exit(14:55引成) → state
+# Windows+kabuステーション: quotesnap(08:47) → entry(08:48寄成) → exit(14:55引成) → state(15:30)
 ```
 - 安全設計: **既定は発注しない**（mock）。実発注は `KABU_ENV=prod × KABU_DRY_RUN=0 × KABU_LIVE_CONFIRMED=1` の3重ロック
 - 売建可否はAPI実チェック＋繰り上げ補充。価格規制はトリガー銘柄のみ50単元キャップ

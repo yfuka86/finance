@@ -13,9 +13,9 @@ Order gating:
 Set in the repo-root .env (never commit real values):
   KABU_ENV=mock|test|prod   KABU_API_PASSWORD=...   KABU_ORDER_PASSWORD=...
   KABU_DRY_RUN=1  KABU_LIVE_CONFIRMED=0
-  LIVE_STRATEGY=sector_vol_double_neutral  LIVE_CAPITAL_YEN=20000000
-  LIVE_NAMES_PER_SIDE=8  LIVE_MARGIN_RATIO=2.0  LIVE_MARGIN_TYPE=3  LIVE_ACCOUNT_TYPE=4
-  LIVE_MIN_VALUE_YEN=500000000  LIVE_MAX_GROSS_YEN=20000000
+  LIVE_STRATEGY=ensemble_core  LIVE_CAPITAL_YEN=20000000
+  LIVE_NAMES_PER_SIDE=8  LIVE_MARGIN_RATIO=2.0  LIVE_MARGIN_TYPE=3  LIVE_ACCOUNT_TYPE=2
+  LIVE_MIN_VALUE_YEN=1000000000  LIVE_MAX_GROSS_YEN=40000000
   LIVE_COST_BPS_SIDE=7
   REPORT_URL=https://trade.a-tokyo.jp/api/report  REPORT_TOKEN=...
 """
@@ -50,7 +50,9 @@ class LiveConfig:
     names_per_side: int = 8
     margin_ratio: float = 2.0          # 信用倍率: グロス建玉目標 = 保証金 × これ
     margin_type: int = 3
-    account_type: int = 4
+    # 特定(4)は約諾書未確認(100203)で発注不可のため一般(2)が既定。約諾解消後に4へ戻す
+    # （一般口座の約定は確定申告で自己計算が必要）。
+    account_type: int = 2
     min_value_yen: float = 1e9   # 全面流動性フロア¥10億（ユーザー決定 2026-07-30・執行品質優先）
     short_min_mktcap_yen: float = 0.0   # 時価総額フロアは規律付き最適化で0が最適（規制回避は専用ガード2枚が担当）
     max_gross_yen: float = 40_000_000  # 既定 = capital × margin_ratio（from_envで自動整合）
@@ -77,7 +79,7 @@ class LiveConfig:
             names_per_side=int(os.environ.get("LIVE_NAMES_PER_SIDE", "8")),
             margin_ratio=margin_ratio,
             margin_type=int(os.environ.get("LIVE_MARGIN_TYPE", "3")),
-            account_type=int(os.environ.get("LIVE_ACCOUNT_TYPE", "4")),
+            account_type=int(os.environ.get("LIVE_ACCOUNT_TYPE", "2")),
             min_value_yen=float(os.environ.get("LIVE_MIN_VALUE_YEN", "1000000000")),
             short_min_mktcap_yen=float(os.environ.get("LIVE_MIN_MKTCAP_SHORT_YEN", "0")),
             max_gross_yen=float(os.environ.get("LIVE_MAX_GROSS_YEN", str(capital * margin_ratio))),
