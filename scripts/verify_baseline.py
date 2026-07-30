@@ -33,9 +33,9 @@ UNIT_OOS = "2024-01-01"       # 本番換算のOOS24+（暦年境界）
 EXPECTED = [
     ("リサーチ @3bps OOS24-08+", {"sharpe": 8.77}),
     ("リサーチ @7bps OOS24-08+", {"sharpe": 7.14}),
-    # 2026-07-30 更新: 規制銘柄のショート除外を既定化（実行不能ショートの排除=現実性修正）
-    ("単元¥20M 8/側 2.0x 7bps 全期間", {"sharpe": 2.19, "ann_return": 0.525, "max_drawdown": -0.21}),
-    ("単元¥20M 8/側 2.0x 7bps OOS24+", {"sharpe": 3.25, "ann_return": 1.005, "max_drawdown": -0.15}),
+    # 2026-07-30 更新: 規制銘柄ショート除外（発注拒否前提）+ 全面流動性フロア¥10億が本番条件
+    ("単元¥20M 8/側 2.0x 7bps 全期間", {"sharpe": 1.70, "ann_return": 0.356, "max_drawdown": -0.187}),
+    ("単元¥20M 8/側 2.0x 7bps OOS24+", {"sharpe": 2.98, "ann_return": 0.791, "max_drawdown": -0.187}),
 ]
 
 
@@ -63,7 +63,8 @@ def main() -> None:
     from trading.jp_intraday.strategies import run_strategy, run_unit_lot
 
     print("パネル構築（初回~15s / ウォーム~1s）…")
-    panel = load_panel_cached()
+    panel = load_panel_cached()                      # リサーチ基準（¥5億）
+    panel_prod = load_panel_cached(min_value_yen=1e9)  # 本番条件（¥10億全面フロア）
     print(f"  {panel['date'].min().date()} 〜 {panel['date'].max().date()} / "
           f"{panel['symbol'].nunique()}銘柄 {len(panel):,}行")
 
@@ -74,7 +75,7 @@ def main() -> None:
         s = annualized_stats(d[d["date"] >= pd.Timestamp(RESEARCH_OOS)], "net")
         results.append(_check(name, s, exp, args.tol))
 
-    d, _ = run_unit_lot(panel, "ensemble_core", capital_yen=2e7, names_per_side=8,
+    d, _ = run_unit_lot(panel_prod, "ensemble_core", capital_yen=2e7, names_per_side=8,
                         margin_ratio=2.0, cost_bps_side=7.0)
     d["date"] = pd.to_datetime(d["date"])
     results.append(_check(EXPECTED[2][0], annualized_stats(d, "net"), EXPECTED[2][1], args.tol))

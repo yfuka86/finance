@@ -160,7 +160,7 @@ with st.container(border=True):
     nav = t[0].radio("画面", ["📊 一覧", "🔍 詳細"], horizontal=True, key="nav")
     mode = t[1].radio("モード", ["💰 単元取引（予算反映・現実）", "理想バックテスト(5年)"],
                       horizontal=True, key="mode")
-    liq = t[2].select_slider("流動性 (前日売買代金≥)", options=[3e8, 5e8, 1e9, 2e9, 5e9], value=5e8,
+    liq = t[2].select_slider("流動性 (前日売買代金≥)", options=[3e8, 5e8, 1e9, 2e9, 5e9], value=1e9,
                              format_func=lambda v: f"¥{v/1e8:.0f}億")
     u = st.columns([1.6, 2.6])
     seg = u[0].radio("市場区分", ["全市場", "プライムのみ", "プライム+スタンダード"],
