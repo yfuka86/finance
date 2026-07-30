@@ -14,13 +14,14 @@ from __future__ import annotations
 import datetime as dt
 import json
 import time
+import warnings
 
 import numpy as np
 import pandas as pd
 
 from trading.jp_intraday.daily_gap import load_existing_daily
 from trading.jp_intraday.daily_model import build_daily_features
-from trading.jp_intraday.strategies import STRATEGIES
+from trading.jp_intraday.strategies import STRATEGIES, needs_today_open
 from .config import PROJECT_ROOT, LiveConfig
 from .kabu_client import (
     FRONT_CLOSE, FRONT_OPEN, SIDE_BUY, SIDE_SELL, KabuAPIError,
@@ -222,6 +223,17 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
             raise NotImplementedError(
                 f"ライブ執行は場中フラット(intraday)のみ対応。'{m}' は "
                 f"{STRATEGIES[m].get('holding')} 保有のためライブ不可")
+    # ★2026-07-31: 「気配値と寄り付き値に有効な関係なし」が実測で確定。当日寄値を
+    # シグナルに使う戦略は板寄せ参加の経路が存在しない（AGENTS.md「★★★結論」参照）。
+    # 数値上は優秀なのでレジストリからは消さないが、実発注の前に必ず警告を出す。
+    if needs_today_open(cfg.strategy):
+        warnings.warn(
+            f"⛔ 戦略 '{cfg.strategy}' はシグナルに**当日寄値（寄前気配）**を必要とします。"
+            "2026-07-31の実測で気配は寄値を予測しないと確定しており、"
+            "**この戦略はライブ執行不能です**（バックテスト成績は有効ですが、"
+            "シグナルを実時間で入手する経路がありません）。"
+            "タスクスケジューラの entry を停止してください。",
+            RuntimeWarning, stacklevel=2)
     panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
     data_date = _assert_fresh(panel, cfg)
     last = panel[panel["date"].eq(panel["date"].max())].copy()
