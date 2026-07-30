@@ -214,3 +214,34 @@ class ShortGuardTest(unittest.TestCase):
         banned = verify_short_regulations(RegClient(), ["7203", "9984", "6758"], cache)
         self.assertEqual(banned, {"7203"})
         self.assertIn("reg:6758", cache)         # エラーでもキャッシュされ再照会しない
+
+
+class EffectiveCostTest(unittest.TestCase):
+    def test_leg_slippage_sign_convention(self):
+        from trading.jp_intraday.live.costs import leg_slippage_bps
+        # entry・買い: 寄値1000に対し1001で約定 = 高く買った = +10bpsのコスト
+        self.assertAlmostEqual(leg_slippage_bps(1001, 1000, SIDE_BUY, "entry"), 10.0, places=6)
+        # entry・売建: 999で約定 = 安く売った = +10bpsのコスト
+        self.assertAlmostEqual(leg_slippage_bps(999, 1000, SIDE_SELL, "entry"), 10.0, places=6)
+        # exit・売却(買い建玉の決済): 引値1000に対し999 = 安く売った = +10bpsのコスト
+        self.assertAlmostEqual(leg_slippage_bps(999, 1000, SIDE_BUY, "exit"), 10.0, places=6)
+        # exit・買戻し: 1001 = 高く買い戻した = +10bpsのコスト
+        self.assertAlmostEqual(leg_slippage_bps(1001, 1000, SIDE_SELL, "exit"), 10.0, places=6)
+        # 板寄せどおり約定すればゼロ
+        self.assertAlmostEqual(leg_slippage_bps(1000, 1000, SIDE_BUY, "entry"), 0.0, places=9)
+
+    def test_fills_parse_details_and_fallback(self):
+        from trading.jp_intraday.live.costs import _fills_from_orders
+        orders = [
+            {"Symbol": "1301", "Side": SIDE_BUY, "FrontOrderType": "13",
+             "Details": [{"RecType": "1", "Price": 0, "Qty": 100},
+                         {"RecType": "8", "Price": 1000.0, "Qty": 60},
+                         {"RecType": "8", "Price": 1010.0, "Qty": 40}]},
+            {"Symbol": "7203", "Side": SIDE_SELL, "FrontOrderType": "16",
+             "Price": 2000.0, "CumQty": 100},          # Details無し→サマリにフォールバック
+            {"Symbol": "9984", "Side": SIDE_BUY, "FrontOrderType": "13"},  # 情報なし→除外
+        ]
+        f = _fills_from_orders(orders)
+        self.assertEqual(len(f), 2)
+        self.assertAlmostEqual(f[0]["fill_px"], (1000 * 60 + 1010 * 40) / 100)  # 数量加重
+        self.assertEqual(f[1]["fill_px"], 2000.0)
