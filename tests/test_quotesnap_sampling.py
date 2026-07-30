@@ -73,5 +73,40 @@ class SnapshotTimingTest(unittest.TestCase):
             self.assertLessEqual(lead, 90, f"{snap} の取得開始が早すぎる（気配が古くなる）")
 
 
+class SlowMorningTest(unittest.TestCase):
+    """遅い日でも各スナップが自分の時刻枠を守る（件数より時点ラベルの正しさを優先）。"""
+
+    class SlowClient:
+        def __init__(self, clock, sec_per_symbol):
+            self.clock = clock
+            self.sec = sec_per_symbol
+
+        def board(self, symbol, exchange=1):
+            self.clock["t"] += dt.timedelta(seconds=self.sec)
+            return {"CalcPrice": 1000.0}
+
+    def test_snapshot_is_cut_off_instead_of_bleeding_into_the_next(self):
+        clock = {"t": dt.datetime(2026, 7, 31, 8, 47, 0)}
+        client = self.SlowClient(clock, sec_per_symbol=5)   # 1銘柄5秒の最悪日
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(quotesnap, "_OUT_DIR", Path(tmp)):
+                out = quotesnap.run_quotesnap(
+                    client, LiveConfig(env="prod"), [f"{i}" for i in range(600)],
+                    sleep=lambda s: clock.__setitem__("t", clock["t"] + dt.timedelta(seconds=s)),
+                    now_fn=lambda: clock["t"], limit=60)
+                rows = [json.loads(l) for l in
+                        (Path(tmp) / f"quotesnap_{out['day']}.jsonl").read_text(encoding="utf-8").splitlines()]
+        # 3時点とも記録は残る（件数は減る）
+        self.assertEqual(sorted(out["counts"]), ["08:50", "08:55", "08:59"])
+        self.assertTrue(all(v > 0 for v in out["counts"].values()), out["counts"])
+        self.assertTrue(any(v < 60 for v in out["counts"].values()), "打ち切りが効いていない")
+        # 各行の時刻が自分のスナップ時刻の近傍に収まっている
+        for snap, tol in (("08:50", 45), ("08:55", 45), ("08:59", 45)):
+            target = dt.datetime.strptime(snap + ":00", "%H:%M:%S")
+            for r in (x for x in rows if x["snap"] == snap):
+                delta = (dt.datetime.strptime(r["time"], "%H:%M:%S") - target).total_seconds()
+                self.assertLessEqual(delta, tol + 10, f"{snap} の記録が {r['time']} まで流れている")
+
+
 if __name__ == "__main__":
     unittest.main()

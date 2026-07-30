@@ -26,6 +26,7 @@ from .kabu_client import KabuClientProtocol, to_kabu_symbol
 SNAP_TIMES = ("08:50", "08:55", "08:59")   # 3時点の収束カーブを取る
 _OUT_DIR = Path("data/live_reports")
 SNAP_SECONDS_PER_SYMBOL = 1.1   # 実測(2026-07-30): 未登録銘柄の板は中央値~900ms・1割は5秒
+SNAP_TOLERANCE_SEC = 45         # 目標時刻をこれ以上過ぎたら打ち切る（時点ラベルを守る）
 
 
 def sample_symbols(symbols: list[str], limit: int) -> list[str]:
@@ -64,8 +65,17 @@ def run_quotesnap(client: KabuClientProtocol, cfg: LiveConfig,
                 if lead <= lead_sec:
                     break
                 sleep(min(lead - lead_sec, 10))
+            # 板の所要は日によってブレる（実測1.0〜5.0秒/銘柄）。遅い日に取り切ろうとすると
+            # 08:50のスナップが08:55側へ食い込み「その時刻の気配」でなくなる。
+            # 時刻で打ち切り、件数が減ることを受け入れる（ラベルの正しさを優先）。
+            deadline = (dt.datetime.strptime(f"{snap}:00", "%H:%M:%S")
+                        + dt.timedelta(seconds=SNAP_TOLERANCE_SEC)).time()
             n = 0
             for s in symbols:
+                if now_fn().time() > deadline:
+                    print(f"  quotesnap {snap}: 時間切れで打ち切り（{n}/{len(symbols)}銘柄）",
+                          flush=True)
+                    break
                 ksym = to_kabu_symbol(s)
                 try:
                     b = client.board(ksym)
