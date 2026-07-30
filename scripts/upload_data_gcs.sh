@@ -11,7 +11,10 @@ TAR=/tmp/jp_trading_data.tar.gz
 echo "== tarball 作成 =="
 tar czf "$TAR" \
   data/jp_daily_history data/jp_derivatives data/jp_intraday_reference \
-  data/live_models $(ls data/cache/bars_day_*.parquet)
+  data/live_models data/jp_flows data/jp_options \
+  $(ls data/cache/bars_day_*.parquet 2>/dev/null)
+# 収録: 日次調整済みバー(2018-2026) / 先物・指数・空売り比率 / 需給3種+増担保規制(jp_flows) /
+#       日経225オプション日次とIV系列(jp_options) / TOPIX参照・株数 / 学習済みMLモデル
 ls -lh "$TAR"
 
 echo "== アップロード =="
