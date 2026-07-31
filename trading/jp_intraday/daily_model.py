@@ -320,6 +320,10 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     p["gap_abs"] = p["residual_gap"].abs()
     cc = g["close"].pct_change(fill_method=None)
     p["ret"] = cc
+    # ★PIT注意: vol20 は shift なし＝**当日の終値リターンを含む**。寄付き時点では未知なので
+    # **予測モデルの特徴量に使ってはいけない**（2026-07-31に実際に踏んだ: 気配不要MLに
+    # 足したら選択窓 Sh1.30→2.75 に跳ね、リークと判明）。予測に使うのは shift=1 の `ivol`。
+    # vol20 は「事後の実現ボラ」を見る分析用途にのみ使うこと。
     p["vol20"] = _groll(cc, 20, 10, "std")
     p["vol20_floor"] = p["vol20"].clip(lower=0.005)
     # PIT inverse-vol for risk-parity sizing (exclude today's unknown close).
