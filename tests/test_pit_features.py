@@ -52,3 +52,46 @@ class TestGrollShiftSemantics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestShortablePIT(unittest.TestCase):
+    """shortable が「当時の」貸借区分であること（2026-07-31 発見のルックアヘッド）.
+
+    master.parquet は Date が1枚だけのスナップショット。そこから作った貸借フラグを
+    日付キーなしで全期間にマージすると、後から貸借になった銘柄が過去に遡って
+    ショート可能になる。週次 margin_interest の IssType で PIT 復元する。
+    """
+
+    def test_master_is_a_single_snapshot(self):
+        """前提の明示: master は時系列ではない（この前提が崩れたら実装を見直す）."""
+        import os
+
+        import pandas as pd
+        path = "data/jp_daily_history/master.parquet"
+        if not os.path.exists(path):
+            self.skipTest("master 未取得の環境")
+        self.assertEqual(pd.read_parquet(path, columns=["Date"])["Date"].nunique(), 1)
+
+    def test_pit_lendable_loader_returns_time_series(self):
+        import glob as g
+
+        from trading.jp_intraday.daily_model import _load_pit_lendable
+        if not g.glob("data/jp_flows/margin_interest_*.parquet"):
+            self.skipTest("週次信用残が未取得の環境")
+        d = _load_pit_lendable()
+        self.assertIsNotNone(d)
+        self.assertGreater(d["date"].nunique(), 100)      # 1枚スナップショットではない
+        self.assertEqual(d["pit_lendable"].dtype, bool)
+
+    def test_panel_shortable_matches_pit_rate_not_master_rate(self):
+        """パネルの shortable 率が master 由来(約96%)でなく PIT(約92.6%)に寄ること."""
+        import glob as g
+
+        import pandas as pd
+        if not g.glob("data/jp_flows/margin_interest_*.parquet"):
+            self.skipTest("週次信用残が未取得の環境")
+        from trading.jp_intraday.daily_model import load_panel_cached
+        p = load_panel_cached(min_value_yen=1e9)
+        rate = p[p["date"] <= pd.Timestamp("2024-12-31")]["shortable"].mean()
+        self.assertLess(rate, 0.945, "master スナップショット由来のままの可能性")
+        self.assertGreater(rate, 0.90)
