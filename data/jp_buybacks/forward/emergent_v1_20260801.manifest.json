@@ -1,0 +1,14 @@
+{
+  "asof": "2026-08-01",
+  "schema": "buyback_emergent_v1",
+  "rows": 4,
+  "states": {
+    "OBSERVE": 2,
+    "CORPORATE_PUT_LONG": 2
+  },
+  "primary": 2,
+  "panel_sha256": "3760b4c4565ef9c6da039522d9e3c9f3ce508cbdc7055e48dcdd110576ca7445",
+  "git_commit": "33346dc6b684f0fa69bb011322beadb46dacdc65",
+  "evaluation_allowed_from": "2027-08-03",
+  "pnl_opened": false
+}

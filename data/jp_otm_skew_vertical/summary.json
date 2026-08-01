@@ -1,0 +1,50 @@
+{
+  "spec": {
+    "near_moneyness": 0.95,
+    "wing_moneyness": 0.85,
+    "z_threshold": 0.5,
+    "hold_sessions": 5
+  },
+  "evaluation": {
+    "ann_return": -0.29543188851857416,
+    "ann_vol": 0.44484945162910056,
+    "sharpe": -0.6641165622137141,
+    "max_drawdown": -0.7727799478235097,
+    "total_return": -0.7043467090303988,
+    "days": 667,
+    "win_rate": 0.04047976011994003
+  },
+  "yearly": {
+    "2024": {
+      "ann_return": -0.41731510826126617,
+      "ann_vol": 0.6406031677694692,
+      "sharpe": -0.6514409064106335,
+      "max_drawdown": -0.6428939999999999,
+      "total_return": -0.5594549914450782,
+      "days": 262,
+      "win_rate": 0.04961832061068702
+    },
+    "2025": {
+      "ann_return": -0.22874163150533247,
+      "ann_vol": 0.24508310368260594,
+      "sharpe": -0.9333227304056161,
+      "max_drawdown": -0.2636625861546694,
+      "total_return": -0.23627083435962315,
+      "days": 261,
+      "win_rate": 0.038314176245210725
+    },
+    "2026": {
+      "ann_return": -0.19454823232323218,
+      "ann_vol": 0.25150277601875304,
+      "sharpe": -0.773543081324581,
+      "max_drawdown": -0.2579178239160178,
+      "total_return": -0.12127484977947289,
+      "days": 144,
+      "win_rate": 0.027777777777777776
+    }
+  },
+  "trades": 50,
+  "top_trade_profit_share": null,
+  "decision": "NO-GO",
+  "execution_status": "SETTLEMENT_ONLY"
+}

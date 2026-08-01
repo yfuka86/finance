@@ -22,3 +22,8 @@ data/jp_ticks*/
 data/jp_daily_history/
 data/live_reports/
 nohup.out
+
+# 再生成可能な生API保存（コレクタで再構築可・GCSバンドルで共有）
+data/jp_ownership/filings.jsonl
+data/jp_buybacks/edinet/raw/
+data/jp_buybacks/edinet/error_payloads/

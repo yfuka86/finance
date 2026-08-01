@@ -1,0 +1,18 @@
+{
+  "cases": 17,
+  "mean": 0.06278927272595002,
+  "median": 0.048436263034688176,
+  "win_rate": 0.6470588235294118,
+  "expected_shortfall_5pct": -0.2579881819141079,
+  "max_loss": -0.2579881819141079,
+  "top_case_profit_share": 0.6468883185843425,
+  "sum": 1.0674176363411503,
+  "detected_events": 1637,
+  "eligible_cases_with_raw_price": 51,
+  "training_cases": 21,
+  "oos_start": "2024-01-01",
+  "holding_sessions": 60,
+  "round_trip_cost_bps": 20,
+  "status": "TESTED",
+  "oos_candidates": 23
+}

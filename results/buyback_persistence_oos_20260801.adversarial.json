@@ -1,0 +1,27 @@
+{
+  "evaluation": "post-result adversarial diagnostic; no threshold changes",
+  "benchmark": "TOPIX return over each identical holding interval",
+  "cases": 33,
+  "entry_month_concentration": {
+    "2026-01": 18,
+    "other_months": 15
+  },
+  "case_excess": {
+    "mean": 0.015670595934023725,
+    "median": 0.02586600148481962,
+    "win_rate": 0.6060606060606061,
+    "mean_topix_return": 0.03820099518663893,
+    "january_mean": 0.010421323730147246,
+    "other_months_mean": 0.0219697225786755
+  },
+  "daily_excess_portfolio_20bps": {
+    "ann_return": 0.029263504505903152,
+    "ann_vol": 0.021577026510385025,
+    "sharpe": 1.3562343491499453,
+    "max_drawdown": -0.008026686484278067,
+    "total_return": 0.015322821514245355,
+    "days": 132,
+    "win_rate": 0.5
+  },
+  "interpretation": "Survives simple market-beta subtraction, but the six-month window and January clustering require forward confirmation."
+}

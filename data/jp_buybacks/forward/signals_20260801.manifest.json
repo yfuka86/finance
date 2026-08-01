@@ -1,0 +1,13 @@
+{
+  "asof": "2026-08-01",
+  "signals": 76,
+  "states": {
+    "UNDEREXECUTION_SHORT_CANDIDATE": 53,
+    "COMPLETION_CLIFF_SHORT_CANDIDATE": 22,
+    "ACCELERATION_LONG": 1
+  },
+  "panel_sha256": "6e01bc57c0e43b7a62c82b972cef0afdc1b90cf214f8598df77b9bad358c393a",
+  "git_commit": "33346dc6b684f0fa69bb011322beadb46dacdc65",
+  "evaluation_allowed_from": "2027-08-02",
+  "pnl_opened": false
+}

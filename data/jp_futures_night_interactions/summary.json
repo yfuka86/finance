@@ -1,0 +1,218 @@
+{
+  "sensitivity": {
+    "evaluation": {
+      "ann_return": 0.08841848517231603,
+      "ann_vol": 0.11430753655412466,
+      "sharpe": 0.7735140467352285,
+      "max_drawdown": -0.10620928514016392,
+      "total_return": 0.22446556508006066,
+      "days": 623,
+      "win_rate": 0.31781701444622795
+    },
+    "gross": {
+      "ann_return": 0.14967868024647332,
+      "ann_vol": 0.1144708194788464,
+      "sharpe": 1.30757061867748,
+      "max_drawdown": -0.07793579080207214,
+      "total_return": 0.4245393571978995,
+      "days": 623,
+      "win_rate": 0.33707865168539325
+    },
+    "delta_sharpe_vs_base": 0.17087050977890073,
+    "yearly": {
+      "2024": {
+        "ann_return": 0.0,
+        "ann_vol": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "days": 243,
+        "win_rate": 0.0
+      },
+      "2025": {
+        "ann_return": 0.07127409966837371,
+        "ann_vol": 0.10990146520568275,
+        "sharpe": 0.6485272924704218,
+        "max_drawdown": -0.10620928514016392,
+        "total_return": 0.06467754543795468,
+        "days": 242,
+        "win_rate": 0.5206611570247934
+      },
+      "2026": {
+        "ann_return": 0.274176696685554,
+        "ann_vol": 0.19462839973240023,
+        "sharpe": 1.4087188563566615,
+        "max_drawdown": -0.0639458301361493,
+        "total_return": 0.15008113989703675,
+        "days": 138,
+        "win_rate": 0.5217391304347826
+      }
+    },
+    "top10_abs_pnl_concentration": 0.25678999904920385,
+    "alpha_choices": {
+      "2024": {
+        "alpha": 0.0003,
+        "validation_mse": 0.00011583827543300251,
+        "nonzero": 0,
+        "fit_rows": 488668
+      },
+      "2025": {
+        "alpha": 1e-05,
+        "validation_mse": 0.0001790392561667164,
+        "nonzero": 20,
+        "fit_rows": 582470
+      },
+      "2026": {
+        "alpha": 3e-05,
+        "validation_mse": 0.00017137641205403466,
+        "nonzero": 10,
+        "fit_rows": 676657
+      }
+    },
+    "decision": "NO-GO"
+  },
+  "stress": {
+    "evaluation": {
+      "ann_return": 0.07495124467642486,
+      "ann_vol": 0.11630170815740472,
+      "sharpe": 0.6444552351284863,
+      "max_drawdown": -0.10225628357171679,
+      "total_return": 0.18369541932395173,
+      "days": 623,
+      "win_rate": 0.3130016051364366
+    },
+    "gross": {
+      "ann_return": 0.13621087531912143,
+      "ann_vol": 0.11644354408592852,
+      "sharpe": 1.1697589281429444,
+      "max_drawdown": -0.08116862915517031,
+      "total_return": 0.37712473427417503,
+      "days": 623,
+      "win_rate": 0.33707865168539325
+    },
+    "delta_sharpe_vs_base": 0.04181169817215857,
+    "yearly": {
+      "2024": {
+        "ann_return": 0.0,
+        "ann_vol": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "days": 243,
+        "win_rate": 0.0
+      },
+      "2025": {
+        "ann_return": 0.09029368974568046,
+        "ann_vol": 0.11131115951622308,
+        "sharpe": 0.8111827254168579,
+        "max_drawdown": -0.10225628357171679,
+        "total_return": 0.08412453272974019,
+        "days": 242,
+        "win_rate": 0.5289256198347108
+      },
+      "2026": {
+        "ann_return": 0.18002574286201453,
+        "ann_vol": 0.19881960326011924,
+        "sharpe": 0.9054728000160207,
+        "max_drawdown": -0.06568497818340668,
+        "total_return": 0.09184451009839112,
+        "days": 138,
+        "win_rate": 0.4855072463768116
+      }
+    },
+    "top10_abs_pnl_concentration": 0.22656747681361147,
+    "alpha_choices": {
+      "2024": {
+        "alpha": 0.0003,
+        "validation_mse": 0.00011583827543300251,
+        "nonzero": 0,
+        "fit_rows": 488668
+      },
+      "2025": {
+        "alpha": 1e-05,
+        "validation_mse": 0.0001790397090143262,
+        "nonzero": 19,
+        "fit_rows": 582470
+      },
+      "2026": {
+        "alpha": 3e-05,
+        "validation_mse": 0.00017138108819192606,
+        "nonzero": 8,
+        "fit_rows": 676657
+      }
+    },
+    "decision": "NO-GO"
+  },
+  "state": {
+    "evaluation": {
+      "ann_return": -0.04476793654024236,
+      "ann_vol": 0.06877154529509219,
+      "sharpe": -0.650965982342659,
+      "max_drawdown": -0.14027324890479087,
+      "total_return": -0.11000113675713874,
+      "days": 623,
+      "win_rate": 0.1942215088282504
+    },
+    "gross": {
+      "ann_return": -0.005654980216646857,
+      "ann_vol": 0.06868181512740847,
+      "sharpe": -0.08233591680937034,
+      "max_drawdown": -0.10585514598151868,
+      "total_return": -0.01961468606650163,
+      "days": 623,
+      "win_rate": 0.20385232744783308
+    },
+    "delta_sharpe_vs_base": -1.253609519298987,
+    "yearly": {
+      "2024": {
+        "ann_return": 0.0,
+        "ann_vol": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "days": 243,
+        "win_rate": 0.0
+      },
+      "2025": {
+        "ann_return": -0.10561146995507925,
+        "ann_vol": 0.10996830629819404,
+        "sharpe": -0.9603809816684761,
+        "max_drawdown": -0.13843553836354694,
+        "total_return": -0.10168657320011576,
+        "days": 242,
+        "win_rate": 0.5
+      },
+      "2026": {
+        "ann_return": -0.016901802430737724,
+        "ann_vol": 0.012507551323269176,
+        "sharpe": -1.3513278493843506,
+        "max_drawdown": 0.0,
+        "total_return": -0.009255748950165898,
+        "days": 138,
+        "win_rate": 0.0
+      }
+    },
+    "top10_abs_pnl_concentration": 0.1993695287553988,
+    "alpha_choices": {
+      "2024": {
+        "alpha": 0.0003,
+        "validation_mse": 0.00011583827543300251,
+        "nonzero": 0,
+        "fit_rows": 488668
+      },
+      "2025": {
+        "alpha": 3e-05,
+        "validation_mse": 0.00017905104753045055,
+        "nonzero": 12,
+        "fit_rows": 582470
+      },
+      "2026": {
+        "alpha": 0.0003,
+        "validation_mse": 0.00017141177933312037,
+        "nonzero": 0,
+        "fit_rows": 676657
+      }
+    },
+    "decision": "NO-GO"
+  }
+}

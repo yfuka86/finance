@@ -1,0 +1,38 @@
+{
+  "cases": 27,
+  "mean": 0.029893050095863537,
+  "median": -0.004650602409638658,
+  "win_rate": 0.48148148148148145,
+  "expected_shortfall_5pct": -0.16387255953223945,
+  "max_loss": -0.17125465838509313,
+  "top_case_profit_share": 0.5640842553986437,
+  "sum": 0.8071123525883155,
+  "filings": 40720,
+  "detected_events": 7300,
+  "fundamental_gated": 2475,
+  "eligible_cases_with_raw_price": 65,
+  "training_cases": 23,
+  "oos_start": "2024-01-01",
+  "holding_sessions": 60,
+  "round_trip_cost_bps": 20,
+  "min_decline": 0.02,
+  "features": [
+    "delta_fixed",
+    "fixed_ratio",
+    "custodian_ratio",
+    "delta_top1",
+    "book_to_price",
+    "earnings_yield",
+    "op_margin",
+    "equity_ratio",
+    "cash_assets",
+    "roe"
+  ],
+  "status": "TESTED",
+  "decision": "NO_GO",
+  "failed_criteria": [
+    "median_not_positive",
+    "top_case_profit_share_ge_20pct"
+  ],
+  "oos_candidates": 42
+}

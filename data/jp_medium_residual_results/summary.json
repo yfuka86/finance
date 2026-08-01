@@ -1,0 +1,100 @@
+{
+  "spec": {
+    "hold_days": 10,
+    "rebalance_days": 5,
+    "alpha": 30.0,
+    "quantile": 0.2,
+    "cost_bps": 1.0,
+    "borrow_rate": 0.042,
+    "capital_yen": 20000000.0,
+    "unit_shares": 100,
+    "universe": "TOPIX500(scale_ord>=3)",
+    "features": [
+      "px_ret1",
+      "px_mom5",
+      "px_mom20",
+      "px_mom60",
+      "px_ivol20",
+      "beta",
+      "amihud20",
+      "log_mktcap",
+      "fn_earn_yield",
+      "fn_book_to_price",
+      "fn_op_margin",
+      "fn_roe",
+      "fn_equity_ratio",
+      "fn_cfo_to_np",
+      "fn_sales_revision",
+      "fn_op_revision",
+      "flow_mrgn_net_z",
+      "flow_mrgn_new_z",
+      "flow_close_z",
+      "flow_short_z",
+      "flow_turn_z",
+      "xt_margin_ratio_z",
+      "xt_margin_chg_z",
+      "xt_short_bal_chg_z",
+      "xt_ssr_to_so",
+      "xt_ssr_chg",
+      "xt_alert_flag",
+      "xt_alert_slratio_z",
+      "xt_sector_ssr_z"
+    ]
+  },
+  "evaluation": {
+    "ann_return": -0.013203948715764514,
+    "ann_vol": 0.06699779611303032,
+    "sharpe": -0.19708034415771616,
+    "max_drawdown": -0.11873711277271337,
+    "total_return": -0.037342788960999185,
+    "days": 621,
+    "win_rate": 0.49597423510466987
+  },
+  "gross": {
+    "ann_return": 0.012667954623365929,
+    "ann_vol": 0.06699925781683162,
+    "sharpe": 0.18907604406602058,
+    "max_drawdown": -0.09695716231534102,
+    "total_return": 0.02603184009637749,
+    "days": 621,
+    "win_rate": 0.5072463768115942
+  },
+  "yearly": {
+    "2024": {
+      "ann_return": 0.005744941120122581,
+      "ann_vol": 0.055651270528559595,
+      "sharpe": 0.10323108647042196,
+      "max_drawdown": -0.07935146788389658,
+      "total_return": 0.004074445731320653,
+      "days": 244,
+      "win_rate": 0.5
+    },
+    "2025": {
+      "ann_return": 0.00046887679467981145,
+      "ann_vol": 0.07043319730389665,
+      "sharpe": 0.006657042596785128,
+      "max_drawdown": -0.052818264695912887,
+      "total_return": -0.0019137539911291412,
+      "days": 242,
+      "win_rate": 0.5082644628099173
+    },
+    "2026": {
+      "ann_return": -0.07196211829712738,
+      "ann_vol": 0.0788192867699854,
+      "sharpe": -0.9130013889510449,
+      "max_drawdown": -0.060672794844144895,
+      "total_return": -0.039410835852382475,
+      "days": 135,
+      "win_rate": 0.4666666666666667
+    }
+  },
+  "n_predictions": 332739,
+  "n_trades": 7265,
+  "execution": {
+    "avg_positions_per_tranche": 42.23837209302326,
+    "avg_long_exposure": 0.2495097034883721,
+    "avg_short_exposure": 0.2492623284883721,
+    "max_abs_net_exposure": 0.004254499999999994
+  },
+  "decision": "NO-GO"
+}

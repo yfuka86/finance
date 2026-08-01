@@ -1,0 +1,110 @@
+{
+  "long_only": {
+    "evaluation": {
+      "ann_return": -0.0021780547537603406,
+      "ann_vol": 0.06958785315488993,
+      "sharpe": -0.03129935261707796,
+      "max_drawdown": -0.11963925252649843,
+      "total_return": -0.01129802903084931,
+      "days": 623,
+      "win_rate": 0.29373996789727125
+    },
+    "yearly": {
+      "2024": {
+        "ann_return": 0.0,
+        "ann_vol": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "days": 243,
+        "win_rate": 0.0
+      },
+      "2025": {
+        "ann_return": -0.004175656926278339,
+        "ann_vol": 0.08863939766188356,
+        "sharpe": -0.047108363057773155,
+        "max_drawdown": -0.08225086191856734,
+        "total_return": -0.007734922268663347,
+        "days": 242,
+        "win_rate": 0.47520661157024796
+      },
+      "2026": {
+        "ann_return": -0.0025102835900966485,
+        "ann_vol": 0.09035551125187286,
+        "sharpe": -0.02778229634603076,
+        "max_drawdown": -0.06330246128310091,
+        "total_return": -0.0035908819549838045,
+        "days": 138,
+        "win_rate": 0.4927536231884058
+      }
+    },
+    "realized_topix_beta": 0.33049748499676673,
+    "top10_abs_pnl_concentration": 0.17295729251658834,
+    "avg_contracts": 0.0,
+    "decision": "NO-GO"
+  },
+  "mini_topix_hedged": {
+    "evaluation": {
+      "ann_return": -0.010946983616681463,
+      "ann_vol": 0.06904708184027072,
+      "sharpe": -0.1585437548541956,
+      "max_drawdown": -0.14089285280288255,
+      "total_return": -0.03243078689907486,
+      "days": 623,
+      "win_rate": 0.29373996789727125
+    },
+    "yearly": {
+      "2024": {
+        "ann_return": 0.0,
+        "ann_vol": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "days": 243,
+        "win_rate": 0.0
+      },
+      "2025": {
+        "ann_return": -0.004936095146111688,
+        "ann_vol": 0.09370932168796535,
+        "sharpe": -0.052674537145279615,
+        "max_drawdown": -0.08264465401877386,
+        "total_return": -0.00892124692717855,
+        "days": 242,
+        "win_rate": 0.48760330578512395
+      },
+      "2026": {
+        "ann_return": -0.04076402730314142,
+        "ann_vol": 0.07869470102998641,
+        "sharpe": -0.5180021878170475,
+        "max_drawdown": -0.06785858335558992,
+        "total_return": -0.023721162318337652,
+        "days": 138,
+        "win_rate": 0.47101449275362317
+      }
+    },
+    "realized_topix_beta": -0.2332757924630504,
+    "top10_abs_pnl_concentration": 0.17295729251658834,
+    "avg_contracts": 3.335978835978836,
+    "decision": "NO-GO"
+  },
+  "alpha_choices": {
+    "2024": {
+      "alpha": 0.0003,
+      "validation_mse": 0.00011583827543300251,
+      "nonzero": 0,
+      "fit_rows": 488668
+    },
+    "2025": {
+      "alpha": 1e-05,
+      "validation_mse": 0.0001790397090143262,
+      "nonzero": 18,
+      "fit_rows": 582470
+    },
+    "2026": {
+      "alpha": 3e-05,
+      "validation_mse": 0.00017138108819192606,
+      "nonzero": 8,
+      "fit_rows": 676657
+    }
+  }
+}

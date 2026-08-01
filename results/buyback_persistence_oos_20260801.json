@@ -1,0 +1,37 @@
+{
+  "evaluation_start": "2026-01-01",
+  "rule": "realized_execution_persistence_v2",
+  "results": {
+    "20bps": {
+      "stats": {
+        "ann_return": 0.09719676889044901,
+        "ann_vol": 0.040996323322452594,
+        "sharpe": 2.3708655072787206,
+        "max_drawdown": -0.01303560966067785,
+        "total_return": 0.05498454505046779,
+        "days": 140,
+        "win_rate": 0.5071428571428571
+      },
+      "trades": 33,
+      "median_case": 0.059286407766990346,
+      "win_rate_case": 0.7878787878787878,
+      "top_case_profit_share": 0.1055132953402932
+    },
+    "40bps": {
+      "stats": {
+        "ann_return": 0.09363276889044901,
+        "ann_vol": 0.04095395847315125,
+        "sharpe": 2.2862934959469943,
+        "max_drawdown": -0.01303560966067785,
+        "total_return": 0.052899530301522946,
+        "days": 140,
+        "win_rate": 0.5071428571428571
+      },
+      "trades": 33,
+      "median_case": 0.057286407766990344,
+      "win_rate_case": 0.7575757575757576,
+      "top_case_profit_share": 0.10729478631041302
+    }
+  },
+  "decision": "FORWARD CANDIDATE"
+}

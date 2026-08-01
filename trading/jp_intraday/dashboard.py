@@ -158,7 +158,7 @@ def _yen_label(v_million: int) -> str:
 
 with st.container(border=True):
     t = st.columns([1.7, 2.4, 1.5])
-    nav = t[0].radio("画面", ["📊 一覧", "🔍 詳細"], horizontal=True, key="nav")
+    nav = t[0].radio("画面", ["📊 一覧", "🔍 詳細", "🧪 研究台帳"], horizontal=True, key="nav")
     mode = t[1].radio("モード", ["💰 単元取引（予算反映・現実）", "理想バックテスト(5年)"],
                       horizontal=True, key="mode")
     liq = t[2].select_slider("流動性 (前日売買代金≥)", options=[3e8, 5e8, 1e9, 2e9, 5e9], value=1e9,
@@ -216,6 +216,29 @@ with st.container(border=True):
                    "保証金超過日は単元数を自動縮小。ショートは貸借銘柄・売買代金≥¥10億・50単元以内（価格規制回避）。")
         st.caption("非・場中フラット戦略（オーバーナイト/翌日跨ぎ）は一日信用の前提が成り立たないため "
                    "**単元モード非対応**（一覧では「単元非対応」表示）。理想バックテストで評価してください。")
+
+if nav.startswith("🧪"):
+    from trading.jp_intraday.research_registry import research_rows
+    st.markdown("### 研究台帳 — OOS・フォワード結果のみ")
+    st.warning("Sharpe順は探索の入口です。採用は実取引可否、コスト、DD、利益集中、税区分、"
+               "事前登録基準をすべて満たす必要があります。IS成績は表示しません。")
+    research=research_rows()
+    a=st.columns(4)
+    tested=research[research["OOS Sharpe"].notna()]
+    a[0].metric("記録戦略",len(research))
+    a[1].metric("OOS数値あり",len(tested))
+    a[2].metric("Sharpe≥1",int(tested["OOS Sharpe"].ge(1).sum()))
+    a[3].metric("GO",int(research["状態"].astype(str).str.startswith("GO").sum()))
+    only_tradable=st.checkbox("実取引可能な構成だけ表示",value=False,key="research_tradable")
+    view=research[research["実取引"]] if only_tradable else research
+    st.dataframe(view.style.background_gradient(cmap="Blues",subset=["OOS Sharpe"]),
+                 width="stretch",hide_index=True,column_config={
+                   "OOS Sharpe":st.column_config.NumberColumn(format="%.2f"),
+                   "年率%":st.column_config.NumberColumn(format="%.1f%%"),
+                   "最大DD%":st.column_config.NumberColumn(format="%.1f%%")})
+    st.caption("高Sharpeだけを後から選ぶことによる多重検定を避けるため、新規戦略は最大4ファミリー、"
+               "主仕様1本・OOS確認1回で管理します。")
+    st.stop()
 
 is_show = nav.startswith("🔍")
 
