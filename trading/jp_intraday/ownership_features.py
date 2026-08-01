@@ -52,7 +52,9 @@ def load_filings(path: str | Path = "data/jp_ownership/filings.jsonl") -> pd.Dat
                 continue
             rec = json.loads(line)
             code = rec.get("Code")
-            if not code:
+            # Code "00000" = 非上場の有報提出者（ゴルフ場会員権会社等）。捨てないと
+            # 別会社が同一 symbol に潰れ、YoY差分が**企業をまたいで**計算される。
+            if not code or str(code)[:4] == "0000":
                 continue
             for h in rec.get("Hldrs") or []:
                 rows.append({
@@ -95,6 +97,71 @@ def filing_panel(holders: pd.DataFrame) -> pd.DataFrame:
     panel = panel.sort_values(["symbol", "period_end", "sub_date"])
     panel = panel.drop_duplicates(["symbol", "period_end"], keep="last")
     return panel.reset_index(drop=True)
+
+
+OWNERSHIP_FEATURES_DAILY = [
+    "own_fixed_z",        # 固定株（非カストディアン上位10名）比率の断面z
+    "own_custodian_z",    # プール型名義比率の断面z（機関投資家の浮動株プロキシ）
+    "own_delta_fixed_z",  # 直近開示時点の固定株比率YoY変化の断面z（持合い解消）
+    "own_top1_z",         # 筆頭株主比率の断面z（支配集中）
+    "own_hhi_z",          # 上位10名HHIの断面z
+]
+
+
+def _cross_sectional_z(frame: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    """Per-date z-score. 0 then means 'the average stock on that day'."""
+    g = frame.groupby("date")
+    for c in cols:
+        m, s = g[c].transform("mean"), g[c].transform("std")
+        frame[c] = ((frame[c] - m) / s.replace(0, np.nan)).clip(-5, 5)
+    return frame
+
+
+def attach_ownership_features(panel: pd.DataFrame) -> pd.DataFrame:
+    """Attach slow-moving ownership structure as PIT-safe daily cross-sectional features.
+
+    有報は年1回なので、開示の**翌営業日**から次の開示まで前方補完する。提出時刻に
+    依らず翌営業日起点にするのは保守側。断面zにしてから欠損を0で埋めるので、
+    未開示・新規上場は「その日の平均的な銘柄」として扱われ、中核特徴量の
+    dropna を緩めずに済む（AGENTS の疎特徴量の罠を回避）。
+    """
+    p = panel.copy()
+    # パネルの symbol は J-Quants 5桁（"13010"）、大株主側は4桁（"1301"）。
+    # 揃えずに merge すると重複ゼロで全特徴量が0になる（実際に踏んだ）。
+    p["_sym4"] = p["symbol"].astype(str).str[:4]
+    try:
+        filings = filing_panel(load_filings())
+    except (FileNotFoundError, ValueError):
+        filings = pd.DataFrame()
+    if filings.empty:
+        for c in OWNERSHIP_FEATURES_DAILY:
+            p[c] = 0.0
+        return p
+
+    f = filings.sort_values(["symbol", "period_end"]).copy()
+    g = f.groupby("symbol", sort=False)
+    prev_fixed = g["fixed_ratio"].shift(1)
+    gap = (f["period_end"] - g["period_end"].shift(1)).dt.days
+    f["delta_fixed"] = (f["fixed_ratio"] - prev_fixed).where(gap.between(300, 450))
+
+    sessions = pd.Index(sorted(pd.to_datetime(p["date"].unique())))
+    pos = sessions.searchsorted(pd.to_datetime(f["sub_date"]), side="right")  # 翌営業日
+    ok = pos < len(sessions)
+    f = f[ok].copy()
+    f["date"] = sessions[pos[ok]]
+    f = f.sort_values("date")
+
+    cols = ["fixed_ratio", "custodian_ratio", "delta_fixed", "top1_ratio", "hhi"]
+    f = f.rename(columns={"symbol": "_sym4"})
+    merged = pd.merge_asof(
+        p.sort_values("date"), f[["_sym4", "date", *cols]].sort_values("date"),
+        on="date", by="_sym4", direction="backward")
+    merged = merged.drop(columns=["_sym4"])
+    merged = merged.rename(columns=dict(zip(cols, OWNERSHIP_FEATURES_DAILY)))
+    merged = _cross_sectional_z(merged, OWNERSHIP_FEATURES_DAILY)
+    for c in OWNERSHIP_FEATURES_DAILY:
+        merged[c] = merged[c].fillna(0.0)
+    return merged
 
 
 def ownership_release_events(panel: pd.DataFrame, min_decline: float = 0.02) -> pd.DataFrame:
