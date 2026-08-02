@@ -1,0 +1,211 @@
+{
+  "recorded": {
+    "sharpe": 1.43,
+    "max_drawdown": -0.368,
+    "cost_bps_side": 1.0
+  },
+  "pass_bar_net_sharpe": 1.0,
+  "features": [
+    "prev_intraday",
+    "prev_resid_gap",
+    "ivol",
+    "liq_rank",
+    "amihud20",
+    "flow_mrgn_net_z",
+    "flow_mrgn_new_z",
+    "flow_close_z",
+    "flow_short_z",
+    "flow_turn_z",
+    "prev_value",
+    "xt_margin_ratio_z",
+    "xt_margin_chg_z",
+    "xt_short_bal_chg_z",
+    "xt_ssr_to_so",
+    "xt_ssr_chg",
+    "xt_alert_flag",
+    "xt_alert_slratio_z",
+    "xt_sector_ssr_z"
+  ],
+  "n_features": 19,
+  "selection_window_end": "2024-12-31",
+  "unit_lot": {
+    "demeaned/magnitude/8per side/2.0x": {
+      "sharpe": 0.429,
+      "ann_return": 0.1425,
+      "max_drawdown": -0.6202,
+      "days": 1217
+    },
+    "demeaned/magnitude/8per side/1.0x": {
+      "sharpe": 0.462,
+      "ann_return": 0.0743,
+      "max_drawdown": -0.3318,
+      "days": 1217
+    },
+    "demeaned/magnitude/15per side/2.0x": {
+      "sharpe": 0.415,
+      "ann_return": 0.1005,
+      "max_drawdown": -0.4895,
+      "days": 1217
+    },
+    "demeaned/magnitude/30per side/2.0x": {
+      "sharpe": 0.247,
+      "ann_return": 0.0436,
+      "max_drawdown": -0.4413,
+      "days": 1217
+    },
+    "demeaned/dollar_neutral/8per side/2.0x": {
+      "sharpe": -0.032,
+      "ann_return": -0.0092,
+      "max_drawdown": -0.7006,
+      "days": 1217
+    },
+    "demeaned/dollar_neutral/8per side/1.0x": {
+      "sharpe": -0.005,
+      "ann_return": -0.0007,
+      "max_drawdown": -0.4259,
+      "days": 1217
+    },
+    "demeaned/dollar_neutral/15per side/2.0x": {
+      "sharpe": -0.066,
+      "ann_return": -0.0129,
+      "max_drawdown": -0.4909,
+      "days": 1217
+    },
+    "demeaned/dollar_neutral/30per side/2.0x": {
+      "sharpe": -0.293,
+      "ann_return": -0.0381,
+      "max_drawdown": -0.427,
+      "days": 1217
+    },
+    "demeaned/risk_parity/8per side/2.0x": {
+      "sharpe": -0.375,
+      "ann_return": -0.1078,
+      "max_drawdown": -0.7675,
+      "days": 1217
+    },
+    "demeaned/risk_parity/8per side/1.0x": {
+      "sharpe": -0.344,
+      "ann_return": -0.0475,
+      "max_drawdown": -0.4835,
+      "days": 1217
+    },
+    "demeaned/risk_parity/15per side/2.0x": {
+      "sharpe": -0.351,
+      "ann_return": -0.0679,
+      "max_drawdown": -0.5104,
+      "days": 1217
+    },
+    "demeaned/risk_parity/30per side/2.0x": {
+      "sharpe": -0.665,
+      "ann_return": -0.0821,
+      "max_drawdown": -0.4275,
+      "days": 1217
+    },
+    "rank/magnitude/8per side/2.0x": {
+      "sharpe": 0.169,
+      "ann_return": 0.0553,
+      "max_drawdown": -0.6151,
+      "days": 1217
+    },
+    "rank/magnitude/8per side/1.0x": {
+      "sharpe": 0.206,
+      "ann_return": 0.033,
+      "max_drawdown": -0.3332,
+      "days": 1217
+    },
+    "rank/magnitude/15per side/2.0x": {
+      "sharpe": -0.017,
+      "ann_return": -0.0042,
+      "max_drawdown": -0.5933,
+      "days": 1217
+    },
+    "rank/magnitude/30per side/2.0x": {
+      "sharpe": -0.144,
+      "ann_return": -0.0264,
+      "max_drawdown": -0.4983,
+      "days": 1217
+    },
+    "rank/dollar_neutral/8per side/2.0x": {
+      "sharpe": -0.19,
+      "ann_return": -0.0545,
+      "max_drawdown": -0.6881,
+      "days": 1217
+    },
+    "rank/dollar_neutral/8per side/1.0x": {
+      "sharpe": -0.062,
+      "ann_return": -0.0086,
+      "max_drawdown": -0.3895,
+      "days": 1217
+    },
+    "rank/dollar_neutral/15per side/2.0x": {
+      "sharpe": -0.407,
+      "ann_return": -0.0841,
+      "max_drawdown": -0.6558,
+      "days": 1217
+    },
+    "rank/dollar_neutral/30per side/2.0x": {
+      "sharpe": -0.569,
+      "ann_return": -0.0805,
+      "max_drawdown": -0.4743,
+      "days": 1217
+    },
+    "rank/risk_parity/8per side/2.0x": {
+      "sharpe": -0.601,
+      "ann_return": -0.1823,
+      "max_drawdown": -0.7889,
+      "days": 1217
+    },
+    "rank/risk_parity/8per side/1.0x": {
+      "sharpe": -0.569,
+      "ann_return": -0.0838,
+      "max_drawdown": -0.5133,
+      "days": 1217
+    },
+    "rank/risk_parity/15per side/2.0x": {
+      "sharpe": -0.573,
+      "ann_return": -0.1187,
+      "max_drawdown": -0.6995,
+      "days": 1217
+    },
+    "rank/risk_parity/30per side/2.0x": {
+      "sharpe": -0.896,
+      "ann_return": -0.1236,
+      "max_drawdown": -0.5332,
+      "days": 1217
+    }
+  },
+  "ideal_book": {
+    "q=0.017": {
+      "ann_return": 0.7692846906285105,
+      "ann_vol": 0.22323218214024731,
+      "sharpe": 3.4461191180096136,
+      "max_drawdown": -0.15230948519740561,
+      "total_return": 35.230165972309976,
+      "days": 1217,
+      "win_rate": 0.6055875102711585
+    },
+    "q=0.05": {
+      "ann_return": 0.396792868084756,
+      "ann_vol": 0.12927292607371774,
+      "sharpe": 3.0694197163796333,
+      "max_drawdown": -0.08017951304012938,
+      "total_return": 5.518397162981222,
+      "days": 1217,
+      "win_rate": 0.571076417419885
+    },
+    "q=0.1": {
+      "ann_return": 0.22327897461809185,
+      "ann_vol": 0.09561369399551334,
+      "sharpe": 2.3352196248015393,
+      "max_drawdown": -0.06759455976914996,
+      "total_return": 1.8743864058319057,
+      "days": 1217,
+      "win_rate": 0.5414954806902219
+    }
+  },
+  "ic_mean": 0.0323,
+  "ic_t": 10.15,
+  "best_unit_lot_sharpe": 0.462,
+  "reproduces_recorded_1_43": false,
+  "clears_pass_bar_on_selection_window": false
+}
