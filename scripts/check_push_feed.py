@@ -29,8 +29,11 @@ def main() -> int:
     cfg = LiveConfig.from_env()
     panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
     last = panel[panel["date"].eq(panel["date"].max())]
-    syms = list(last["symbol"])[:min(args.n, MAX_REGISTERED)]
-    print(f"ユニバース{len(last)}銘柄 → 先頭{len(syms)}銘柄をPUSH登録します")
+    # **流動性上位から取る**。銘柄コード順（先頭=1301等の薄い銘柄）だと寄前に気配が
+    # 動かず PUSH が1件も来ないため、「PUSHが壊れている」と誤判定する（2026-08-03 実障害）。
+    n = min(args.n, MAX_REGISTERED)
+    syms = list(last.nlargest(n, "prev_value")["symbol"])
+    print(f"ユニバース{len(last)}銘柄 → 流動性上位{len(syms)}銘柄をPUSH登録します")
 
     client = KabuClient(cfg.api_password, cfg.order_password, env=cfg.env)
     client.authenticate()
