@@ -15,13 +15,14 @@ import datetime as dt
 import json
 import os
 import time
+import warnings
 
 import numpy as np
 import pandas as pd
 
 from trading.jp_intraday.daily_gap import load_existing_daily
 from trading.jp_intraday.daily_model import build_daily_features
-from trading.jp_intraday.strategies import STRATEGIES
+from trading.jp_intraday.strategies import STRATEGIES, needs_today_open
 from .config import PROJECT_ROOT, LiveConfig
 from .kabu_client import (
     FRONT_CLOSE, FRONT_OPEN, SIDE_BUY, SIDE_SELL, KabuAPIError,
@@ -33,6 +34,12 @@ _STATE_DIR = PROJECT_ROOT / "data" / "live_reports"
 
 def _today() -> str:
     return dt.date.today().isoformat()
+
+
+# 発注レート制限: 2026-07-10 の kabuステーション Ver5.44.0.0 で 5件/秒 → **10件/秒** に緩和。
+# 余裕を見て 8件/秒相当（0.125s）で運用する。27銘柄の送信が ~6.8s → ~3.4s に短縮され、
+# 寄付き前の余裕が増える。制限が戻された場合はここだけ 0.25 に戻せばよい。
+ORDER_INTERVAL_S = 0.125
 
 
 # ── signal (pure) ───────────────────────────────────────────────────
@@ -246,6 +253,17 @@ def generate_plan(client: KabuClientProtocol, cfg: LiveConfig) -> tuple[pd.DataF
             raise NotImplementedError(
                 f"ライブ執行は場中フラット(intraday)のみ対応。'{m}' は "
                 f"{STRATEGIES[m].get('holding')} 保有のためライブ不可")
+    # ★2026-07-31: 「気配値と寄り付き値に有効な関係なし」が実測で確定。当日寄値を
+    # シグナルに使う戦略は板寄せ参加の経路が存在しない（AGENTS.md「★★★結論」参照）。
+    # 数値上は優秀なのでレジストリからは消さないが、実発注の前に必ず警告を出す。
+    if needs_today_open(cfg.strategy):
+        warnings.warn(
+            f"⛔ 戦略 '{cfg.strategy}' はシグナルに**当日寄値（寄前気配）**を必要とします。"
+            "2026-07-31の実測で気配は寄値を予測しないと確定しており、"
+            "**この戦略はライブ執行不能です**（バックテスト成績は有効ですが、"
+            "シグナルを実時間で入手する経路がありません）。"
+            "タスクスケジューラの entry を停止してください。",
+            RuntimeWarning, stacklevel=2)
     panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
     data_date = _assert_fresh(panel, cfg)
     last = panel[panel["date"].eq(panel["date"].max())].copy()
@@ -347,7 +365,7 @@ def enter(client: KabuClientProtocol, cfg: LiveConfig, plan: pd.DataFrame, force
                   "front": FRONT_OPEN, "est_price": r["est_price"]}
         if cfg.will_send_orders:
             if cfg.env != "mock":
-                time.sleep(0.25)               # 発注5件/秒制限（kabu API仕様）
+                time.sleep(ORDER_INTERVAL_S)   # 発注レート制限（kabu API仕様）
             for attempt in range(3):
                 try:
                     intent["response"] = client.send_margin_open(
@@ -391,7 +409,7 @@ def exit_all(client: KabuClientProtocol, cfg: LiveConfig, only_kabu_symbols: set
             continue
         if cfg.will_send_orders:
             if cfg.env != "mock":
-                time.sleep(0.25)               # 発注5件/秒制限
+                time.sleep(ORDER_INTERVAL_S)   # 発注レート制限
             for attempt in range(retries + 1):
                 try:
                     intent["response"] = client.send_margin_close(

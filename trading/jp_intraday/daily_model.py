@@ -15,6 +15,8 @@ Everything is point-in-time: only the residual gap and lagged variables enter.
 """
 from __future__ import annotations
 
+import glob as _glob
+
 import numpy as np
 import pandas as pd
 
@@ -123,7 +125,7 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
-_PANEL_SCHEMA_VERSION = 8  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
+_PANEL_SCHEMA_VERSION = 9  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
@@ -141,7 +143,6 @@ def load_panel_cached(min_value_yen: float = 5e8, markets: tuple | None = None,
     コールド~13s → ウォーム~1s。入力データ・パラメータが変わると自動で再構築。
     キャッシュは直近6件のみ保持（重複保存の膨張防止）。
     """
-    import glob as _glob
     import hashlib
     import json as _json
     import os
@@ -178,6 +179,35 @@ def load_panel_cached(min_value_yen: float = 5e8, markets: tuple | None = None,
     for f in old:
         f.unlink(missing_ok=True)
     return panel
+
+
+def _load_pit_lendable() -> pd.DataFrame | None:
+    """週次信用残の IssType から**当時の**貸借（制度信用売り可）区分を復元する.
+
+    ★なぜ必要か（2026-07-31 発見・実測で確認）: `master.parquet` は
+    **Date が1枚だけのスナップショット**（現行は2026-07-27）で、そこから作った
+    `shortable` を**日付キーなしで全期間にマージ**していた。つまり「今は貸借だが
+    当時は違った」銘柄が過去に遡ってショート可能になる**ルックアヘッド**。
+    実測: 本番パネル(≤2024)の 3.72% の行が該当し、**ショート建玉の18.2%・
+    グロス寄与の34.0%**を占めた（実行不能な建玉は1本あたり44bps vs 実行可19bps＝2.3倍）。
+    ライブ執行は発注時点の master を見るので**無影響**。汚染はバックテストのみ。
+
+    IssType: 1=信用銘柄 / 2=貸借銘柄 / 3=その他。計測器の妥当性は実測済み
+    （IssType==2 のうち制度信用売残>0 が 92.7%、IssType!=2 では 0.13%）。
+    公表ラグを保守側に見て **記録日+7暦日** から有効とし、直近値を前方補完する。
+    """
+    files = sorted(_glob.glob("data/jp_flows/margin_interest_*.parquet"))
+    if not files:
+        return None
+    try:
+        d = pd.concat([pd.read_parquet(f, columns=["Date", "Code", "IssType"])
+                       for f in files], ignore_index=True)
+    except (OSError, ValueError, KeyError):
+        return None
+    d["date"] = pd.to_datetime(d["Date"]) + pd.Timedelta(days=7)   # 公表ラグ（保守側）
+    d["symbol"] = d["Code"].astype(str)
+    d["pit_lendable"] = d["IssType"].astype(str).eq("2").astype(bool)
+    return d[["date", "symbol", "pit_lendable"]].sort_values("date")
 
 
 def _load_short_restrictions() -> pd.DataFrame | None:
@@ -275,6 +305,17 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     p["name"] = p.get("name", pd.Series(index=p.index, dtype="object")).fillna(p["symbol"])
     sh = p["shortable"] if "shortable" in p.columns else pd.Series(True, index=p.index)
     p["shortable"] = sh.fillna(True).astype(bool)
+    # ★shortable を PIT 化する（master は1枚スナップショットなので単体だとルックアヘッド）。
+    # 週次 IssType が取れた行だけ当時の区分で上書きし、取れない行は master 由来のまま残す
+    # （データ欠損で機械的にショート不可にすると別のバイアスが入るため）。
+    _pit = _load_pit_lendable()
+    if _pit is not None:
+        p = p.sort_values("date")
+        p = pd.merge_asof(p, _pit, on="date", by="symbol", direction="backward",
+                          tolerance=pd.Timedelta(days=45))
+        _has = p["pit_lendable"].notna()
+        p.loc[_has, "shortable"] = p.loc[_has, "pit_lendable"].astype(bool)
+        p = p.drop(columns=["pit_lendable"])
     p["scale_ord"] = p.get("scale_ord", pd.Series(index=p.index, dtype="float")).fillna(0)
 
     def _groll(series: pd.Series, window: int, minp: int, fn: str = "std",
@@ -320,6 +361,10 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     p["gap_abs"] = p["residual_gap"].abs()
     cc = g["close"].pct_change(fill_method=None)
     p["ret"] = cc
+    # ★PIT注意: vol20 は shift なし＝**当日の終値リターンを含む**。寄付き時点では未知なので
+    # **予測モデルの特徴量に使ってはいけない**（2026-07-31に実際に踏んだ: 気配不要MLに
+    # 足したら選択窓 Sh1.30→2.75 に跳ね、リークと判明）。予測に使うのは shift=1 の `ivol`。
+    # vol20 は「事後の実現ボラ」を見る分析用途にのみ使うこと。
     p["vol20"] = _groll(cc, 20, 10, "std")
     p["vol20_floor"] = p["vol20"].clip(lower=0.005)
     # PIT inverse-vol for risk-parity sizing (exclude today's unknown close).

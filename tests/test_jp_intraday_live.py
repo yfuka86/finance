@@ -41,6 +41,17 @@ class ConfigGateTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             LiveConfig(margin_ratio=4.0).validate()   # 保証金率30% → 3.3x が上限
 
+    def test_account_type_default_is_general(self):
+        # 特定(4)は約諾書未確認で100203により発注不可（実障害）。既定は一般(2)。
+        # 約諾解消後に4へ戻す際はこのテストも更新すること。
+        self.assertEqual(LiveConfig().account_type, 2)
+
+    def test_defaults_match_production(self):
+        cfg = LiveConfig()
+        self.assertEqual(cfg.strategy, "ensemble_core")
+        self.assertEqual(cfg.min_value_yen, 1e9)      # ¥10億フロア（2026-07-30〜）
+        self.assertEqual(cfg.short_min_mktcap_yen, 0.0)  # 時価総額フロアは最適化で0が最適
+
     def test_order_gating_locks(self):
         self.assertFalse(LiveConfig(env="test", dry_run=True).will_send_orders)
         self.assertTrue(LiveConfig(env="test", dry_run=False).paper_orders_enabled)
@@ -245,3 +256,59 @@ class EffectiveCostTest(unittest.TestCase):
         self.assertEqual(len(f), 2)
         self.assertAlmostEqual(f[0]["fill_px"], (1000 * 60 + 1010 * 40) / 100)  # 数量加重
         self.assertEqual(f[1]["fill_px"], 2000.0)
+
+
+class OrderRateLimitTest(unittest.TestCase):
+    def test_order_interval_matches_current_api_limit(self):
+        # kabu Ver5.44.0.0(2026-07-10)で発注は10件/秒に緩和。余裕を見て8件/秒で運用する。
+        # 制限が戻された場合はこのテストが失敗して気付けるようにしておく。
+        from trading.jp_intraday.live.executor import ORDER_INTERVAL_S
+        self.assertGreaterEqual(ORDER_INTERVAL_S, 0.1)   # 10件/秒を超えない
+        self.assertLessEqual(ORDER_INTERVAL_S, 0.25)     # 旧制限より速い
+
+    def test_mock_does_not_throttle(self):
+        # mock(preflight)はスロットルしない＝テストが遅くならないこと
+        import time
+        client = MockKabuClient({"1301": 1000.0})
+        plan = pd.DataFrame([{"symbol": "13010", "kabu_symbol": "1301", "side": SIDE_BUY,
+                              "qty": 100, "est_price": 1000.0}] * 20)
+        t0 = time.monotonic()
+        enter(client, LiveConfig(env="mock"), plan)
+        self.assertLess(time.monotonic() - t0, 1.0)
+
+
+class TestQuoteDependenceClassifier(unittest.TestCase):
+    """当日寄値（＝寄前気配）依存の分類（2026-07-31に気配前提が棄却されたため）."""
+
+    def test_ensemble_core_needs_today_open(self):
+        from trading.jp_intraday.strategies import needs_today_open
+        self.assertTrue(needs_today_open("ensemble_core"))
+
+    def test_ensemble_inherits_dependence_from_any_member(self):
+        """アンサンブルは1本でも依存すれば全体が依存（片方だけ見て安全と判断しない）."""
+        from trading.jp_intraday.strategies import STRATEGIES, needs_today_open
+        for k, spec in STRATEGIES.items():
+            if spec.get("kind") == "ensemble":
+                self.assertEqual(needs_today_open(k),
+                                 any(needs_today_open(m) for m, _ in spec["members"]), k)
+
+    def test_prior_day_reversal_is_quote_free(self):
+        from trading.jp_intraday.strategies import needs_today_open
+        self.assertFalse(needs_today_open("prior_day_reversal"))
+
+    def test_executable_strategies_excludes_all_gap_strategies(self):
+        from trading.jp_intraday.strategies import executable_strategies, needs_today_open
+        ex = executable_strategies()
+        self.assertTrue(all(not needs_today_open(k) for k in ex))
+        self.assertNotIn("ensemble_core", ex)
+
+    def test_live_plan_warns_for_quote_dependent_strategy(self):
+        """実発注の前に必ず警告が出ること（スケジューラで気付かず流れるのを防ぐ）."""
+        import warnings as _w
+
+        from trading.jp_intraday.strategies import needs_today_open
+        self.assertTrue(needs_today_open(LiveConfig().strategy))
+        src = open("trading/jp_intraday/live/executor.py", encoding="utf-8").read()
+        self.assertIn("needs_today_open(cfg.strategy)", src)
+        self.assertIn("RuntimeWarning", src)
+        del _w

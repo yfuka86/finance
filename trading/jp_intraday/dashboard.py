@@ -14,7 +14,8 @@ import streamlit as st
 from trading.jp_intraday.daily_gap import load_existing_daily
 from trading.jp_intraday.daily_model import annualized_stats, build_daily_features
 from trading.jp_intraday.strategies import (
-    STRATEGIES, book_from_scores, score_frame, unit_lot_backtest, walk_forward_folds,
+    STRATEGIES, book_from_scores, needs_today_open, score_frame, unit_lot_backtest,
+    walk_forward_folds,
 )
 
 st.set_page_config(page_title="JP戦略 管理画面", layout="wide")
@@ -191,6 +192,12 @@ with st.container(border=True):
     from trading.jp_intraday.strategies import HOLDING_LABEL
     _ALL_HOLD = list(HOLDING_LABEL.values())
     HOLD_SEL = v[2].multiselect("保有区分タグ", _ALL_HOLD, default=_ALL_HOLD)
+    # 2026-07-31: 「気配値と寄り付き値に有効な関係なし」が実測で確定。当日寄値を
+    # シグナルに使う戦略は**ライブ執行不能**なので既定で隠す（数値自体は有効なので削除はしない）。
+    SHOW_UNEXEC = st.checkbox(
+        "⛔ 執行不能な戦略も表示する（当日寄値＝寄前気配が必要なもの）", value=False,
+        help="2026-07-31の実測で気配は寄値を予測しないと確定。これらはバックテスト上は"
+             "優秀でも、シグナルを実時間で入手する経路が無いため実運用できない。")
     if mode.startswith("理想"):
         pc = st.columns(3)
         p = {"q": pc[0].select_slider("集中度(分位)", options=[0.02, 0.03, 0.05, 0.10, 0.15, 0.20], value=0.05),
@@ -225,13 +232,24 @@ if not is_show:
         return HOLDING_LABEL.get(STRATEGIES[k].get("holding", "intraday"))
     ranked_all = sorted(STRATEGIES, key=lambda k: summ[k].get("sharpe", 0), reverse=True)
     ranked = [k for k in ranked_all
-              if (_hold_label(k) in HOLD_SEL)
+              if (SHOW_UNEXEC or not needs_today_open(k))
+              and (_hold_label(k) in HOLD_SEL)
               and (summ[k].get("unit_na")            # 単元非対応は数値なし→Sh下限の対象外
                    or MIN_SH is None or summ[k].get("sharpe", 0) >= MIN_SH)]
     hidden_keys = [k for k in ranked_all if k not in ranked]
+    n_unexec = sum(1 for k in ranked_all if needs_today_open(k))
+    if not SHOW_UNEXEC:
+        st.error(
+            f"⛔ **{n_unexec}本の戦略を「執行不能」として非表示にしています**"
+            "（`ensemble_core` を含む当日寄値＝寄前気配が必要なもの全て）。\n\n"
+            "2026-07-31の実測で **気配値と寄り付き値に有効な関係が無い**ことが確定しました。"
+            "板寄せクロスに参加するには確定前に発注する必要があり、そのためには当日ギャップの"
+            "事前推定＝寄前気配が必須です。その気配が寄値を予測しないため、**バックテスト上は"
+            "優秀でもシグナルを実時間で入手する経路がありません**。"
+            "上のチェックボックスで表示できます（数値はシミュレーションとしては有効）。")
     if hidden_keys:
-        st.caption(f"表示 {len(ranked)}件 ／ フィルタで非表示 {len(hidden_keys)}件"
-                   "（Sharpe下限・保有区分タグ。下部の折りたたみから開けます）")
+        st.caption(f"表示 {len(ranked)}件 ／ 非表示 {len(hidden_keys)}件"
+                   "（執行可否・Sharpe下限・保有区分タグ。下部の折りたたみから開けます）")
     with st.expander("📊 成績サマリ表（並べ替え可）", expanded=False):
         rows = [{"戦略": STRATEGIES[k]["title"], "種別": _KIND.get(STRATEGIES[k]["kind"]),
                  "構築": STRATEGIES[k].get("construction", "dollar_neutral"),
