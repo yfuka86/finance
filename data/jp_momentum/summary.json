@@ -1,0 +1,225 @@
+{
+  "window": [
+    "2021-01-01",
+    "2024-12-31"
+  ],
+  "note": "reproduction of the 2026-07-30 rejection",
+  "rows": 453685,
+  "variants": {
+    "mom12_1": {
+      "coverage": 0.971,
+      "daily_flat": {
+        "1.0bps": {
+          "sharpe": -1.486,
+          "ann_return": -0.5205,
+          "max_drawdown": -0.9058,
+          "days": 977
+        },
+        "2.0bps": {
+          "sharpe": -1.748,
+          "ann_return": -0.6127,
+          "max_drawdown": -0.9329,
+          "days": 977
+        }
+      },
+      "gross_tranche": {
+        "h1": {
+          "sharpe": -0.08,
+          "ann_return": -0.0064,
+          "max_drawdown": -0.1391,
+          "days": 977
+        },
+        "h5": {
+          "sharpe": -0.221,
+          "ann_return": -0.0148,
+          "max_drawdown": -0.1214,
+          "days": 977
+        },
+        "h10": {
+          "sharpe": -0.061,
+          "ann_return": -0.0039,
+          "max_drawdown": -0.0944,
+          "days": 977
+        },
+        "h20": {
+          "sharpe": -0.057,
+          "ann_return": -0.0034,
+          "max_drawdown": -0.1002,
+          "days": 977
+        }
+      }
+    },
+    "mom6_1": {
+      "coverage": 0.979,
+      "daily_flat": {
+        "1.0bps": {
+          "sharpe": -1.362,
+          "ann_return": -0.4642,
+          "max_drawdown": -0.9022,
+          "days": 977
+        },
+        "2.0bps": {
+          "sharpe": -1.632,
+          "ann_return": -0.5565,
+          "max_drawdown": -0.9301,
+          "days": 977
+        }
+      },
+      "gross_tranche": {
+        "h1": {
+          "sharpe": -0.449,
+          "ann_return": -0.0355,
+          "max_drawdown": -0.174,
+          "days": 977
+        },
+        "h5": {
+          "sharpe": -0.456,
+          "ann_return": -0.0307,
+          "max_drawdown": -0.1565,
+          "days": 977
+        },
+        "h10": {
+          "sharpe": -0.313,
+          "ann_return": -0.0198,
+          "max_drawdown": -0.142,
+          "days": 977
+        },
+        "h20": {
+          "sharpe": -0.215,
+          "ann_return": -0.0126,
+          "max_drawdown": -0.1404,
+          "days": 977
+        }
+      }
+    },
+    "mom3_1": {
+      "coverage": 0.985,
+      "daily_flat": {
+        "1.0bps": {
+          "sharpe": -1.566,
+          "ann_return": -0.5586,
+          "max_drawdown": -0.9135,
+          "days": 977
+        },
+        "2.0bps": {
+          "sharpe": -1.827,
+          "ann_return": -0.6515,
+          "max_drawdown": -0.9396,
+          "days": 977
+        }
+      },
+      "gross_tranche": {
+        "h1": {
+          "sharpe": 0.031,
+          "ann_return": 0.0022,
+          "max_drawdown": -0.0956,
+          "days": 977
+        },
+        "h5": {
+          "sharpe": 0.101,
+          "ann_return": 0.006,
+          "max_drawdown": -0.0838,
+          "days": 977
+        },
+        "h10": {
+          "sharpe": 0.208,
+          "ann_return": 0.0112,
+          "max_drawdown": -0.0752,
+          "days": 977
+        },
+        "h20": {
+          "sharpe": 0.262,
+          "ann_return": 0.0128,
+          "max_drawdown": -0.0721,
+          "days": 977
+        }
+      }
+    },
+    "mom60_5": {
+      "coverage": 0.987,
+      "daily_flat": {
+        "1.0bps": {
+          "sharpe": -1.73,
+          "ann_return": -0.6643,
+          "max_drawdown": -0.9505,
+          "days": 977
+        },
+        "2.0bps": {
+          "sharpe": -1.972,
+          "ann_return": -0.7573,
+          "max_drawdown": -0.965,
+          "days": 977
+        }
+      },
+      "gross_tranche": {
+        "h1": {
+          "sharpe": -0.701,
+          "ann_return": -0.0534,
+          "max_drawdown": -0.2307,
+          "days": 977
+        },
+        "h5": {
+          "sharpe": -0.365,
+          "ann_return": -0.0229,
+          "max_drawdown": -0.1453,
+          "days": 977
+        },
+        "h10": {
+          "sharpe": -0.228,
+          "ann_return": -0.0129,
+          "max_drawdown": -0.1346,
+          "days": 977
+        },
+        "h20": {
+          "sharpe": -0.048,
+          "ann_return": -0.0024,
+          "max_drawdown": -0.1095,
+          "days": 977
+        }
+      }
+    },
+    "mom20_1": {
+      "coverage": 0.993,
+      "daily_flat": {
+        "1.0bps": {
+          "sharpe": -2.68,
+          "ann_return": -1.1859,
+          "max_drawdown": -0.9948,
+          "days": 977
+        },
+        "2.0bps": {
+          "sharpe": -2.89,
+          "ann_return": -1.2791,
+          "max_drawdown": -0.9963,
+          "days": 977
+        }
+      },
+      "gross_tranche": {
+        "h1": {
+          "sharpe": -0.767,
+          "ann_return": -0.0612,
+          "max_drawdown": -0.2622,
+          "days": 977
+        },
+        "h5": {
+          "sharpe": -0.317,
+          "ann_return": -0.0203,
+          "max_drawdown": -0.1559,
+          "days": 977
+        },
+        "h10": {
+          "sharpe": -0.324,
+          "ann_return": -0.0178,
+          "max_drawdown": -0.1483,
+          "days": 977
+        },
+        "h20": {
+          "sharpe": -0.381,
+          "ann_return": -0.016,
+          "max_drawdown": -0.1435,
+          "days": 977
+        }
+      }
+    }
+  }
+}
