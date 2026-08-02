@@ -125,7 +125,7 @@ def _load_sector_short_z() -> pd.DataFrame | None:
 
 
 _PANEL_CACHE_DIR = "data/cache_panels"
-_PANEL_SCHEMA_VERSION = 9  # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
+_PANEL_SCHEMA_VERSION = 11 # パネル列を追加/変更したらインクリメント（キャッシュ自動無効化）
 _PANEL_INPUT_GLOBS = (
     "data/cache/bars_day_*.parquet", "data/jp_intraday_reference/daily_20260528_20260724.parquet",
     "data/jp_daily_history/daily_adj_*.parquet", "data/jp_daily_history/master.parquet",
@@ -359,19 +359,29 @@ def build_daily_features(daily: pd.DataFrame, min_value_yen: float = 5e8,
     p["ret_on_fwd"] = (g["open"].shift(-1) / p["close"] - 1).where(_fwd_ok)
     p["ret_cc_fwd"] = (g["close"].shift(-1) / p["close"] - 1).where(_fwd_ok)
     p["gap_abs"] = p["residual_gap"].abs()
-    cc = g["close"].pct_change(fill_method=None)
+    # ★2026-08-02: `ret` にも ret_on_fwd と同じ隣接セッション判定が要る。
+    # パネルは流動性フィルタ済みで行が連続しないため、素の pct_change は
+    # 「一度ユニバースから外れて再参入した」銘柄の数週間ぶんの値動きを1日の
+    # リターンとして拾う。銘柄は**上昇・出来高急増のあとに再参入する**ので
+    # バイアスは系統的にプラスで、実測で全行の10.71%が該当し、その平均は
+    # +128.3bps（隣接行は+2.7bps＝47倍）。等加重市場の年率が +39.9% に化けていた
+    # （修正後 +6.5% で intraday_ret+overnight_gap の +6.3% と整合）。
+    _prev_no = _cur_no.groupby(p["symbol"]).shift(1)
+    _bwd_ok = _prev_no.eq(_cur_no - 1)          # 真の前営業日のみ
+    cc_raw = g["close"].pct_change(fill_method=None)
+    cc = cc_raw.where(_bwd_ok)
     p["ret"] = cc
     # ★PIT注意: vol20 は shift なし＝**当日の終値リターンを含む**。寄付き時点では未知なので
     # **予測モデルの特徴量に使ってはいけない**（2026-07-31に実際に踏んだ: 気配不要MLに
     # 足したら選択窓 Sh1.30→2.75 に跳ね、リークと判明）。予測に使うのは shift=1 の `ivol`。
     # vol20 は「事後の実現ボラ」を見る分析用途にのみ使うこと。
-    p["vol20"] = _groll(cc, 20, 10, "std")
+    p["vol20"] = _groll(cc_raw, 20, 10, "std")
     p["vol20_floor"] = p["vol20"].clip(lower=0.005)
     # PIT inverse-vol for risk-parity sizing (exclude today's unknown close).
-    p["ivol"] = _groll(cc, 20, 10, "std", shift=1).clip(lower=0.005)
+    p["ivol"] = _groll(cc_raw, 20, 10, "std", shift=1).clip(lower=0.005)
     p["liq_rank"] = p.groupby("date")["prev_value"].rank(pct=True)
     # Amihud illiquidity (出来高/売買代金ベース), PIT: rolling20 of |ret|/value, lagged 1d.
-    amihud = cc.abs() / p["value"].replace(0, np.nan)
+    amihud = cc_raw.abs() / p["value"].replace(0, np.nan)
     p["amihud20"] = _groll(amihud, 20, 10, "mean", shift=1)
     # Self-normalised gap (gap vs the symbol's own overnight-gap volatility).
     p["gap_vol60"] = _groll(p["residual_gap"], 60, 20, "std").clip(lower=0.005)
