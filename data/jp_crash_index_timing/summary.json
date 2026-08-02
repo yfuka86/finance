@@ -1,0 +1,118 @@
+{
+  "spec": {
+    "etf": "13060",
+    "trigger": -0.03,
+    "hold": 10,
+    "cost_round_trip": 0.002,
+    "capital": 20000000.0
+  },
+  "buy_and_hold": {
+    "sharpe": 0.583,
+    "ann_return": 0.1096,
+    "ann_vol": 0.1881,
+    "max_drawdown": -0.3521,
+    "total_return": 1.1328,
+    "days": 2079
+  },
+  "strategy": {
+    "sharpe": 0.174,
+    "ann_return": 0.0179,
+    "ann_vol": 0.1029,
+    "max_drawdown": -0.2347,
+    "total_return": 0.1102,
+    "days": 2080,
+    "events": 12,
+    "days_in_market": 184,
+    "time_in_market": 0.0885
+  },
+  "lot_impact": 0.02065,
+  "sensitivity": {
+    "trigger_-4pct": {
+      "sharpe": 0.295,
+      "ann_return": 0.0216,
+      "ann_vol": 0.0732,
+      "max_drawdown": -0.1935,
+      "total_return": 0.1695,
+      "days": 2080,
+      "events": 5,
+      "days_in_market": 66,
+      "time_in_market": 0.0317
+    },
+    "trigger_-5pct": {
+      "sharpe": 0.451,
+      "ann_return": 0.0312,
+      "ann_vol": 0.0693,
+      "max_drawdown": -0.1261,
+      "total_return": 0.2692,
+      "days": 2080,
+      "events": 5,
+      "days_in_market": 60,
+      "time_in_market": 0.0288
+    },
+    "hold_5": {
+      "sharpe": 0.008,
+      "ann_return": 0.0008,
+      "ann_vol": 0.0914,
+      "max_drawdown": -0.2347,
+      "total_return": -0.0278,
+      "days": 2080,
+      "events": 15,
+      "days_in_market": 117,
+      "time_in_market": 0.0563
+    },
+    "hold_20": {
+      "sharpe": 0.253,
+      "ann_return": 0.0279,
+      "ann_vol": 0.1104,
+      "max_drawdown": -0.2395,
+      "total_return": 0.1973,
+      "days": 2080,
+      "events": 11,
+      "days_in_market": 294,
+      "time_in_market": 0.1413
+    }
+  },
+  "failed_criteria": [
+    "sharpe_lt_1.0",
+    "sharpe_not_above_buy_and_hold"
+  ],
+  "decision": "NO_GO",
+  "by_year": {
+    "2018": {
+      "strategy": 0.0028,
+      "buy_and_hold": -0.2005
+    },
+    "2019": {
+      "strategy": 0.0304,
+      "buy_and_hold": 0.1526
+    },
+    "2020": {
+      "strategy": -0.0973,
+      "buy_and_hold": 0.0516
+    },
+    "2021": {
+      "strategy": 0.0,
+      "buy_and_hold": 0.1061
+    },
+    "2022": {
+      "strategy": 0.1231,
+      "buy_and_hold": -0.0477
+    },
+    "2023": {
+      "strategy": 0.0,
+      "buy_and_hold": 0.2532
+    },
+    "2024": {
+      "strategy": 0.1249,
+      "buy_and_hold": 0.1794
+    },
+    "2025": {
+      "strategy": -0.0607,
+      "buy_and_hold": 0.2261
+    },
+    "2026": {
+      "strategy": 0.0029,
+      "buy_and_hold": 0.1531
+    }
+  }
+}
