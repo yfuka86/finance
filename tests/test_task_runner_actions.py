@@ -36,8 +36,8 @@ class RunnerCoverageTest(unittest.TestCase):
                          "（タスク登録しても起動時に検証エラーで即死する）")
 
     def test_runner_does_not_advertise_unknown_actions(self):
-        # collect/probe はランナー専用（python側のactionではない）ので除外
-        runner_only = {"collect", "probe"}
+        # ランナー専用（run_live のサブコマンドではなく独立スクリプトを呼ぶもの）
+        runner_only = {"collect", "probe", "pushexp"}
         unknown = runner_actions() - run_live_actions() - runner_only
         self.assertEqual(unknown, set(), f"run_live に無いアクション: {sorted(unknown)}")
 

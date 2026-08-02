@@ -5,7 +5,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("collect", "plan", "entry", "exit", "state", "train", "preflight", "probe",
-        "quotesnap", "cost", "shadow")]
+        "quotesnap", "cost", "shadow", "pushexp")]
     [string]$Action
 )
 
@@ -29,6 +29,9 @@ $py = Join-Path $root ".venv\Scripts\python.exe"
 if ($Action -eq "collect") {
     # 寄付き前の日次データ更新 (冪等・不足日のみ取得)
     & $py scripts\collect_jp_daily_history.py *>> $log
+} elseif ($Action -eq "pushexp") {
+    # 50銘柄PUSH実験（発注なし。全銘柄1周→候補50を登録→08:50/55/59に同時スナップ）
+    & $py scripts\run_push_experiment.py *>> $log
 } elseif ($Action -eq "probe") {
     # 発注経路プローブ (約定不能指値→即取消。口座抑止の検知)
     & $py scripts\preflight_order_probe.py *>> $log
