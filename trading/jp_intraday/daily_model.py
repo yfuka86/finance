@@ -504,7 +504,15 @@ def walk_forward_predictions(panel: pd.DataFrame, features: list[str], alpha: fl
 
 def portfolio_returns(preds: pd.DataFrame, quantile: float = 0.05,
                       gross_leverage: float = 1.0, cost_bps_side: float = 3.0) -> pd.DataFrame:
-    """Daily open->close returns from cached predictions (flat overnight)."""
+    """Daily open->close returns from cached predictions (flat overnight).
+
+    ★**この関数の出力を研究成績として引用してはいけない**（2026-08-02）。
+    `book_from_scores` には2026-07-30に借株可能性フィルタを入れたが、こちらには無い。
+    ショート脚を貸借・規制で絞らないので、**実際には借りられない銘柄で稼いだ数字**になる。
+    気配不要MLで実測すると 制約なし Sharpe 3.50 → 貸借+規制を入れると **−0.14**
+    （上位8ショートのうち貸借可は35.4%だけ）。差は7倍ではなく符号反転。
+    実取引可能な数字が要るときは `strategies.unit_lot_backtest`（本番制約つき）を使う。
+    """
     w = _ls_weights(preds, preds["pred"], quantile) * gross_leverage
     gross = (w * preds["intraday_ret"]).groupby(preds["date"]).sum()
     expo = w.abs().groupby(preds["date"]).sum()
