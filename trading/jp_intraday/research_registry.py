@@ -108,6 +108,29 @@ def research_rows() -> pd.DataFrame:
           "注記":(f"超過平均{pr['excess_mean']*100:+.2f}%(素{pr['raw_net_mean']*100:+.2f}% vs "
                  f"市場{pr['market_mean']*100:+.2f}%)＝全部β。勝率{pr['win_rate']*100:.0f}%"),
           "結果":"data/jp_crash_dipbuy/summary.json"})
+    qs=_json("data/jp_quote_shortlist/summary.json")
+    if qs:
+        k50=qs["results"].get("K=50",{}); full=qs["results"].get("all",{})
+        rows.append({"戦略":"気配候補プリスクリーン K=50（ensemble_core）","ファミリー":"QUOTE_SHORTLIST",
+          "状態":qs.get("decision","NO_GO"),"実取引":False,"OOS Sharpe":k50.get("sharpe"),
+          "年率%":100*k50.get("ann_return",float("nan")),
+          "最大DD%":100*k50.get("max_drawdown",float("nan")),"案件/日数":k50.get("days"),
+          "注記":(f"維持率{k50.get('retention',0)*100:.1f}%で基準50%に未達＝NO-GO。"
+                 f"ただし絶対Sharpeは台帳最良（全銘柄{full.get('sharpe')}）。"
+                 f"Kカーブが非単調(K=100で{qs['results'].get('K=100',{}).get('sharpe')})＝誤差大。"
+                 "シミュレーションのみで、気配の予測力は未実測"),
+          "結果":"data/jp_quote_shortlist/summary.json"})
+    rev=_json("data/jp_reversal_leg_sweep/summary.json")
+    if rev:
+        c=rev["cells"]
+        sf=max(v["short_free"] for v in c.values() if v["short_free"] is not None)
+        sb=max(v["short_borrow"] for v in c.values() if v["short_borrow"] is not None)
+        rows.append({"戦略":"リバーサル 脚別×借株可否 24セル","ファミリー":"REVERSAL",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":rev.get("best_long_excess"),
+          "年率%":None,"最大DD%":None,"案件/日数":len(c),
+          "注記":(f"執行可能な唯一の列(負け組ロングの市場超過)は最良{rev['best_long_excess']:+.3f}。"
+                 f"ショート無制約{sf:+.3f}→貸借+規制で{sb:+.3f}＝借株の壁6例目"),
+          "結果":"data/jp_reversal_leg_sweep/summary.json"})
     cit=_json("data/jp_crash_index_timing/summary.json")
     if cit:
         s,b=cit["strategy"],cit["buy_and_hold"]
