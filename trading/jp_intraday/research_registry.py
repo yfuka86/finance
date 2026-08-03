@@ -108,6 +108,17 @@ def research_rows() -> pd.DataFrame:
           "注記":(f"超過平均{pr['excess_mean']*100:+.2f}%(素{pr['raw_net_mean']*100:+.2f}% vs "
                  f"市場{pr['market_mean']*100:+.2f}%)＝全部β。勝率{pr['win_rate']*100:.0f}%"),
           "結果":"data/jp_crash_dipbuy/summary.json"})
+    et=_json("data/jp_earnings_timing/summary.json")
+    if et:
+        a=et["A_pre_earnings"]; fc=a["confirmation_full_calendar"]
+        rows.append({"戦略":"決算発表前ドリフト(ロングα+指数ヘッジ)","ファミリー":"EARNINGS_TIMING",
+          "状態":et.get("decision","NO_GO"),"実取引":True,"OOS Sharpe":fc.get("sharpe"),
+          "年率%":100*fc.get("ann_return",float("nan")),
+          "最大DD%":100*fc.get("max_drawdown",float("nan")),"案件/日数":fc.get("sessions"),
+          "注記":(f"確認窓を通過（稼働日のみ{a['confirmation']['sharpe']}/全暦日{fc['sharpe']}）。"
+                 f"選択窓は全暦日{a['selection_full_calendar']['sharpe']}で1.0未達＝規約で判定が割れる。"
+                 f"稼働率{fc.get('active_ratio')}。αはロング側で借株の壁を踏まない構造"),
+          "結果":"data/jp_earnings_timing/summary.json"})
     cal=_json("data/jp_option_calendar/summary.json")
     if cal:
         c=cal["primary"]

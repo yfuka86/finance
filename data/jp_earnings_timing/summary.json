@@ -1,0 +1,97 @@
+{
+  "spec": {
+    "window": [
+      1,
+      5
+    ],
+    "cost_bps_side": 1.0,
+    "min_names": 5,
+    "delay_days": 3
+  },
+  "events_with_expected_date": 42263,
+  "note": "earnings-calendar endpoint has no history; expected date rebuilt from last year's same-quarter DiscDate + 364d",
+  "A_pre_earnings": {
+    "selection": {
+      "days": 306,
+      "sharpe": 1.1,
+      "ann_net": 0.1002,
+      "ann_gross": 0.133,
+      "median_names": 32,
+      "mean_turnover": 0.65,
+      "negative_years": 1,
+      "by_year": {
+        "2022": 0.0574,
+        "2023": -0.0265,
+        "2024": 0.2688
+      }
+    },
+    "confirmation": {
+      "days": 146,
+      "sharpe": 1.898,
+      "ann_net": 0.1727,
+      "ann_gross": 0.2004,
+      "median_names": 28,
+      "mean_turnover": 0.55,
+      "negative_years": 0,
+      "by_year": {
+        "2025": 0.1902,
+        "2026": 0.1247
+      }
+    },
+    "selection_full_calendar": {
+      "sessions": 733,
+      "active_ratio": 0.417,
+      "sharpe": 0.711,
+      "ann_return": 0.0418,
+      "max_drawdown": -0.0502
+    },
+    "confirmation_full_calendar": {
+      "sessions": 380,
+      "active_ratio": 0.384,
+      "sharpe": 1.174,
+      "ann_return": 0.0664,
+      "max_drawdown": -0.047
+    },
+    "convention_note": "selection/confirmation は稼働日のみで年率化（事前登録の実装）。*_full_calendar は休止日を0として全暦日で測ったもの。単独運用なら後者。"
+  },
+  "B_delayed_announcement": {
+    "selection": {
+      "days": 53,
+      "sharpe": -3.709,
+      "ann_net": -0.2954,
+      "ann_gross": -0.2558,
+      "median_names": 8,
+      "mean_turnover": 0.784,
+      "negative_years": 3,
+      "by_year": {
+        "2022": -0.1953,
+        "2023": -0.0461,
+        "2024": -0.4967
+      }
+    },
+    "confirmation": {
+      "days": 27,
+      "sharpe": null
+    },
+    "selection_full_calendar": {
+      "sessions": 733,
+      "active_ratio": 0.072,
+      "sharpe": -0.981,
+      "ann_return": -0.0214,
+      "max_drawdown": -0.0662
+    },
+    "confirmation_full_calendar": {
+      "sessions": 380,
+      "active_ratio": 0.071,
+      "sharpe": 1.22,
+      "ann_return": 0.0297,
+      "max_drawdown": -0.0177
+    },
+    "convention_note": "selection/confirmation は稼働日のみで年率化（事前登録の実装）。*_full_calendar は休止日を0として全暦日で測ったもの。単独運用なら後者。"
+  },
+  "failed_criteria": {
+    "selection": [],
+    "confirmation": []
+  },
+  "decision": "PENDING_FULL_RISK_TESTS"
+}
