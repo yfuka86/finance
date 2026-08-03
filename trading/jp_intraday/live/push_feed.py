@@ -75,9 +75,18 @@ class PushBoardFeed:
         if self._seed_via_rest:
             # PUSHは「更新があったときだけ」飛ぶ。初期値はRESTで1回だけ埋める
             # （登録済みなので1銘柄~1.4ms）。
+            #
+            # ★client.board() を使ってはいけない: あれは全ユニバース走査用に
+            #   **45件ごとに unregister_all() を呼ぶ**ので、シード中に自分の登録を
+            #   消してPUSHが止まる（2026-08-03 実障害: 913件で配信断・age が
+            #   41秒→386秒に伸びた）。登録管理を通さない生の取得を使う。
+            seed = getattr(self._client, "_board_or_none", None)
             for s in self._symbols:
                 try:
-                    self._store(self._client.board(s), fallback_symbol=s)
+                    b = seed(s) if seed else self._client._request(
+                        "GET", f"/board/{to_kabu_symbol(s)}@{self._exchange}")
+                    if b:
+                        self._store(b, fallback_symbol=s)
                 except Exception:  # noqa: BLE001
                     pass
 

@@ -35,6 +35,11 @@ class FakeClient:
         return {}
 
     def board(self, symbol, exchange=1):
+        # 実クライアントの board() は45件ごとに unregister_all を呼ぶ。
+        # シードでこれを使うと自分の登録を消してしまうので、使われたら失敗させる。
+        raise AssertionError("シードで board() を使ってはいけない（登録が消える）")
+
+    def _board_or_none(self, symbol, exchange=1):
         self.board_calls += 1
         return {"Symbol": symbol[:-1] if len(symbol) == 5 else symbol, "CurrentPrice": 100.0}
 
@@ -90,6 +95,8 @@ class PushFeedTest(unittest.TestCase):
         with PushBoardFeed(c, ["13010", "13020"], log=lambda *_: None) as feed:
             self.assertEqual(c.registered, ["1301", "1302"])
             self.assertEqual(c.board_calls, 2, "RESTシードが動いていない")
+            self.assertNotIn("unregister_all", c.calls[2:],
+                             "シード中に登録が消されている（PUSHが止まる）")
             snap = feed.snapshot()
         self.assertEqual(sorted(snap), ["13010", "13020"])   # キーは入力表記のまま
 
