@@ -60,6 +60,21 @@ def swap_return(rate_base: pd.Series, rate_quote: pd.Series, index: pd.DatetimeI
     return (theo - haircut_bp / 1e4) * days / 365.0
 
 
+def load_short_rates(path: str = "data/fx_rates/short_rates_monthly.parquet",
+                     index: pd.DatetimeIndex | None = None) -> pd.DataFrame:
+    """FRED 3か月インターバンク金利（月次）を読み、必要なら日次へ前方補完する.
+
+    ★政策金利ではなく**インターバンク**を使う。スワップは短期マネーマーケットで
+    値付けされるうえ、政策金利系列は CHF が2024-03、NZD が2024-12 で止まっており、
+    直近2年のキャリーが静かに壊れる。
+    """
+    r = pd.read_parquet(path)
+    r.index = pd.to_datetime(r.index)
+    if index is None:
+        return r
+    return r.reindex(r.index.union(pd.DatetimeIndex(index))).ffill().reindex(index)
+
+
 def weekly_days_check(index: pd.DatetimeIndex) -> pd.Series:
     """任意の暦週で日数合計が7になるか（規約の自己整合チェック）."""
     s = rollover_days_series(index)

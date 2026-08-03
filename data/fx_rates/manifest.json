@@ -1,0 +1,65 @@
+{
+  "source": "FRED fredgraph.csv (no key)",
+  "frequency": "monthly",
+  "definition": "3-month interbank offered rate, decimal (0.05 = 5%)",
+  "note": "policy-rate series IRSTCI01* go stale (CHF 2024-03, NZD 2024-12); interbank stays current and is the better swap proxy anyway",
+  "fetched_at": "2026-08-03T16:04:06.036221+00:00",
+  "series": {
+    "USD": {
+      "series_id": "IR3TIB01USM156N",
+      "rows": 744,
+      "start": "1964-06-01",
+      "end": "2026-06-01",
+      "sha256": "3a51abf105c27499ec6b28cf5edec386274d578e7da66df4c82ae7d0b4cef23b"
+    },
+    "JPY": {
+      "series_id": "IR3TIB01JPM156N",
+      "rows": 290,
+      "start": "2002-04-01",
+      "end": "2026-05-01",
+      "sha256": "7a1132087e2a21c5b24f74e7209d70be75118357c8996c24a6a826cd06f1166f"
+    },
+    "EUR": {
+      "series_id": "IR3TIB01EZM156N",
+      "rows": 385,
+      "start": "1994-01-01",
+      "end": "2026-01-01",
+      "sha256": "bda18d6a61bc490560965e6acd9fc21e213f026ca68ac4670d3c9ec835043ce5"
+    },
+    "GBP": {
+      "series_id": "IR3TIB01GBM156N",
+      "rows": 829,
+      "start": "1957-01-01",
+      "end": "2026-01-01",
+      "sha256": "40c23cc654a1380ed278a2b0be691f368d5cc1648493cadbbf1a2a2f654d33d4"
+    },
+    "CHF": {
+      "series_id": "IR3TIB01CHM156N",
+      "rows": 324,
+      "start": "1999-07-01",
+      "end": "2026-06-01",
+      "sha256": "2bc08a2fa15240f537cc37dc5edfdfc0a211d9c2e6b334f90bafc75d78dfc740"
+    },
+    "AUD": {
+      "series_id": "IR3TIB01AUM156N",
+      "rows": 702,
+      "start": "1968-01-01",
+      "end": "2026-06-01",
+      "sha256": "369327f8d506c467783f4b1c53659ae873f02db17b7be461fb07248074ecd947"
+    },
+    "CAD": {
+      "series_id": "IR3TIB01CAM156N",
+      "rows": 846,
+      "start": "1956-01-01",
+      "end": "2026-06-01",
+      "sha256": "cb796ea1fa18d69f0e7d85d21f0493638455699aacfd81e35491f7bb72472214"
+    },
+    "NZD": {
+      "series_id": "IR3TIB01NZM156N",
+      "rows": 631,
+      "start": "1973-12-01",
+      "end": "2026-06-01",
+      "sha256": "d8934c05ea8db472b889841c17406ceb34ce6bc9b8e099674f5b150a45dd702f"
+    }
+  }
+}

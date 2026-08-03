@@ -52,3 +52,28 @@ def test_passthrough_scales_only_the_differential_not_the_haircut():
     full = swap_return(hi, lo, idx, side=+1, passthrough=1.0).sum()
     half = swap_return(hi, lo, idx, side=+1, passthrough=0.5).sum()
     assert half == pytest.approx(full / 2)
+
+
+def test_annual_swap_equals_the_average_differential():
+    """日数配分が正しければ、年間のスワップ合計は平均金利差にほぼ一致する.
+
+    水曜3日・土日0日という配分は、週合計を7日にするための組み替えでしかない。
+    合計が金利差からずれるなら曜日ロジックか日数の数え方が壊れている。
+    """
+    idx = pd.date_range("2024-01-01", "2024-12-31", freq="D")
+    base = pd.Series(0.0486, index=idx)
+    quote = pd.Series(0.0, index=idx)
+    total = swap_return(base, quote, idx, side=+1).sum()
+    assert total == pytest.approx(0.0486 * len(idx) / 365, rel=0.01)
+
+
+def test_short_rates_cover_every_major_to_the_recent_past():
+    """政策金利系列は CHF 2024-03 / NZD 2024-12 で止まる。インターバンクを使う理由。"""
+    from trading.fx.swap import load_short_rates
+    try:
+        r = load_short_rates()
+    except FileNotFoundError:
+        pytest.skip("rates not collected in this environment")
+    assert set(r.columns) == {"USD", "JPY", "EUR", "GBP", "CHF", "AUD", "CAD", "NZD"}
+    for c in ("CHF", "NZD"):
+        assert r[c].dropna().index.max() >= pd.Timestamp("2025-06-01")
