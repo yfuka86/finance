@@ -99,5 +99,61 @@ class WaitTest(unittest.TestCase):
         self.assertLess(clock["t"], dt.datetime(2026, 8, 3, 8, 50, 6))
 
 
+
+class EnsembleBookTest(unittest.TestCase):
+    """ensemble_core は「スリーブごとに上位/下位n本→統合」。z合成の1本とは別物。"""
+
+    def _last(self, n=120):
+        import numpy as np
+        return pd.DataFrame({
+            "symbol": [f"{1000+i}0" for i in range(n)],
+            "shortable": [True] * n,
+            "prev_value": [5e9] * n,
+            "short_restricted": [False] * n,
+        })
+
+    def test_union_of_sleeves_and_candidates_contain_it(self):
+        from unittest import mock
+        from trading.jp_intraday.live import push_experiment as pxm
+
+        last = self._last()
+        # 2スリーブが別々の銘柄を選ぶ状況を作る
+        def fake_score(l, opens, member):
+            f = l.copy()
+            f["_s"] = range(len(f)) if member == "A" else range(len(f), 0, -1)
+            return f
+
+        spec = {"kind": "ensemble", "members": [("A", 0.5), ("B", 0.5)]}
+        with mock.patch.dict("trading.jp_intraday.strategies.STRATEGIES",
+                             {"ENS": spec, "A": spec, "B": spec}, clear=False), \
+             mock.patch("trading.jp_intraday.live.executor._score_today", fake_score):
+            book, per = pxm.ensemble_book(last, {}, "ENS", names_per_side=8)
+            self.assertEqual(sorted(per), ["A", "B"])
+            self.assertEqual(book, per["A"] | per["B"])
+            chosen, diag = pxm.select_for_ensemble(last, {}, "ENS", 8, n=50)
+            self.assertLessEqual(len(chosen), 50)
+            self.assertTrue(book <= set(chosen), "建玉が候補に入っていない")
+            self.assertGreater(diag["depth_used"], 8, "次点で枠を埋めていない")
+
+    def test_short_side_respects_eligibility(self):
+        from trading.jp_intraday.live import push_experiment as pxm
+        f = self._last(40)
+        f["_s"] = range(40)
+        f.loc[f.index[:20], "shortable"] = False        # 下位20本は売建不可
+        book = pxm.book_from_scores(f, names_per_side=5)
+        shorts = {s for s in book if s not in set(f.nlargest(5, "_s")["symbol"])}
+        self.assertTrue(all(f.set_index("symbol").loc[s, "shortable"] for s in shorts),
+                        "売建不可の銘柄がショートに入っている")
+
 if __name__ == "__main__":
     unittest.main()
+
+
+class OutPathTest(unittest.TestCase):
+    def test_dry_run_writes_to_a_separate_file(self):
+        from trading.jp_intraday.live.push_experiment import out_path
+        real = out_path("2026-08-03", dry=False).name
+        dry = out_path("2026-08-03", dry=True).name
+        self.assertNotEqual(real, dry, "スモークテストが本番記録を上書きする")
+        self.assertTrue(real.startswith("push_experiment_2"))
+        self.assertIn("_dry_", dry)

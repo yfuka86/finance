@@ -40,7 +40,7 @@ def decompose(gap_quote: np.ndarray, gap_actual: np.ndarray) -> dict:
 
 
 def main() -> int:
-    files = sorted(glob.glob("data/live_reports/push_experiment_*.json"))
+    files = sorted(glob.glob("data/live_reports/push_experiment_2*.json")  # _dry_ は除外)
     if not files:
         raise SystemExit("実験ログがありません（scripts/run_push_experiment.py を朝に実行）")
     cfg = LiveConfig.from_env()
@@ -62,8 +62,8 @@ def main() -> int:
                                "open_actual": p["raw_close"].where(False)})
         # 実寄値ベースの本来の建玉（全ユニバース）
         opens_actual = dict(zip(p["symbol"], (1 + p["overnight_gap"]) * prev_close))
-        scored_actual = pxm.score_frame(p.copy(), opens_actual, cfg.strategy)
-        true_book = pxm.book_from_scores(scored_actual, cfg.names_per_side)
+        nps = rec.get("names_per_side", cfg.names_per_side)
+        true_book, per_sleeve = pxm.ensemble_book(p.copy(), opens_actual, cfg.strategy, nps)
         chosen = set(rec["chosen"])
         recall = len(true_book & chosen) / max(len(true_book), 1)
         print(f"A. 候補リコール: 本来の建玉 {len(true_book)}銘柄中 "
@@ -96,15 +96,15 @@ def main() -> int:
 
         # C. 候補50内での建玉一致率
         sub = p[p["symbol"].isin(chosen)].copy()
-        n_side = min(cfg.names_per_side, max(len(sub) // 4, 1))
-        book_actual = pxm.book_from_scores(
-            pxm.score_frame(sub, {s: opens_actual[s] for s in sub["symbol"]
-                               if s in opens_actual}, cfg.strategy), n_side)
+        n_side = min(nps, max(len(sub) // 4, 1))
+        book_actual, _ = pxm.ensemble_book(
+            sub, {s: opens_actual[s] for s in sub["symbol"] if s in opens_actual},
+            cfg.strategy, n_side)
         for hhmm, snap in rec["snapshots"].items():
             qmap = {s: v["q"] for s, v in snap["quotes"].items() if s in set(sub["symbol"])}
             if not qmap:
                 continue
-            book_q = pxm.book_from_scores(pxm.score_frame(sub, qmap, cfg.strategy), n_side)
+            book_q, _ = pxm.ensemble_book(sub, qmap, cfg.strategy, n_side)
             print(f"C. 建玉一致率（候補内・{n_side}銘柄/側）{hhmm}: "
                   f"**{pxm.book_overlap(book_q, book_actual)*100:.0f}%**")
         print("   判定表: ≥75%→実弾GO可 / 50-75%→減額で開始 / <50%→NO-GO"

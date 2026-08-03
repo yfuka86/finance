@@ -52,6 +52,8 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=px.MAX_PUSH)
     ap.add_argument("--dry", action="store_true",
                     help="時刻待ちをせず即座に1回スナップショット（動作確認用）")
+    ap.add_argument("--names-per-side", type=int, default=8,
+                    help="本番基準の銘柄数/側（既定8＝本番構成。.envの縮小設定に引きずられない）")
     ap.add_argument("--max-sweep", type=int, default=0,
                     help="1周する銘柄数の上限（0=全部。夜間のスモークテスト用）")
     args = ap.parse_args()
@@ -76,19 +78,33 @@ def main() -> int:
     print(f"   取得 {len(sweep['quotes'])}/{len(syms)}銘柄 ・ 所要 "
           f"{sweep['finished']-sweep['started']:.0f}秒 ・ **スメア {smear:.0f}秒**")
 
-    print(f"② 候補{args.n}銘柄を選定（方式={args.select}）…")
-    scored = px.score_frame(last, sweep["quotes"], cfg.strategy)
-    if "prev_value" not in scored:
-        scored["prev_value"] = last.set_index("symbol")["prev_value"].reindex(
-            scored["symbol"]).values
-    chosen = px.select_symbols(scored, args.select, args.n, cfg.names_per_side)
-    early_book = px.book_from_scores(scored, cfg.names_per_side)
-    print(f"   候補 {len(chosen)}銘柄 / 早い1周での建玉候補 {len(early_book)}銘柄 "
-          f"（うち候補に含まれる {len(early_book & set(chosen))}）")
+    nps = args.names_per_side
+    print(f"② 候補{args.n}銘柄を選定（方式={args.select}・{nps}銘柄/側/スリーブ）…")
+    diag = {}
+    if args.select == "strategy":
+        # 本番と同じ建て方（スリーブごとに上位/下位→統合）で建玉を作り、
+        # 残り枠を次点で埋める＝2パス方式の1パス目そのもの
+        chosen, diag = px.select_for_ensemble(last, sweep["quotes"], cfg.strategy,
+                                              nps, args.n)
+        early_book = set(diag["book"])
+        for m, b in diag["per_sleeve"].items():
+            print(f"   スリーブ {m}: 建玉{len(b)}銘柄")
+    else:
+        scored = px.score_frame(last, sweep["quotes"], cfg.strategy)
+        if "prev_value" not in scored:
+            scored["prev_value"] = last.set_index("symbol")["prev_value"].reindex(
+                scored["symbol"]).values
+        chosen = px.select_symbols(scored, args.select, args.n, nps)
+        early_book = px.book_from_scores(scored, nps)
+    print(f"   候補 {len(chosen)}銘柄 / 早い1周での建玉 {len(early_book)}銘柄 "
+          f"（うち候補に含まれる {len(early_book & set(chosen))}）"
+          f"{' / 次点はn=' + str(diag['depth_used']) + 'まで採用' if diag else ''}")
 
     record = {
         "day": dt.date.today().isoformat(),
         "select": args.select,
+        "names_per_side": nps,
+        "select_diag": diag,
         "universe_n": len(syms),
         "sweep": {"n": len(sweep["quotes"]), "smear_s": smear,
                   "started": sweep["started"], "finished": sweep["finished"],
@@ -98,7 +114,7 @@ def main() -> int:
         "chosen": chosen,
         "snapshots": {},
     }
-    px.save(record)
+    px.save(record, dry=args.dry)
 
     print("③ PUSH登録して同時スナップショット…")
     with PushBoardFeed(client, chosen) as feed:
@@ -121,9 +137,9 @@ def main() -> int:
             }
             print(f"   {hhmm}: {len(snap)}銘柄 ・ スメア {feed.smear_seconds():.1f}秒 "
                   f"・ PUSH受信 {feed.messages}件")
-            px.save(record)
+            px.save(record, dry=args.dry)
 
-    p = px.save(record)
+    p = px.save(record, dry=args.dry)
     print(f"\n保存: {p}")
     print("夕方に `PYTHONPATH=. python scripts/analyze_push_experiment.py` で判定材料を出す")
     return 0
