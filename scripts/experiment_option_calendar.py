@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Nikkei 225 option calendar spread on the IV term-structure slope.
+"""Nikkei 225 **put** option calendar spread on the IV term-structure slope.
 
 Frozen in docs/PREREGISTER_OPTION_CALENDAR.md.
 
@@ -31,14 +31,17 @@ def load() -> pd.DataFrame:
     d["Date"] = pd.to_datetime(d["Date"])
     for c in ("Settle", "IV", "OI", "Vo", "Strike", "dte", "UnderPx"):
         d[c] = pd.to_numeric(d[c], errors="coerce")
-    d["is_call"] = d["PCDiv"].astype(str).eq("1")
+    # ★2026-08-03 訂正: PCDiv=1 は **プット**（低ストライクが安く高ストライクが高い形。
+    # プット・コール・パリティ C−P≈S−K でも検算済み）。当初 is_call としていたのは誤りで、
+    # 主仕様が使っていたのは一貫して **プット**だった。数値は不変、ラベルだけの訂正。
+    d["is_put"] = d["PCDiv"].astype(str).eq("1")
     return d.dropna(subset=["Settle", "IV", "Strike", "dte", "UnderPx"])
 
 
 def term_slope(d: pd.DataFrame) -> pd.Series:
-    """Per session: ATM near IV minus ATM far IV."""
+    """Per session: ATM near IV minus ATM far IV (put side)."""
     rows = {}
-    for day, g in d[d["is_call"]].groupby("Date"):
+    for day, g in d[d["is_put"]].groupby("Date"):
         near = g[g["dte"].between(*NEAR_DTE)]
         far = g[g["dte"].between(*FAR_DTE)]
         if near.empty or far.empty:
@@ -50,9 +53,9 @@ def term_slope(d: pd.DataFrame) -> pd.Series:
 
 
 def trades(d: pd.DataFrame, z: pd.Series, z_entry: float, hold: int,
-           is_call: bool = True) -> pd.DataFrame:
+           is_put: bool = True) -> pd.DataFrame:
     sessions = pd.Index(sorted(d["Date"].unique()))
-    side = d[d["is_call"].eq(is_call)]
+    side = d[d["is_put"].eq(is_put)]
     by_day = {day: g for day, g in side.groupby("Date")}
     week_seen, out = set(), []
     for day in sessions:
@@ -142,9 +145,13 @@ def main() -> None:
     out["decision"] = "NO_GO" if failed else "PAPER_ONLY_PENDING_REAL_QUOTES"
 
     out["sensitivity"] = {}
+    # 注: "call" セルは put とは別に ATM/流動性フィルタを通すので**建玉が別物**になる。
+    # 同一(日・K・限月)で組み直すと call は Sharpe 1.01（0.167 ではない）。
+    # プット・コール・パリティ上は両者ほぼ同一のはずで、差の標準偏差がデビットの23%ある
+    # ＝**清算値がパリティ整合でない**。1.97 を精密値として扱わないこと（実勢は 1.0-2.0）。
     for label, kw in [("z0.0", dict(z_entry=0.0)), ("z1.0", dict(z_entry=1.0)),
                       ("hold3", dict(hold=3)), ("hold10", dict(hold=10)),
-                      ("put", dict(is_call=False))]:
+                      ("call_separately_selected", dict(is_put=False))]:
         kw = {"z_entry": Z_ENTRY, "hold": HOLD, **kw}
         out["sensitivity"][label] = report(trades(d, z, **kw))
     OUT.mkdir(parents=True, exist_ok=True)
