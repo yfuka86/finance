@@ -112,12 +112,12 @@ def research_rows() -> pd.DataFrame:
     if et:
         a=et["A_pre_earnings"]; fc=a["confirmation_full_calendar"]
         rows.append({"戦略":"決算発表前ドリフト(ロングα+指数ヘッジ)","ファミリー":"EARNINGS_TIMING",
-          "状態":et.get("decision","NO_GO"),"実取引":True,"OOS Sharpe":fc.get("sharpe"),
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":fc.get("sharpe"),
           "年率%":100*fc.get("ann_return",float("nan")),
           "最大DD%":100*fc.get("max_drawdown",float("nan")),"案件/日数":fc.get("sessions"),
-          "注記":(f"確認窓を通過（稼働日のみ{a['confirmation']['sharpe']}/全暦日{fc['sharpe']}）。"
-                 f"選択窓は全暦日{a['selection_full_calendar']['sharpe']}で1.0未達＝規約で判定が割れる。"
-                 f"稼働率{fc.get('active_ratio')}。αはロング側で借株の壁を踏まない構造"),
+          "注記":("両窓を通過したが**利益集中で棄却**: 上位5日で総利益の92.2%(選択)/75.2%(確認)、"
+                 "上位10日を除くとSh−0.68/−0.82。集中は銘柄でなく日＝残存共通要因の疑い。"
+                 f"稼働日のみSh{a['confirmation']['sharpe']}/全暦日{fc['sharpe']}"),
           "結果":"data/jp_earnings_timing/summary.json"})
     cal=_json("data/jp_option_calendar/summary.json")
     if cal:
