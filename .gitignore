@@ -30,3 +30,6 @@ data/x_trade_ideas/
 data/jp_ownership/filings.jsonl
 data/jp_buybacks/edinet/raw/
 data/jp_buybacks/edinet/error_payloads/
+# FX分足（約2GB・コレクタで再生成可能）
+data/fx_dukascopy_min/parts/
+data/fx_dukascopy_hour/parts/
