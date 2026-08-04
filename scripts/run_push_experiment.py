@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import datetime as dt
 import time
 
@@ -118,6 +119,10 @@ def main() -> int:
 
     print("③ PUSH登録して同時スナップショット…")
     with PushBoardFeed(client, chosen) as feed:
+        # 全メッセージ履歴を録る: 後から**任意の時刻**の選択を再構成できる
+        # （スナップショット9点ではなく連続曲線）。寄値もPUSHの約定プリント
+        # (CurrentPriceTime=09:00:00) から直接取れる。
+        feed.record_history = True
         feed.wait_ready(timeout=120)
         times = ["now"] if args.dry else list(px.SNAP_TIMES)
         for hhmm in times:

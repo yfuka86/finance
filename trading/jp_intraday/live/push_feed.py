@@ -53,6 +53,11 @@ class PushBoardFeed:
         # **分析ではPUSHで更新された銘柄だけを使う**ため必ず記録する。
         self._source: dict[str, str] = {}
         self._updates: dict[str, int] = {}
+        # 受信履歴（record_history=True のとき）。板寄せの成立が配信でいつ観測されるか
+        # ＝下り遅延の実測に使う。1メッセージ= (受信epoch, 銘柄, 現値時刻, 現値, 寄値/引値)
+        self.record_history = False
+        self.history: list[tuple] = []
+        self._history_cap = 200_000
         self._lock = threading.Lock()
         self._ws: websocket.WebSocketApp | None = None
         self._thread: threading.Thread | None = None
@@ -130,6 +135,10 @@ class PushBoardFeed:
         except Exception:  # noqa: BLE001
             return
         self.messages += 1
+        if self.record_history and len(self.history) < self._history_cap:
+            self.history.append((time.time(), str(board.get("Symbol") or ""),
+                                 board.get("CurrentPriceTime"), board.get("CurrentPrice"),
+                                 board.get("OpeningPrice"), board.get("ClosingPrice")))
         self._store(board)
 
     def _store(self, board: dict, fallback_symbol: str | None = None,
