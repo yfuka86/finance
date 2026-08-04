@@ -108,6 +108,33 @@ def research_rows() -> pd.DataFrame:
           "注記":(f"超過平均{pr['excess_mean']*100:+.2f}%(素{pr['raw_net_mean']*100:+.2f}% vs "
                  f"市場{pr['market_mean']*100:+.2f}%)＝全部β。勝率{pr['win_rate']*100:.0f}%"),
           "結果":"data/jp_crash_dipbuy/summary.json"})
+    fxs=_json("data/fx_alpha_sweep/summary.json")
+    if fxs:
+        best=max((v["selection"].get("sharpe") or -9, k) for k,v in fxs["results"].items())
+        rows.append({"戦略":"FX 独立4因子スイープ","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":best[0],
+          "年率%":None,"最大DD%":None,"案件/日数":len(fxs["results"]),
+          "注記":(f"ドルタイミング−0.06/長期リバーサル0.11/金利モメンタム−0.08/週次リバーサル−0.36。"
+                 f"全て選択窓で全滅・確認窓2020+は未消費のまま温存。最良={best[1]}"),
+          "結果":"data/fx_alpha_sweep/summary.json"})
+    fxb=_json("data/fx_basket/summary.json")
+    if fxb:
+        a=fxb["A_carry"]["selection"]
+        rows.append({"戦略":"FX キャリー/モメンタム（バスケット）","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":a.get("sharpe"),
+          "年率%":100*a.get("ann_return",float("nan")),"最大DD%":100*a.get("max_drawdown",float("nan")),
+          "案件/日数":a.get("days"),
+          "注記":"キャリー0.14/0.07・モメンタム0.55→0.23(集中で崩壊)。スワップ年+2.3%を価格変動が食う",
+          "結果":"data/fx_basket/summary.json"})
+    fxd=_json("data/fx_carry_dip/summary.json")
+    if fxd:
+        sl=fxd["selection"]
+        rows.append({"戦略":"FX 正キャリーのディップバイ","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":sl.get("sharpe"),
+          "年率%":100*sl.get("ann_return",float("nan")),"最大DD%":100*sl.get("max_drawdown",float("nan")),
+          "案件/日数":sl.get("trades"),
+          "注記":"「暴落後は安い」が不成立（勝率50.9%・1取引平均−0.11%）。無条件キャリーより悪化",
+          "結果":"data/fx_carry_dip/summary.json"})
     et=_json("data/jp_earnings_timing/summary.json")
     if et:
         a=et["A_pre_earnings"]; fc=a["confirmation_full_calendar"]
