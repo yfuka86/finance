@@ -40,39 +40,45 @@ def decompose(gap_quote: np.ndarray, gap_actual: np.ndarray) -> dict:
 
 
 def main() -> int:
-    files = sorted(glob.glob("data/live_reports/push_experiment_2*.json")  # _dry_ は除外)
+    files = sorted(glob.glob("data/live_reports/push_experiment_2*.json"))  # _dry_ は除外
     if not files:
         raise SystemExit("実験ログがありません（scripts/run_push_experiment.py を朝に実行）")
     cfg = LiveConfig.from_env()
     panel = load_panel_cached(min_value_yen=cfg.min_value_yen)
     panel["day"] = pd.to_datetime(panel["date"]).dt.strftime("%Y-%m-%d")
 
+    all_days = sorted(panel["day"].unique())
     for f in files:
         rec = json.loads(open(f, encoding="utf-8").read())
         day = rec["day"]
         p = panel[panel["day"] == day]
-        if p.empty:
+        prior = [d for d in all_days if d < day]
+        if p.empty or not prior:
             print(f"\n[{day}] 実寄値がまだパネルに無い（collect_jp_daily_history 後に再実行）")
             continue
-        print(f"\n===== {day} （選定方式={rec['select']}・ユニバース{rec['universe_n']}） =====")
-        prev_close = (p["raw_close"] / (1 + p["overnight_gap"])).where(
-            p["overnight_gap"].notna())
-        actual = pd.DataFrame({"symbol": p["symbol"],
-                               "gap_actual": p["overnight_gap"] * 100,
-                               "open_actual": p["raw_close"].where(False)})
-        # 実寄値ベースの本来の建玉（全ユニバース）
-        opens_actual = dict(zip(p["symbol"], (1 + p["overnight_gap"]) * prev_close))
+        # ★PIT: 特徴量と前日終値は**前営業日の行**から取る（ライブの朝と同じ）。
+        #   旧実装は当日行を使っており、①スコアの特徴量が当日終値でリーク
+        #   ②opens_actual = raw_close(当日)/(1+gap)×(1+gap) = **当日終値**（寄値ですらない）
+        #   という二重の誤りだった（2026-08-05 発見・それ以前の A/C 出力は無効）。
+        prev = panel[panel["day"] == prior[-1]]
+        print(f"\n===== {day} （選定方式={rec['select']}・ユニバース{rec['universe_n']}・"
+              f"特徴量={prior[-1]}） =====")
+        pc_prev = (prev["raw_close"].fillna(prev["close"])
+                   if "raw_close" in prev else prev["close"])
+        pc_map = dict(zip(prev["symbol"], pc_prev))
+        gap_map = dict(zip(p["symbol"], p["overnight_gap"] * 100))
+        # 実寄値 = 前日終値 × (1 + 当日ギャップ)
+        opens_actual = {s: pc_map[s] * (1 + g / 100) for s, g in gap_map.items()
+                        if s in pc_map and pd.notna(g) and pc_map[s]}
         nps = rec.get("names_per_side", cfg.names_per_side)
-        true_book, per_sleeve = pxm.ensemble_book(p.copy(), opens_actual, cfg.strategy, nps)
+        true_book, per_sleeve = pxm.ensemble_book(prev.copy(), opens_actual,
+                                                  cfg.strategy, nps)
         chosen = set(rec["chosen"])
         recall = len(true_book & chosen) / max(len(true_book), 1)
         print(f"A. 候補リコール: 本来の建玉 {len(true_book)}銘柄中 "
               f"{len(true_book & chosen)}銘柄が候補{len(chosen)}に含まれる → **{recall*100:.0f}%**")
         print(f"   （早い1周で選んだ建玉候補との一致: "
               f"{pxm.book_overlap(set(rec['early_book']), true_book)*100:.0f}%）")
-
-        gap_map = dict(zip(actual["symbol"], actual["gap_actual"]))
-        pc_map = dict(zip(p["symbol"], prev_close))
 
         def gaps(quotes: dict) -> tuple:
             gq, ga = [], []
@@ -94,8 +100,8 @@ def main() -> int:
             print(f"   同時 {hhmm}（スメア{snap['smear_s']:.1f}秒・PUSH {snap['push_messages']}件）")
             print(f"   {_fmt(d2)}")
 
-        # C. 候補50内での建玉一致率
-        sub = p[p["symbol"].isin(chosen)].copy()
+        # C. 候補50内での建玉一致率（特徴量はPIT=前営業日の行）
+        sub = prev[prev["symbol"].isin(chosen)].copy()
         n_side = min(nps, max(len(sub) // 4, 1))
         book_actual, _ = pxm.ensemble_book(
             sub, {s: opens_actual[s] for s in sub["symbol"] if s in opens_actual},
