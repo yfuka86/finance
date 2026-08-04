@@ -23,6 +23,9 @@ data/jp_daily_history/
 data/live_reports/
 nohup.out
 
+# X API由来の再収集可能データ・分析レポート（投稿本文をGitへ入れない）
+data/x_trade_ideas/
+
 # 再生成可能な生API保存（コレクタで再構築可・GCSバンドルで共有）
 data/jp_ownership/filings.jsonl
 data/jp_buybacks/edinet/raw/

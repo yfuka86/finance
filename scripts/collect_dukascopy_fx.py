@@ -37,18 +37,54 @@ ROOT = Path("data/fx_dukascopy")
 REC = struct.Struct(">iiiiif")
 
 
-def _get(url: str, tries: int = 6) -> bytes | None:
+class Unavailable(Exception):
+    """レート制限などで取得できなかった（データが無いのとは区別する）."""
+
+
+def _get(url: str, tries: int = 9) -> bytes | None:
+    """★Dukascopy は連続取得で接続を切ってくる。落とさずギャップとして記録する。
+
+    以前は6回で例外を投げて**全体が停止し、途中経過も保存されない**設計だった
+    （EURUSD 2017/07 で実際に落ちた）。ここは長いバックオフで粘り、それでも
+    駄目なら Unavailable を投げて呼び出し側がスキップ・記録できるようにする。
+    """
+    import random
     for i in range(tries):
         try:
-            r = requests.get(url, timeout=60)
+            r = requests.get(url, timeout=90)
             if r.status_code == 404:
                 return None                      # その月のデータ無し（上場前など）
             if r.status_code == 200:
                 return r.content
         except requests.RequestException:
             pass
-        time.sleep(min(2 ** i, 30))
-    raise RuntimeError(f"dukascopy retry exhausted: {url}")
+        time.sleep(min(3 * 2 ** i, 120) + random.uniform(0, 2))
+    raise Unavailable(url)
+
+
+def year_frame(pair: str, year: int, side: str) -> pd.DataFrame:
+    """One yearly file -> daily OHLC for that side.
+
+    ★週次リバランスの戦略に時間足は過剰で、Dukascopy のレート制限に正面から
+    当たるだけだった（月次×2×7ペア×16年＝2,520リクエスト）。日足は年次ファイル
+    なので **224リクエスト**で済み、同じ bid/ask が得られる。
+    """
+    raw = _get(f"{BASE}/{pair}/{year}/{side}_candles_day_1.bi5")
+    if not raw:
+        return pd.DataFrame()
+    try:
+        blob = lzma.LZMADecompressor(format=lzma.FORMAT_ALONE).decompress(raw)
+    except lzma.LZMAError:
+        return pd.DataFrame()
+    start = dt.datetime(year, 1, 1, tzinfo=dt.timezone.utc)
+    sc = SCALE[pair]
+    rows = []
+    for i in range(len(blob) // REC.size):
+        t, o, c, l, h, v = REC.unpack_from(blob, i * REC.size)
+        if o == 0 and c == 0 and v == 0:
+            continue
+        rows.append((start + dt.timedelta(seconds=t), o / sc, h / sc, l / sc, c / sc, v))
+    return pd.DataFrame(rows, columns=["ts", "open", "high", "low", "close", "volume"])
 
 
 def month_frame(pair: str, year: int, month0: int, side: str) -> pd.DataFrame:
@@ -75,43 +111,52 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--start-year", type=int, default=2011)
     ap.add_argument("--end-year", type=int, default=2026)
+    ap.add_argument("--sleep", type=float, default=0.6)
     args = ap.parse_args()
     ROOT.mkdir(parents=True, exist_ok=True)
-    manifest = {}
+    parts = ROOT / "parts"
+    parts.mkdir(exist_ok=True)
+    gaps = []
     for pair in PAIRS:
-        out = ROOT / f"{pair}_hour.parquet"
-        if out.exists():
-            print(f"{pair}: skip (exists)", flush=True)
-            manifest[pair] = {"rows": len(pd.read_parquet(out)), "file": str(out)}
-            continue
-        frames = []
         for year in range(args.start_year, args.end_year + 1):
-            for m0 in range(12):
-                if dt.date(year, m0 + 1, 1) > dt.date.today():
-                    break
-                bid = month_frame(pair, year, m0, "BID")
-                ask = month_frame(pair, year, m0, "ASK")
-                if bid.empty or ask.empty:
-                    continue
+            out = parts / f"{pair}_{year}.parquet"
+            if out.exists():
+                continue                          # ★年単位で再開可能
+            frames = []
+            try:
+                bid = year_frame(pair, year, "BID")
+                ask = year_frame(pair, year, "ASK")
+            except Unavailable as e:
+                gaps.append(str(e)); print(f"  GAP {pair} {year}", flush=True); continue
+            if not bid.empty and not ask.empty:
                 m = bid.merge(ask, on="ts", suffixes=("_bid", "_ask"))
                 m["spread"] = m["close_ask"] - m["close_bid"]
                 m["mid"] = (m["close_ask"] + m["close_bid"]) / 2
                 frames.append(m)
-                time.sleep(0.25)                 # 連続取得で接続を切られるため
-            print(f"  {pair} {year} done ({sum(len(f) for f in frames):,} rows)", flush=True)
-        if not frames:
+            time.sleep(args.sleep)
+            if frames:
+                pd.concat(frames, ignore_index=True).to_parquet(out, index=False)
+                print(f"{pair} {year}: saved {sum(len(f) for f in frames):,} rows", flush=True)
+    # 年別パーツを結合
+    manifest = {}
+    for pair in PAIRS:
+        fs = sorted(parts.glob(f"{pair}_*.parquet"))
+        if not fs:
             continue
-        d = pd.concat(frames, ignore_index=True).drop_duplicates("ts").sort_values("ts")
-        d.to_parquet(out, index=False)
+        d = pd.concat([pd.read_parquet(f) for f in fs], ignore_index=True)
+        d = d.drop_duplicates("ts").sort_values("ts")
+        d.to_parquet(ROOT / f"{pair}_day.parquet", index=False)
         manifest[pair] = {"rows": len(d), "start": str(d.ts.min()), "end": str(d.ts.max()),
-                          "median_spread": float(d.spread.median()), "file": str(out)}
+                          "median_spread": float(d.spread.median()),
+                          "years": len(fs)}
         print(f"{pair}: {len(d):,} rows {d.ts.min()} .. {d.ts.max()}", flush=True)
     (ROOT / "manifest.json").write_text(json.dumps(
-        {"source": BASE, "pairs": list(PAIRS), "granularity": "hour",
+        {"source": BASE, "pairs": list(PAIRS), "granularity": "day",
          "note": "Dukascopy ECN bid/ask candles; MM is 0-indexed in the URL",
-         "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(), "pairs_detail": manifest},
-        ensure_ascii=False, indent=2), encoding="utf-8")
-    print("manifest written")
+         "gaps_unavailable": gaps,
+         "fetched_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+         "pairs_detail": manifest}, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"manifest written / gaps={len(gaps)}")
 
 
 if __name__ == "__main__":

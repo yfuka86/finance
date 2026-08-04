@@ -1,0 +1,231 @@
+{
+  "spec": {
+    "z_entry": -2.0,
+    "hold": 20,
+    "max_pos": 4,
+    "lookback": 5,
+    "vol_window": 60
+  },
+  "window_note": "2011-2025 は無条件キャリーで消費済み。合格しても選択段階の結果で、判定には新規フォワードが要る",
+  "selection": {
+    "days": 3287,
+    "trades": 226,
+    "sharpe": -0.214,
+    "ann_return": -0.0059,
+    "max_drawdown": -0.1662,
+    "trade_mean": -0.0011,
+    "trade_win_rate": 0.5088,
+    "top5_trade_profit_share": 0.1685,
+    "sharpe_ex_top10": -0.222,
+    "negative_years": 6,
+    "years": 9,
+    "by_year": {
+      "2011": 0.035,
+      "2012": -0.0115,
+      "2013": -0.0333,
+      "2014": -0.0625,
+      "2015": -0.005,
+      "2016": 0.0009,
+      "2017": -0.0146,
+      "2018": -0.0098,
+      "2019": 0.0232
+    }
+  },
+  "reference": {
+    "days": 2192,
+    "trades": 128,
+    "sharpe": -0.289,
+    "ann_return": -0.008,
+    "max_drawdown": -0.0869,
+    "trade_mean": -0.0019,
+    "trade_win_rate": 0.4766,
+    "top5_trade_profit_share": 0.2323,
+    "sharpe_ex_top10": -0.287,
+    "negative_years": 4,
+    "years": 6,
+    "by_year": {
+      "2020": -0.0252,
+      "2021": 0.0107,
+      "2022": -0.0447,
+      "2023": -0.0027,
+      "2024": 0.012,
+      "2025": -0.0195
+    }
+  },
+  "failed_criteria": [
+    "selection_sharpe_lt_1.0",
+    "selection_too_many_negative_years",
+    "selection_sharpe_ex_top10_lt_0.5"
+  ],
+  "decision": "NO_GO",
+  "sensitivity": {
+    "z-1.5": {
+      "days": 3287,
+      "trades": 394,
+      "sharpe": 0.193,
+      "ann_return": 0.007,
+      "max_drawdown": -0.1553,
+      "trade_mean": 0.0013,
+      "trade_win_rate": 0.5305,
+      "top5_trade_profit_share": 0.0881,
+      "sharpe_ex_top10": 0.191,
+      "negative_years": 4,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0552,
+        "2012": 0.0165,
+        "2013": -0.0504,
+        "2014": -0.033,
+        "2015": -0.0159,
+        "2016": 0.0343,
+        "2017": -0.0143,
+        "2018": 0.0514,
+        "2019": 0.048
+      }
+    },
+    "z-2.5": {
+      "days": 3287,
+      "trades": 110,
+      "sharpe": -0.245,
+      "ann_return": -0.0051,
+      "max_drawdown": -0.1108,
+      "trade_mean": -0.0021,
+      "trade_win_rate": 0.4455,
+      "top5_trade_profit_share": 0.3207,
+      "sharpe_ex_top10": -0.265,
+      "negative_years": 6,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0302,
+        "2012": -0.009,
+        "2013": -0.0287,
+        "2014": -0.0464,
+        "2015": 0.0144,
+        "2016": 0.0066,
+        "2017": -0.0061,
+        "2018": -0.0225,
+        "2019": -0.0049
+      }
+    },
+    "hold10": {
+      "days": 3287,
+      "trades": 261,
+      "sharpe": -0.344,
+      "ann_return": -0.0074,
+      "max_drawdown": -0.1507,
+      "trade_mean": -0.0011,
+      "trade_win_rate": 0.4598,
+      "top5_trade_profit_share": 0.1522,
+      "sharpe_ex_top10": -0.333,
+      "negative_years": 7,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0089,
+        "2012": -0.0035,
+        "2013": -0.0372,
+        "2014": -0.0086,
+        "2015": -0.0234,
+        "2016": -0.0229,
+        "2017": -0.0155,
+        "2018": -0.0033,
+        "2019": 0.0086
+      }
+    },
+    "hold40": {
+      "days": 3287,
+      "trades": 169,
+      "sharpe": -0.037,
+      "ann_return": -0.0013,
+      "max_drawdown": -0.1631,
+      "trade_mean": 0.0002,
+      "trade_win_rate": 0.5089,
+      "top5_trade_profit_share": 0.2258,
+      "sharpe_ex_top10": -0.032,
+      "negative_years": 5,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0931,
+        "2012": -0.0235,
+        "2013": -0.0329,
+        "2014": -0.0728,
+        "2015": 0.0297,
+        "2016": -0.0172,
+        "2017": -0.0106,
+        "2018": 0.002,
+        "2019": 0.0151
+      }
+    },
+    "pos2": {
+      "days": 3287,
+      "trades": 159,
+      "sharpe": -0.246,
+      "ann_return": -0.0103,
+      "max_drawdown": -0.2396,
+      "trade_mean": -0.0014,
+      "trade_win_rate": 0.5031,
+      "top5_trade_profit_share": 0.185,
+      "sharpe_ex_top10": -0.247,
+      "negative_years": 6,
+      "years": 9,
+      "by_year": {
+        "2011": -0.0016,
+        "2012": 0.0239,
+        "2013": -0.0517,
+        "2014": -0.0854,
+        "2015": -0.0281,
+        "2016": -0.0029,
+        "2017": -0.025,
+        "2018": 0.0146,
+        "2019": 0.0215
+      }
+    },
+    "pos7": {
+      "days": 3287,
+      "trades": 240,
+      "sharpe": -0.301,
+      "ann_return": -0.0053,
+      "max_drawdown": -0.1137,
+      "trade_mean": -0.0017,
+      "trade_win_rate": 0.4917,
+      "top5_trade_profit_share": 0.1664,
+      "sharpe_ex_top10": -0.312,
+      "negative_years": 7,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0137,
+        "2012": -0.0118,
+        "2013": -0.025,
+        "2014": -0.033,
+        "2015": -0.0069,
+        "2016": -0.0042,
+        "2017": -0.0083,
+        "2018": -0.0056,
+        "2019": 0.0118
+      }
+    },
+    "haircut50": {
+      "days": 3287,
+      "trades": 226,
+      "sharpe": -0.253,
+      "ann_return": -0.007,
+      "max_drawdown": -0.1745,
+      "trade_mean": -0.0013,
+      "trade_win_rate": 0.5088,
+      "top5_trade_profit_share": 0.1707,
+      "sharpe_ex_top10": -0.261,
+      "negative_years": 7,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0337,
+        "2012": -0.0132,
+        "2013": -0.0353,
+        "2014": -0.0641,
+        "2015": -0.0066,
+        "2016": -0.001,
+        "2017": -0.0158,
+        "2018": -0.0108,
+        "2019": 0.0213
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "source": "https://datafeed.dukascopy.com/datafeed",
+  "pairs": [
+    "EURUSD",
+    "USDJPY",
+    "GBPUSD",
+    "USDCHF",
+    "AUDUSD",
+    "USDCAD",
+    "NZDUSD"
+  ],
+  "granularity": "day",
+  "note": "Dukascopy ECN bid/ask candles; MM is 0-indexed in the URL",
+  "gaps_unavailable": [],
+  "fetched_at": "2026-08-03T22:54:52.245635+00:00",
+  "pairs_detail": {
+    "EURUSD": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 5.0000000000105516e-05,
+      "years": 15
+    },
+    "USDJPY": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 0.007000000000005002,
+      "years": 15
+    },
+    "GBPUSD": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 0.000140000000000029,
+      "years": 15
+    },
+    "USDCHF": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 0.00014999999999998348,
+      "years": 15
+    },
+    "AUDUSD": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 0.00012000000000000899,
+      "years": 15
+    },
+    "USDCAD": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 0.00014999999999987246,
+      "years": 15
+    },
+    "NZDUSD": {
+      "rows": 5479,
+      "start": "2011-01-01 00:00:00+00:00",
+      "end": "2025-12-31 00:00:00+00:00",
+      "median_spread": 0.00014999999999998348,
+      "years": 15
+    }
+  }
+}

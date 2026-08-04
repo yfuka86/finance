@@ -1,0 +1,297 @@
+{
+  "spec": {
+    "n_side": 2,
+    "mom_weeks": 12,
+    "rebalance": "weekly Friday",
+    "selection": [
+      "2011-01-01",
+      "2019-12-31"
+    ],
+    "confirmation": [
+      "2020-01-01",
+      "2099-12-31"
+    ]
+  },
+  "rows": 5479,
+  "start": "2011-01-01",
+  "end": "2025-12-31",
+  "A_carry": {
+    "selection": {
+      "days": 3286,
+      "sharpe": 0.138,
+      "ann_return": 0.0125,
+      "max_drawdown": -0.2277,
+      "ann_swap": 0.0226,
+      "ann_cost": 0.0004,
+      "top5_week_profit_share": 0.0827,
+      "sharpe_ex_top10_weeks": -0.253,
+      "negative_years": 3,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0558,
+        "2012": 0.0566,
+        "2013": -0.0896,
+        "2014": 0.0536,
+        "2015": -0.0386,
+        "2016": 0.0594,
+        "2017": -0.013,
+        "2018": 0.0441,
+        "2019": 0.0353
+      }
+    },
+    "confirmation": {
+      "days": 2192,
+      "sharpe": 0.069,
+      "ann_return": 0.0043,
+      "max_drawdown": -0.117,
+      "ann_swap": 0.0232,
+      "ann_cost": 0.0007,
+      "top5_week_profit_share": 0.093,
+      "sharpe_ex_top10_weeks": -0.399,
+      "negative_years": 2,
+      "years": 6,
+      "by_year": {
+        "2020": -0.0404,
+        "2021": 0.0209,
+        "2022": -0.0558,
+        "2023": 0.0115,
+        "2024": 0.096,
+        "2025": 0.0055
+      }
+    }
+  },
+  "B_momentum": {
+    "selection": {
+      "days": 3286,
+      "sharpe": 0.549,
+      "ann_return": 0.0462,
+      "max_drawdown": -0.1077,
+      "ann_swap": 0.0004,
+      "ann_cost": 0.0114,
+      "top5_week_profit_share": 0.0802,
+      "sharpe_ex_top10_weeks": 0.273,
+      "negative_years": 1,
+      "years": 9,
+      "by_year": {
+        "2011": 0.0546,
+        "2012": 0.1396,
+        "2013": 0.1312,
+        "2014": 0.0661,
+        "2015": 0.0509,
+        "2016": 0.1395,
+        "2017": -0.0537,
+        "2018": 0.0338,
+        "2019": 0.0402
+      }
+    },
+    "confirmation": {
+      "days": 2192,
+      "sharpe": 0.233,
+      "ann_return": 0.0181,
+      "max_drawdown": -0.1877,
+      "ann_swap": 0.0001,
+      "ann_cost": 0.0154,
+      "top5_week_profit_share": 0.1635,
+      "sharpe_ex_top10_weeks": -0.52,
+      "negative_years": 1,
+      "years": 6,
+      "by_year": {
+        "2020": -0.0259,
+        "2021": 0.0333,
+        "2022": 0.0496,
+        "2023": 0.0059,
+        "2024": 0.0424,
+        "2025": 0.0517
+      }
+    }
+  },
+  "failed_criteria": [
+    "selection_sharpe_lt_1.0",
+    "selection_sharpe_ex_top10_lt_0.5",
+    "confirmation_sharpe_lt_1.0",
+    "confirmation_sharpe_ex_top10_lt_0.5"
+  ],
+  "decision": "NO_GO",
+  "sensitivity": {
+    "haircut25": {
+      "selection": {
+        "days": 3286,
+        "sharpe": 0.095,
+        "ann_return": 0.0086,
+        "max_drawdown": -0.2381,
+        "ann_swap": 0.0186,
+        "ann_cost": 0.0004,
+        "top5_week_profit_share": 0.0833,
+        "sharpe_ex_top10_weeks": -0.309,
+        "negative_years": 3,
+        "years": 9,
+        "by_year": {
+          "2011": 0.0502,
+          "2012": 0.0508,
+          "2013": -0.0953,
+          "2014": 0.0478,
+          "2015": -0.0443,
+          "2016": 0.0536,
+          "2017": -0.0187,
+          "2018": 0.0383,
+          "2019": 0.0296
+        }
+      },
+      "confirmation": {
+        "days": 2192,
+        "sharpe": 0.006,
+        "ann_return": 0.0004,
+        "max_drawdown": -0.1329,
+        "ann_swap": 0.0192,
+        "ann_cost": 0.0007,
+        "top5_week_profit_share": 0.094,
+        "sharpe_ex_top10_weeks": -0.477,
+        "negative_years": 3,
+        "years": 6,
+        "by_year": {
+          "2020": -0.0461,
+          "2021": 0.0151,
+          "2022": -0.0615,
+          "2023": 0.0058,
+          "2024": 0.0903,
+          "2025": -0.0003
+        }
+      }
+    },
+    "haircut50": {
+      "selection": {
+        "days": 3286,
+        "sharpe": 0.051,
+        "ann_return": 0.0047,
+        "max_drawdown": -0.2511,
+        "ann_swap": 0.0147,
+        "ann_cost": 0.0004,
+        "top5_week_profit_share": 0.0839,
+        "sharpe_ex_top10_weeks": -0.365,
+        "negative_years": 3,
+        "years": 9,
+        "by_year": {
+          "2011": 0.0446,
+          "2012": 0.0451,
+          "2013": -0.1011,
+          "2014": 0.0421,
+          "2015": -0.05,
+          "2016": 0.0479,
+          "2017": -0.0244,
+          "2018": 0.0326,
+          "2019": 0.0239
+        }
+      },
+      "confirmation": {
+        "days": 2192,
+        "sharpe": -0.057,
+        "ann_return": -0.0036,
+        "max_drawdown": -0.1486,
+        "ann_swap": 0.0153,
+        "ann_cost": 0.0007,
+        "top5_week_profit_share": 0.095,
+        "sharpe_ex_top10_weeks": -0.555,
+        "negative_years": 3,
+        "years": 6,
+        "by_year": {
+          "2020": -0.0519,
+          "2021": 0.0094,
+          "2022": -0.0672,
+          "2023": 0.0001,
+          "2024": 0.0846,
+          "2025": -0.006
+        }
+      }
+    },
+    "haircut100": {
+      "selection": {
+        "days": 3286,
+        "sharpe": -0.035,
+        "ann_return": -0.0032,
+        "max_drawdown": -0.2767,
+        "ann_swap": 0.0068,
+        "ann_cost": 0.0004,
+        "top5_week_profit_share": 0.0852,
+        "sharpe_ex_top10_weeks": -0.477,
+        "negative_years": 3,
+        "years": 9,
+        "by_year": {
+          "2011": 0.0334,
+          "2012": 0.0337,
+          "2013": -0.1125,
+          "2014": 0.0306,
+          "2015": -0.0615,
+          "2016": 0.0365,
+          "2017": -0.0358,
+          "2018": 0.0212,
+          "2019": 0.0124
+        }
+      },
+      "confirmation": {
+        "days": 2192,
+        "sharpe": -0.182,
+        "ann_return": -0.0115,
+        "max_drawdown": -0.1826,
+        "ann_swap": 0.0074,
+        "ann_cost": 0.0007,
+        "top5_week_profit_share": 0.0969,
+        "sharpe_ex_top10_weeks": -0.712,
+        "negative_years": 5,
+        "years": 6,
+        "by_year": {
+          "2020": -0.0634,
+          "2021": -0.002,
+          "2022": -0.0785,
+          "2023": -0.0113,
+          "2024": 0.0731,
+          "2025": -0.0175
+        }
+      }
+    },
+    "hold2w": {
+      "selection": {
+        "days": 3286,
+        "sharpe": 0.103,
+        "ann_return": 0.0094,
+        "max_drawdown": -0.2341,
+        "ann_swap": 0.0226,
+        "ann_cost": 0.0003,
+        "top5_week_profit_share": 0.0835,
+        "sharpe_ex_top10_weeks": -0.299,
+        "negative_years": 3,
+        "years": 9,
+        "by_year": {
+          "2011": 0.0558,
+          "2012": 0.053,
+          "2013": -0.098,
+          "2014": 0.0532,
+          "2015": -0.0386,
+          "2016": 0.0594,
+          "2017": -0.013,
+          "2018": 0.0227,
+          "2019": 0.0276
+        }
+      },
+      "confirmation": {
+        "days": 2192,
+        "sharpe": 0.088,
+        "ann_return": 0.0055,
+        "max_drawdown": -0.1149,
+        "ann_swap": 0.0232,
+        "ann_cost": 0.0007,
+        "top5_week_profit_share": 0.1009,
+        "sharpe_ex_top10_weeks": -0.409,
+        "negative_years": 2,
+        "years": 6,
+        "by_year": {
+          "2020": -0.0419,
+          "2021": 0.0141,
+          "2022": -0.045,
+          "2023": 0.0113,
+          "2024": 0.104,
+          "2025": 0.0055
+        }
+      }
+    }
+  }
+}

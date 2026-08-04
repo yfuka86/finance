@@ -123,11 +123,11 @@ def research_rows() -> pd.DataFrame:
     if cal:
         c=cal["primary"]
         rows.append({"戦略":"日経225OP カレンダースプレッド","ファミリー":"OPTIONS",
-          "状態":cal.get("decision","NO_GO"),"実取引":False,"OOS Sharpe":c.get("sharpe"),
+          "状態":"NO-GO","実取引":False,"OOS Sharpe":c.get("sharpe"),
           "年率%":None,"最大DD%":None,"案件/日数":c.get("trades"),
-          "注記":(f"事前登録5基準を全通過（勝率{c['win_rate']*100:.1f}%・負の年{c['negative_years']}・"
-                 f"最悪{c['worst']*100:.0f}%＝デビット内）。ただし清算値のみでPAPER ONLY。"
-                 "損益分岐~17-18ティックで2レッグ往復の現実レンジと重なる"),
+          "注記":("敵対的検証で棄却＝同一バー・アーティファクト。シグナルと建玉が同じ清算値で、"
+                 "ノイズ結合を収穫していた。実行可能なT+1建てはSh0.47(put)/0.96(パリティ平均)・"
+                 "前後半−0.45/+1.29と不安定。1.97は実行不能な数字"),
           "結果":"data/jp_option_calendar/summary.json"})
     qs=_json("data/jp_quote_shortlist/summary.json")
     if qs:
