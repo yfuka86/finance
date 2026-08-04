@@ -49,6 +49,10 @@ class PushBoardFeed:
         self._log = log
         self._latest: dict[str, dict] = {}
         self._at: dict[str, float] = {}
+        # 値の出どころ（"seed"=起動時のREST / "push"=配信で更新済み）と更新回数。
+        # **分析ではPUSHで更新された銘柄だけを使う**ため必ず記録する。
+        self._source: dict[str, str] = {}
+        self._updates: dict[str, int] = {}
         self._lock = threading.Lock()
         self._ws: websocket.WebSocketApp | None = None
         self._thread: threading.Thread | None = None
@@ -86,7 +90,7 @@ class PushBoardFeed:
                     b = seed(s) if seed else self._client._request(
                         "GET", f"/board/{to_kabu_symbol(s)}@{self._exchange}")
                     if b:
-                        self._store(b, fallback_symbol=s)
+                        self._store(b, fallback_symbol=s, source="seed")
                 except Exception:  # noqa: BLE001
                     pass
 
@@ -128,7 +132,8 @@ class PushBoardFeed:
         self.messages += 1
         self._store(board)
 
-    def _store(self, board: dict, fallback_symbol: str | None = None) -> None:
+    def _store(self, board: dict, fallback_symbol: str | None = None,
+               source: str = "push") -> None:
         sym = str(board.get("Symbol") or "")
         key = self._kabu.get(sym, fallback_symbol)
         if key is None:
@@ -136,6 +141,9 @@ class PushBoardFeed:
         with self._lock:
             self._latest[key] = board
             self._at[key] = time.time()
+            self._source[key] = source
+            if source == "push":
+                self._updates[key] = self._updates.get(key, 0) + 1
 
     # ── public ──────────────────────────────────────────────────────
     @property
@@ -160,12 +168,44 @@ class PushBoardFeed:
         """
         now = time.time()
         with self._lock:
-            return {k: {"board": v, "at": self._at[k], "age_s": now - self._at[k]}
+            return {k: {"board": v, "at": self._at[k], "age_s": now - self._at[k],
+                        "source": self._source.get(k, "seed"),
+                        "updates": self._updates.get(k, 0)}
                     for k, v in self._latest.items()}
 
-    def smear_seconds(self) -> float:
-        """スナップショット内の最古と最新の差（＝同時性の指標）。"""
+    def smear_seconds(self, push_only: bool = False) -> float:
+        """最終更新時刻のばらつき（最古 − 最新）。
+
+        ⚠️**これは測定誤差ではない**（2026-08-04 に解釈を訂正）。PUSHは値が動いた
+        瞬間に届くので、「最終更新が10分前」の銘柄は情報が古いのではなく
+        **10分間その気配が動いていない**だけ。スナップショットは時刻Tにおける
+        全銘柄の正しい現在値であり、同時性は担保されている。
+        RESTの1周（07:50に読んだ銘柄が08:22までに動いても分からない）とは別物。
+
+        この値は「気配がどれくらい静かか」の目安として見る。真の情報鮮度は
+        health() で担保する（接続・全銘柄が配信を受けているか・欠落が無いか）。
+        push_only=True なら PUSHで更新された銘柄だけで測る。
+        """
         with self._lock:
-            if len(self._at) < 2:
-                return 0.0
-            return max(self._at.values()) - min(self._at.values())
+            ats = [t for k, t in self._at.items()
+                   if not push_only or self._updates.get(k, 0) > 0]
+            return (max(ats) - min(ats)) if len(ats) >= 2 else 0.0
+
+    def push_updated(self) -> int:
+        """PUSHで1回以上更新された銘柄数。"""
+        with self._lock:
+            return sum(1 for v in self._updates.values() if v > 0)
+
+    def health(self) -> dict:
+        """スナップショットが信用できるかの健全性指標。
+
+        PUSHの同時性が崩れるのは次の3つだけなので、それを直接見る:
+          * WebSocketが切れている
+          * 一度もPUSHが来ていない銘柄がある（シード値のまま＝動いても気付けない）
+          * 配信が止まっている（messages が増えない）
+        """
+        with self._lock:
+            never = [k for k in self._symbols if self._updates.get(k, 0) == 0]
+        return {"connected": self.connected, "messages": self.messages,
+                "symbols": len(self._symbols), "never_pushed": never,
+                "ok": self.connected and not never}

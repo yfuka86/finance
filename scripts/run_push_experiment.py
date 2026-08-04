@@ -126,17 +126,25 @@ def main() -> int:
             snap = feed.snapshot()
             record["snapshots"][hhmm] = {
                 "taken": time.time(),
-                "smear_s": feed.smear_seconds(),
+                # ★smear は「気配が動いていない時間」であって測定誤差ではない。
+                #   同時性の担保は health()（接続・全銘柄が配信を受けているか）で見る。
+                "quiet_s": feed.smear_seconds(),
+                "health": feed.health(),
+                "push_updated_symbols": feed.push_updated(),
                 "push_messages": feed.messages,
                 "quotes": {k: {"q": px.quote_from_board(v["board"]),
                                "age_s": round(v["age_s"], 2),
+                               "source": v["source"], "updates": v["updates"],
                                "bid": v["board"].get("BidPrice"),
                                "ask": v["board"].get("AskPrice"),
                                "calc": v["board"].get("CalcPrice")}
                            for k, v in snap.items()},
             }
-            print(f"   {hhmm}: {len(snap)}銘柄 ・ スメア {feed.smear_seconds():.1f}秒 "
-                  f"・ PUSH受信 {feed.messages}件")
+            h = feed.health()
+            print(f"   {hhmm}: {len(snap)}銘柄（PUSH更新済み {feed.push_updated()}）"
+                  f" ・ 健全性 {'OK' if h['ok'] else 'NG:' + str(h['never_pushed'][:3])}"
+                  f" ・ 静止時間 {feed.smear_seconds():.0f}秒（誤差ではない）"
+                  f" ・ PUSH受信 {feed.messages}件")
             px.save(record, dry=args.dry)
 
     p = px.save(record, dry=args.dry)

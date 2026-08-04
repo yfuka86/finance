@@ -135,3 +135,63 @@ class PushFeedTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SourceTrackingTest(PushFeedTest):
+    """分析ではPUSH更新された銘柄だけを使うので、出どころを必ず記録する。"""
+
+    def test_seed_and_push_are_distinguished(self):
+        c = FakeClient()
+        with PushBoardFeed(c, ["13010", "13020"], log=lambda *_: None) as feed:
+            self.assertEqual(feed.push_updated(), 0, "シードをPUSH扱いにしている")
+            FakeWSApp.instances[-1].push({"Symbol": "1301", "CurrentPrice": 9.0})
+            for _ in range(50):
+                if feed.push_updated():
+                    break
+                time.sleep(0.01)
+            snap = feed.snapshot()
+        self.assertEqual(snap["13010"]["source"], "push")
+        self.assertGreaterEqual(snap["13010"]["updates"], 1)
+        self.assertEqual(snap["13020"]["source"], "seed")
+        self.assertEqual(snap["13020"]["updates"], 0)
+        self.assertEqual(feed.push_updated(), 1)
+
+    def test_push_only_smear_ignores_never_updated_symbols(self):
+        c = FakeClient()
+        with PushBoardFeed(c, ["13010", "13020"], seed_via_rest=False,
+                           log=lambda *_: None) as feed:
+            ws = FakeWSApp.instances[-1]
+            ws.push({"Symbol": "1301", "CurrentPrice": 1.0})
+            time.sleep(0.15)
+            ws.push({"Symbol": "1301", "CurrentPrice": 2.0})
+            time.sleep(0.05)
+            self.assertLess(feed.smear_seconds(push_only=True), 0.05,
+                            "1銘柄しか更新が無いのにスメアが出ている")
+
+
+class HealthTest(PushFeedTest):
+    """同時性の担保は「接続 + 全銘柄が配信を受けている」で見る（静止時間ではない）。"""
+
+    def test_health_flags_symbols_that_never_received_push(self):
+        c = FakeClient()
+        with PushBoardFeed(c, ["13010", "13020"], log=lambda *_: None) as feed:
+            FakeWSApp.instances[-1].push({"Symbol": "1301", "CurrentPrice": 1.0})
+            for _ in range(50):
+                if feed.push_updated():
+                    break
+                time.sleep(0.01)
+            h = feed.health()
+        self.assertFalse(h["ok"], "配信の来ていない銘柄があるのにOKになっている")
+        self.assertEqual(h["never_pushed"], ["13020"])
+
+    def test_health_ok_when_all_symbols_pushed(self):
+        c = FakeClient()
+        with PushBoardFeed(c, ["13010"], log=lambda *_: None) as feed:
+            FakeWSApp.instances[-1].push({"Symbol": "1301", "CurrentPrice": 1.0})
+            for _ in range(50):
+                if feed.push_updated():
+                    break
+                time.sleep(0.01)
+            h = feed.health()
+        self.assertTrue(h["ok"])
+        self.assertEqual(h["never_pushed"], [])

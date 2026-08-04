@@ -32,7 +32,12 @@ import numpy as np
 import pandas as pd
 
 _OUT_DIR = Path("data/live_reports")
-SNAP_TIMES = ("08:50", "08:55", "08:59")
+# 「気配をいつまで待てば選択が良くなるか」の曲線を引くための時点。
+# PUSHなら取得作業が不要なので**決定を寄付き直前まで遅らせられる**（従来は1周30分が
+# 律速で08:20固定だった）。発注は実測8件/秒＝32銘柄で約4秒なので 08:59:30 決定でも
+# 板寄せに間に合う。最終10分を細かく刻んで限界点を測る。
+SNAP_TIMES = ("08:30", "08:40", "08:50", "08:55", "08:57", "08:58",
+              "08:59:00", "08:59:30", "08:59:50")
 MAX_PUSH = 50
 
 
@@ -208,15 +213,16 @@ def save(record: dict, day: str | None = None, dry: bool = False) -> Path:
 
 def wait_until(hhmm: str, now_fn=dt.datetime.now, sleep=time.sleep,
                lead_s: float = 0.0) -> None:
-    """指定時刻（-lead_s）まで待つ。過ぎていれば即戻る。"""
-    target = dt.datetime.strptime(hhmm, "%H:%M").time()
+    """指定時刻（-lead_s）まで待つ。過ぎていれば即戻る。"HH:MM" と "HH:MM:SS" 対応。"""
+    fmt = "%H:%M:%S" if hhmm.count(":") == 2 else "%H:%M"
+    target = dt.datetime.strptime(hhmm, fmt).time()
     while True:
         now = now_fn()
         t = dt.datetime.combine(now.date(), target) - dt.timedelta(seconds=lead_s)
         remain = (t - now).total_seconds()
         if remain <= 0:
             return
-        sleep(min(remain, 5))
+        sleep(min(remain, 5) if remain > 5 else remain)   # 秒精度で刻むため
 
 
 def quote_from_board(board: dict) -> float:

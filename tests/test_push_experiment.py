@@ -157,3 +157,21 @@ class OutPathTest(unittest.TestCase):
         self.assertNotEqual(real, dry, "スモークテストが本番記録を上書きする")
         self.assertTrue(real.startswith("push_experiment_2"))
         self.assertIn("_dry_", dry)
+
+
+class SecondPrecisionWaitTest(unittest.TestCase):
+    """寄付き直前まで待つので秒精度が要る（08:59:30 / 08:59:50）。"""
+
+    def test_waits_to_the_second(self):
+        clock = {"t": dt.datetime(2026, 8, 4, 8, 59, 20)}
+        from trading.jp_intraday.live.push_experiment import wait_until
+        wait_until("08:59:30", now_fn=lambda: clock["t"],
+                   sleep=lambda s: clock.__setitem__("t", clock["t"] + dt.timedelta(seconds=s)))
+        self.assertGreaterEqual(clock["t"], dt.datetime(2026, 8, 4, 8, 59, 30))
+        self.assertLess(clock["t"], dt.datetime(2026, 8, 4, 8, 59, 31))
+
+    def test_snapshot_grid_covers_the_final_minutes(self):
+        from trading.jp_intraday.live.push_experiment import SNAP_TIMES
+        self.assertIn("08:59:50", SNAP_TIMES)
+        self.assertIn("08:30", SNAP_TIMES)
+        self.assertGreaterEqual(len(SNAP_TIMES), 8, "曲線を引くには点が足りない")
