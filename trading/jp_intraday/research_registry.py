@@ -117,6 +117,17 @@ def research_rows() -> pd.DataFrame:
           "注記":(f"ドルタイミング−0.06/長期リバーサル0.11/金利モメンタム−0.08/週次リバーサル−0.36。"
                  f"全て選択窓で全滅・確認窓2020+は未消費のまま温存。最良={best[1]}"),
           "結果":"data/fx_alpha_sweep/summary.json"})
+    fxg=_json("data/fx_gotobi/summary.json")
+    if fxg:
+        sl=fxg["primary"]["selection"]; au=fxg.get("authenticity_selection",{})
+        rows.append({"戦略":"FX ゴトー日・東京仲値(USDJPY)","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":sl.get("sharpe"),
+          "年率%":100*sl.get("ann_return",float("nan")),"最大DD%":None,
+          "案件/日数":sl.get("trades"),
+          "注記":(f"アノマリーは実在（ゴトー日{au.get('gotobi_mean_bps')}bps vs "
+                 f"非ゴトー{au.get('control_mean_bps')}bps・t={au.get('t_diff')}）だが"
+                 "実測スプレッド往復~0.9bpsを超えられない。確認窓2020+は未消費で温存"),
+          "結果":"data/fx_gotobi/summary.json"})
     fxb=_json("data/fx_basket/summary.json")
     if fxb:
         a=fxb["A_carry"]["selection"]

@@ -1,0 +1,8 @@
+{
+  "pairs": "USDJPY,EURUSD",
+  "gaps": [
+    "https://datafeed.dukascopy.com/datafeed/EURUSD/2016/03/BID_candles_hour_1.bi5",
+    "https://datafeed.dukascopy.com/datafeed/EURUSD/2018/05/ASK_candles_hour_1.bi5"
+  ],
+  "updated_at": "2026-08-04T17:14:34.681356+00:00"
+}
