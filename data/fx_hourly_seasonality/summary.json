@@ -1,0 +1,141 @@
+{
+  "walk_forward": {
+    "sharpe": 0.11,
+    "ann_return": 0.0016,
+    "max_drawdown": -0.0656,
+    "trade_days": 4230,
+    "top5_day_share": 0.0635,
+    "sharpe_ex_top10": -0.274,
+    "first_half_sharpe": 0.401,
+    "second_half_sharpe": -0.214,
+    "negative_years": 6,
+    "years": 13,
+    "by_year_pct": {
+      "2014": -2.39,
+      "2015": 0.0,
+      "2016": 5.03,
+      "2017": 3.75,
+      "2018": -1.17,
+      "2019": 0.26,
+      "2020": -2.18,
+      "2021": -1.47,
+      "2022": -1.82,
+      "2023": 3.05,
+      "2024": -1.13,
+      "2025": 0.9,
+      "2026": 0.03
+    }
+  },
+  "picks_by_year": {
+    "2014": [
+      {
+        "t": 2.89,
+        "pair": "EURUSD",
+        "utc_hour": 17,
+        "dir": 1
+      }
+    ],
+    "2015": [],
+    "2016": [
+      {
+        "t": 2.62,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      }
+    ],
+    "2017": [
+      {
+        "t": 2.74,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      }
+    ],
+    "2018": [
+      {
+        "t": 3.34,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      }
+    ],
+    "2019": [
+      {
+        "t": 3.06,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      }
+    ],
+    "2020": [
+      {
+        "t": 3.05,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      },
+      {
+        "t": 2.62,
+        "pair": "EURUSD",
+        "utc_hour": 11,
+        "dir": -1
+      }
+    ],
+    "2021": [
+      {
+        "t": 2.9,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      }
+    ],
+    "2022": [
+      {
+        "t": 2.62,
+        "pair": "USDJPY",
+        "utc_hour": 2,
+        "dir": -1
+      }
+    ],
+    "2023": [
+      {
+        "t": 3.6,
+        "pair": "EURUSD",
+        "utc_hour": 11,
+        "dir": -1
+      }
+    ],
+    "2024": [
+      {
+        "t": 3.99,
+        "pair": "EURUSD",
+        "utc_hour": 11,
+        "dir": -1
+      }
+    ],
+    "2025": [
+      {
+        "t": 3.74,
+        "pair": "EURUSD",
+        "utc_hour": 11,
+        "dir": -1
+      }
+    ],
+    "2026": [
+      {
+        "t": 3.75,
+        "pair": "EURUSD",
+        "utc_hour": 11,
+        "dir": -1
+      }
+    ]
+  },
+  "failed_criteria": [
+    "sharpe_lt_1.0",
+    "too_many_negative_years",
+    "sharpe_ex_top10_lt_0.5",
+    "half_period_sharpe_lt_0.5"
+  ],
+  "decision": "NO_GO"
+}

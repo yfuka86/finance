@@ -117,6 +117,15 @@ def research_rows() -> pd.DataFrame:
           "注記":(f"ドルタイミング−0.06/長期リバーサル0.11/金利モメンタム−0.08/週次リバーサル−0.36。"
                  f"全て選択窓で全滅・確認窓2020+は未消費のまま温存。最良={best[1]}"),
           "結果":"data/fx_alpha_sweep/summary.json"})
+    fxs2=_json("data/fx_hourly_seasonality/summary.json")
+    if fxs2:
+        w=fxs2["walk_forward"]
+        rows.append({"戦略":"FX 時間帯セズナリティWF(高頻度)","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":w.get("sharpe"),
+          "年率%":100*w.get("ann_return",float("nan")),"最大DD%":100*w.get("max_drawdown",float("nan")),
+          "案件/日数":w.get("trade_days"),
+          "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
+          "結果":"data/fx_hourly_seasonality/summary.json"})
     fxg=_json("data/fx_gotobi/summary.json")
     if fxg:
         sl=fxg["primary"]["selection"]; au=fxg.get("authenticity_selection",{})
@@ -126,7 +135,8 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":sl.get("trades"),
           "注記":(f"カレンダーバグ修正後: midドリフト実在（対照差t={au.get('t_diff')}）だが"
                  "GMO 0.2銭でも+0.63bps/回=Sh0.28で未達。時間足は上げ→反落を相殺するため"
-                 "9:00→9:55の古典形をティックで検証中（該当日のみピンポイント収集）"),
+                 "9:00→9:55のティック形は+1.93bps/回・Sh0.856でSharpe基準のみ僅かに未達＝"
+                 "最も基準に近いNO-GO。確認窓2020+は未開封で温存"),
           "結果":"data/fx_gotobi/summary.json"})
     fxb=_json("data/fx_basket/summary.json")
     if fxb:
