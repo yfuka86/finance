@@ -130,13 +130,14 @@ def research_rows() -> pd.DataFrame:
     if fxg:
         sl=fxg["primary"]["selection"]; au=fxg.get("authenticity_selection",{})
         rows.append({"戦略":"FX ゴトー日・東京仲値(USDJPY)","ファミリー":"FX_BASKET",
-          "状態":"NO-GO","実取引":True,"OOS Sharpe":sl.get("sharpe"),
+          "状態":"SEALED→2027-08-06","実取引":True,"OOS Sharpe":sl.get("sharpe"),
           "年率%":100*sl.get("ann_return",float("nan")),"最大DD%":None,
           "案件/日数":sl.get("trades"),
           "注記":(f"カレンダーバグ修正後: midドリフト実在（対照差t={au.get('t_diff')}）だが"
                  "GMO 0.2銭でも+0.63bps/回=Sh0.28で未達。時間足は上げ→反落を相殺するため"
-                 "9:00→9:55のティック形は+1.93bps/回・Sh0.856でSharpe基準のみ僅かに未達＝"
-                 "最も基準に近いNO-GO。確認窓2020+は未開封で温存"),
+                 "9:00→9:55ティック形+1.93bps/回・Sh0.856でSharpeのみ未達。"
+                 "封印再判定を事前登録: 未閲覧の2020-2026+フォワードを2027-08-06に1回開封"
+                 "（約560取引・SE≈0.37）。落ちたら恒久クローズ"),
           "結果":"data/fx_gotobi/summary.json"})
     fxb=_json("data/fx_basket/summary.json")
     if fxb:
