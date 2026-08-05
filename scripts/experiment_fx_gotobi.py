@@ -29,10 +29,16 @@ def load_hour(pair: str = "USDJPY") -> pd.DataFrame:
 
 
 def jp_business_days() -> pd.DatetimeIndex:
-    """TSE sessions as a proxy for JP bank business days."""
-    from trading.jp_intraday.daily_gap import load_existing_daily
-    d = load_existing_daily()
-    return pd.DatetimeIndex(sorted(pd.to_datetime(d["Date"]).unique()))
+    """JP business days from the J-Quants market calendar (2010-2027).
+
+    ★当初は株式パネルの営業日を使っていたが、パネルは**2018年開始**のため
+    2011-2017のゴトー日が全て「営業日でない」と誤判定され、前倒しループが
+    10日を超えて全滅 → **7年分のゴトー日が非ゴトー側へ混入**していた。
+    J-Quants /v2/markets/calendar（HolDiv 1=営業日・3=半日）で全期間を張る。
+    """
+    cal = pd.read_parquet("data/fx_rates/jp_market_calendar.parquet")
+    ok = cal[cal["HolDiv"].astype(str).isin(("1", "3"))]
+    return pd.DatetimeIndex(sorted(pd.to_datetime(ok["Date"]).unique()))
 
 
 def gotobi_days(bdays: pd.DatetimeIndex, lo: str, hi: str) -> set:
@@ -53,11 +59,24 @@ def gotobi_days(bdays: pd.DatetimeIndex, lo: str, hi: str) -> set:
     return out
 
 
-def fix_bar_trades(hour: pd.DataFrame) -> pd.DataFrame:
-    """One row per session day: the 00:00 UTC bar's ask-open -> bid-close return."""
+GMO_SPREAD_YEN = 0.002   # GMO FXネオ USD/JPY 0.2銭原則固定（9:00〜翌3:00＝取引窓を包含）
+
+
+def fix_bar_trades(hour: pd.DataFrame, cost: str = "dukascopy") -> pd.DataFrame:
+    """One row per session day: the 00:00 UTC bar 09:00->10:00 JST long return.
+
+    cost="dukascopy": ask in / bid out（実測スプレッド内包）
+    cost="gmo":       mid-to-mid − 0.2銭（GMOの原則固定。ユーザーがGMO口座で
+                      自動化執行できるため。※歴史的には0.3銭の時期もあり、
+                      現行コストでの評価であることに注意）
+    """
     b = hour[hour["ts"].dt.hour == 0].copy()
     b["day"] = b["ts"].dt.date
-    b["ret"] = b["close_bid"] / b["open_ask"] - 1.0
+    if cost == "gmo":
+        mid_o = (b["open_bid"] + b["open_ask"]) / 2
+        b["ret"] = b["mid"] / mid_o - 1.0 - GMO_SPREAD_YEN / mid_o
+    else:
+        b["ret"] = b["close_bid"] / b["open_ask"] - 1.0
     return b[["day", "ret"]].dropna()
 
 
@@ -99,6 +118,10 @@ def passes(w: dict) -> list[str]:
 def main() -> None:
     hour = load_hour("USDJPY")
     bdays = jp_business_days()
+    _run(hour, bdays)
+
+
+def _run(hour, bdays) -> None:
     trades = fix_bar_trades(hour)
     trades["day"] = pd.to_datetime(trades["day"])
     trades = trades.set_index("day")["ret"]
@@ -137,6 +160,20 @@ def main() -> None:
         out["decision"] = "NO_GO"
     # 対照(診断): 非ゴトー日の同トレード
     out["control_diagnostic"] = {"selection": stats(control, ctl_tr, *SELECTION)}
+    # 執行先シナリオ（GMO 0.2銭・mid建て）。ユーザーの執行口座がGMOのため追加。
+    # ★事前登録後の追加であることを明示（結果でなく執行環境に由来する変更）。
+    tg = fix_bar_trades(hour, cost="gmo")
+    tg["day"] = pd.to_datetime(tg["day"])
+    tg = tg.set_index("day")["ret"]
+    ig = pd.Series([d.date() in got for d in tg.index], index=tg.index)
+    sg = tg.where(ig, 0.0).reindex(cal).fillna(0.0)
+    gsel2 = stats(sg, tg[ig], *SELECTION)
+    out["gmo_scenario"] = {"selection": gsel2, "selection_failed": passes(gsel2),
+        "note": "post-registration execution-venue scenario (GMO 0.2sen, mid-to-mid)"}
+    if not out["gmo_scenario"]["selection_failed"]:
+        gcon = stats(sg, tg[ig], *CONFIRM)
+        out["gmo_scenario"]["confirmation"] = gcon
+        out["gmo_scenario"]["confirmation_failed"] = passes(gcon)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "summary.json").write_text(json.dumps(out, ensure_ascii=False, indent=2, default=str),
                                       encoding="utf-8")
