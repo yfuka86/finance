@@ -152,6 +152,20 @@ def main() -> int:
                   f" ・ PUSH受信 {feed.messages}件")
             px.save(record, dry=args.dry)
 
+        if not args.dry:
+            # 寄付きの約定プリント(09:00:00台のCurrentPriceTime)まで録り切ってから
+            # 履歴を書き出す。**withブロックの中で行う**（外に出るとfeedが閉じて履歴が消える。
+            # 2026-08-05: このブロックがサイレントな置換失敗で欠落し履歴を1日分失った）
+            px.wait_until("09:00:40")
+            hist_path = px.out_path().with_name(
+                px.out_path().stem.replace("push_experiment", "push_history") + ".jsonl")
+            with hist_path.open("w", encoding="utf-8") as hf:
+                for row in feed.history:
+                    hf.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+            record["history_file"] = str(hist_path)
+            record["history_rows"] = len(feed.history)
+            print(f"   受信履歴 {len(feed.history)}行 → {hist_path}")
+
     p = px.save(record, dry=args.dry)
     print(f"\n保存: {p}")
     print("夕方に `PYTHONPATH=. python scripts/analyze_push_experiment.py` で判定材料を出す")

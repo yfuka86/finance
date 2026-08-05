@@ -136,9 +136,12 @@ class PushBoardFeed:
             return
         self.messages += 1
         if self.record_history and len(self.history) < self._history_cap:
+            # bid/ask も残す: 寄前の気配は bid/ask にしか無い（CalcPrice/CurrentPriceは
+            # 前日終値のまま）。無いと履歴から「時刻tの気配」を再構成できない
             self.history.append((time.time(), str(board.get("Symbol") or ""),
                                  board.get("CurrentPriceTime"), board.get("CurrentPrice"),
-                                 board.get("OpeningPrice"), board.get("ClosingPrice")))
+                                 board.get("OpeningPrice"), board.get("ClosingPrice"),
+                                 board.get("BidPrice"), board.get("AskPrice")))
         self._store(board)
 
     def _store(self, board: dict, fallback_symbol: str | None = None,
