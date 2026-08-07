@@ -257,12 +257,20 @@ def page_kessan() -> str:
     exp = K.expected()
     mc = _mktcap_map()
     exp["mc_oku"] = exp["symbol"].map(mc)
+    sched_date = pd.to_datetime(conf["Date"].iloc[0]) if len(conf) else None
     conf_syms = set(conf["Code"].astype(str).str[:4]) if len(conf) else set()
     wk = exp[exp["expected"] <= today + pd.Timedelta(days=7)]
+    # 公式予定 vs 自前予想モデルの一致率（公式予定日の±5営業日以内に予想があるか）
+    hit = 0
+    if sched_date is not None and conf_syms:
+        near = exp[(exp["expected"] - sched_date).abs() <= pd.Timedelta(days=7)]
+        hit = len(conf_syms & set(near["symbol"]))
+    sched_lab = sched_date.strftime("%-m/%-d") if sched_date is not None else "—"
     cards = f'''
 <div class="dgrp"><h2>サマリ</h2><div class="dcards">
-<div class="dcard"><div class="nm">本日の発表（確定）</div><div class="n">{len(conf)}<span>件</span></div>
-<div class="note">J-Quants 当日分・毎朝append-only保存</div></div>
+<div class="dcard"><div class="nm">公式予定（{sched_lab} 発表分）</div><div class="n">{len(conf)}<span>件</span></div>
+<div class="note">J-Quants 翌営業日分（夕方更新・履歴なし）→ 毎朝append-only保存で履歴を自作。
+自前予想と±5営業日一致 {hit}/{len(conf_syms) or 1}件</div></div>
 <div class="dcard"><div class="nm">今後7日の予想</div><div class="n">{len(wk)}<span>件</span></div>
 <div class="note">前年同期実績 +364日 → 翌営業日</div></div>
 <div class="dcard"><div class="nm">今後{K.WINDOW_DAYS}日の予想</div><div class="n">{len(exp)}<span>件</span></div>
@@ -293,8 +301,10 @@ def page_kessan() -> str:
                 return "" if pd.isna(x) else str(x)
             nm, sec = _s(r.get("name")), _s(r.get("sector"))
             mkt = _s(r.get("market")).replace("市場", "")
-            b = ('<span class="badge fix">本日確定</span>' if r["symbol"] in conf_syms
-                 and day == today else '<span class="badge est">予想</span>')
+            b = ('<span class="badge fix">公式確定</span>'
+                 if sched_date is not None and r["symbol"] in conf_syms
+                 and day == sched_date.normalize()
+                 else '<span class="badge est">予想</span>')
             key = f'{r["symbol"]} {nm} {sec}'.lower()
             mco = r.get("mc_oku")
             mcv = 0 if pd.isna(mco) else int(mco)

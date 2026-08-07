@@ -119,7 +119,11 @@ def jp_business_days() -> pd.DatetimeIndex:
 
 
 def fetch_today_confirmed() -> pd.DataFrame:
-    """当日の確定分を取得し、append-only スナップショットに保存する。"""
+    """★正しい意味: **翌営業日の公式発表予定**（v1 /fins/announcement の後継）。
+
+    夕方更新・週末は翌営業日分。パラメータは全て無視・履歴なし・当日分のみ配信
+    （2026-08-08 に再検証: 土曜に叩くと Date=翌月曜の186件が返る）。
+    取得のたびに append-only 保存して履歴を自作する。"""
     import requests
     from data.collectors.config import JQUANTS_API_KEY, JQUANTS_BASE
     r = requests.get(f"{JQUANTS_BASE}/v2/equities/earnings-calendar",
