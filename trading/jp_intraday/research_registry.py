@@ -128,6 +128,18 @@ def research_rows() -> pd.DataFrame:
           "注記":(f"ドルタイミング−0.06/長期リバーサル0.11/金利モメンタム−0.08/週次リバーサル−0.36。"
                  f"全て選択窓で全滅・確認窓2020+は未消費のまま温存。最良={best[1]}"),
           "結果":"data/fx_alpha_sweep/summary.json"})
+    uss=_json("data/us_index_sweep/summary.json")
+    if uss:
+        spx=uss.get("SPX500_USD",{})
+        h1=spx.get("H1_intraday_momentum",{}).get("selection",{})
+        h4=spx.get("H4_drawdown_entry_longterm",{})
+        rows.append({"戦略":"米指数CFD 4セル(日中モメ/TOM/夜間/押し目長期)","ファミリー":"US_INDEX",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":h1.get("sharpe"),
+          "年率%":None,"最大DD%":None,"案件/日数":4,
+          "注記":(f"全滅。日中モメンタムは符号反転Sh−1.33（公開済みアノマリーの死）、"
+                 f"夜間はCFD金利で死亡、ATH−15%押し目長期はSh{h4.get('strategy',{}).get('sharpe')}vs "
+                 f"B&H{h4.get('buy_and_hold',{}).get('sharpe')}＝タイミングはB&Hに勝てない(US/JP共通)"),
+          "結果":"data/us_index_sweep/summary.json"})
     fxs2=_json("data/fx_hourly_seasonality/summary.json")
     if fxs2:
         w=fxs2["walk_forward"]
