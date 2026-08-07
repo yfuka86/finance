@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ファイナンス統合ダッシュボード (fin.a-tokyo.jp / kessan.a-tokyo.jp) の静的サイト生成。
+"""ファイナンス統合ダッシュボード (fin.a-tokyo.jp) の静的サイト生成。
 
 work/tc の cards.a-tokyo.jp と同じ思想: 各ページは本文HTML断片を作って PAGES に足すだけ。
 ページ: 研究台帳(index) / 決算予定 / フォワード監視 / データ資産
