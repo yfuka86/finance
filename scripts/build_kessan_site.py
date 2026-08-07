@@ -139,8 +139,10 @@ def fetch_today_confirmed() -> pd.DataFrame:
     return d
 
 
-def expected() -> pd.DataFrame:
-    """前年同期実績 +364日 → 翌営業日。今後 WINDOW_DAYS 日ぶん。"""
+def expected(window_lo_days: int = 0) -> pd.DataFrame:
+    """前年同期実績 +364日 → 翌営業日。today+window_lo_days 〜 today+WINDOW_DAYS。
+
+    window_lo_days<0 で過去側も含む（公式予定との一致率計算用。表示は0のまま）。"""
     from scripts.experiment_earnings_timing import announcements
     from trading.jp_intraday.daily_model import load_master
     ann = announcements()                                  # symbol(4桁), q, fy, date
@@ -152,7 +154,8 @@ def expected() -> pd.DataFrame:
     a = a[ok].copy()
     a["expected"] = sessions[idx[ok]]
     today = pd.Timestamp(dt.date.today())
-    a = a[a["expected"].between(today, today + pd.Timedelta(days=WINDOW_DAYS))]
+    a = a[a["expected"].between(today + pd.Timedelta(days=window_lo_days),
+                                today + pd.Timedelta(days=WINDOW_DAYS))]
     m = load_master()
     m = m.assign(sym4=m["symbol"].astype(str).str[:4]).drop_duplicates("sym4")
     a = a.merge(m[["sym4", "name", "sector", "market"]],

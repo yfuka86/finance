@@ -260,10 +260,11 @@ def page_kessan() -> str:
     sched_date = pd.to_datetime(conf["Date"].iloc[0]) if len(conf) else None
     conf_syms = set(conf["Code"].astype(str).str[:4]) if len(conf) else set()
     wk = exp[exp["expected"] <= today + pd.Timedelta(days=7)]
-    # 公式予定 vs 自前予想モデルの一致率（公式予定日の±5営業日以内に予想があるか）
+    # 公式予定 vs 自前予想モデルの一致率（±5営業日≈暦7日。予想が過去側に落ちた分も含めて比較）
     hit = 0
     if sched_date is not None and conf_syms:
-        near = exp[(exp["expected"] - sched_date).abs() <= pd.Timedelta(days=7)]
+        exp_all = K.expected(window_lo_days=-21)
+        near = exp_all[(exp_all["expected"] - sched_date).abs() <= pd.Timedelta(days=7)]
         hit = len(conf_syms & set(near["symbol"]))
     sched_lab = sched_date.strftime("%-m/%-d") if sched_date is not None else "—"
     cards = f'''
