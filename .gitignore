@@ -37,3 +37,4 @@ data/fx_ticks_fix/*.parquet
 data/fx_histdata_min/parts/
 data/fx_oanda_min/parts/
 data/fx_oanda_us/parts/
+data/kessan_site/
