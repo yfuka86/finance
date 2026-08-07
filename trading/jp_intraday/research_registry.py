@@ -76,6 +76,17 @@ def research_rows() -> pd.DataFrame:
               "状態":m.get("decision",m.get("status")),"実取引":True,"OOS Sharpe":None,
               "年率%":None,"最大DD%":None,"案件/日数":m.get("cases",0),"注記":note,
               "結果":str(p.relative_to(ROOT))})
+    v4runs=sorted((ROOT/"results/value_event_v4").glob("run_*.json"))
+    if v4runs:
+        p=v4runs[-1]; x=json.loads(p.read_text(encoding="utf-8"))
+        rows.append({"戦略":"増配×低PBR V4（フロア¥1億再定義）","ファミリー":"CORPORATE_EVENTS",
+          "状態":x.get("decision","NO_GO"),"実取引":True,"OOS Sharpe":None,
+          "年率%":None,"最大DD%":None,"案件/日数":x.get("cases"),
+          "注記":(f"中央値{x.get('median',0)*100:+.2f}%(40bps)・勝率{x.get('win_rate',0)*100:.1f}%・"
+                 f"利益集中{x.get('top_case_profit_share',0)*100:.1f}%で基準20%に6pt届かず。"
+                 f"増分50件単独でも中央値{(x.get('increment_median') or 0)*100:+.2f}%＝ドリフト実在の公算。"
+                 "事前登録によりV5はなし・残る道はフォワードのみ"),
+          "結果":str(p.relative_to(ROOT))})
     v3runs=sorted((ROOT/"results/value_event_v3").glob("run_*.json"))
     if v3runs:
         p=v3runs[-1]; x=json.loads(p.read_text(encoding="utf-8"))

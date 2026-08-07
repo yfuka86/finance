@@ -83,7 +83,8 @@ def treasury_cancellation_events(financials: pd.DataFrame) -> pd.DataFrame:
     return obs.loc[keep].copy()
 
 
-def attach_market_and_features(events: pd.DataFrame, daily: pd.DataFrame) -> pd.DataFrame:
+def attach_market_and_features(events: pd.DataFrame, daily: pd.DataFrame,
+                               min_value_yen: float = 1e9) -> pd.DataFrame:
     """Attach the last pre-disclosure close/value and fixed 60-session outcome."""
     d = daily.rename(columns={"Date": "date", "Code": "code", "AdjO": "open",
                               "AdjC": "close", "raw_close": "valuation_close",
@@ -126,13 +127,14 @@ def attach_market_and_features(events: pd.DataFrame, daily: pd.DataFrame) -> pd.
         x["dividend_yield"] = pd.to_numeric(x["FDivAnn"],errors="coerce") / x["prior_close"]
     x["forward_return"] = x["exit_price"] / x["entry_price"] - 1
     eligible = (x["pbr"].gt(0) & x["pbr"].le(1) & x["EPS"].gt(0)
-                & x["OP"].gt(0) & x["prior_value"].ge(1e9)
+                & x["OP"].gt(0) & x["prior_value"].ge(min_value_yen)
                 & x["entry_price"].gt(0) & x["exit_price"].gt(0))
     return x.loc[eligible].reset_index(drop=True)
 
 
 def fit_and_select_oos(cases: pd.DataFrame, cutoff="2024-01-01",
-                       max_positions: int = 10, features=None) -> tuple[object, pd.DataFrame]:
+                       max_positions: int = 10, features=None,
+                       cost: float = .002) -> tuple[object, pd.DataFrame]:
     """Fit once before cutoff, then apply the frozen positive-score/cap rule."""
     cut = pd.Timestamp(cutoff)
     train = cases[cases["exit_date"].lt(cut)].dropna(subset=["forward_return"])
@@ -152,7 +154,7 @@ def fit_and_select_oos(cases: pd.DataFrame, cutoff="2024-01-01",
         if take:
             active_exits.append(row.exit_date)
     oos["selected"] = selected
-    oos["net_case_return"] = oos["forward_return"] - .002
+    oos["net_case_return"] = oos["forward_return"] - cost
     return model, oos
 
 
