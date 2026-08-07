@@ -51,12 +51,12 @@ def _get(path: str, params: dict, tries: int = 6) -> dict:
     raise RuntimeError("oanda retry exhausted")
 
 
-def collect_year(pair: str, year: int) -> pd.DataFrame:
+def collect_year(pair: str, year: int, granularity: str = "M1") -> pd.DataFrame:
     frames, cur = [], f"{year}-01-01T00:00:00Z"
     end = f"{year + 1}-01-01T00:00:00Z"
     while True:
         j = _get(f"/v3/instruments/{pair}/candles",
-                 {"granularity": "M1", "price": "BA", "count": 5000, "from": cur})
+                 {"granularity": granularity, "price": "BA", "count": 5000, "from": cur})
         cs = [c for c in j.get("candles", []) if c.get("complete")]
         if not cs:
             break
@@ -91,19 +91,23 @@ def main() -> None:
     ap.add_argument("--start-year", type=int, default=2011)
     ap.add_argument("--end-year", type=int, default=dt.date.today().year)
     ap.add_argument("--pairs", default=",".join(PAIRS))
+    ap.add_argument("--granularity", default="M1")
+    ap.add_argument("--root", default=str(ROOT))
     args = ap.parse_args()
-    parts = ROOT / "parts"
+    root = Path(args.root)
+    parts = root / "parts"
     parts.mkdir(parents=True, exist_ok=True)
     for pair in [p.strip() for p in args.pairs.split(",") if p.strip()]:
         for year in range(args.start_year, args.end_year + 1):
-            out = parts / f"{pair}_{year}.parquet"
+            tag = f"{pair}_{year}" + ("" if args.granularity == "M1" else f"_{args.granularity}")
+            out = parts / f"{tag}.parquet"
             if out.exists():
                 continue
-            d = collect_year(pair, year)
+            d = collect_year(pair, year, args.granularity)
             if len(d):
                 d.to_parquet(out, index=False)
                 print(f"{pair} {year}: {len(d):,} rows", flush=True)
-    (ROOT / "manifest.json").write_text(json.dumps({
+    (root / "manifest.json").write_text(json.dumps({
         "source": f"{BASE} /v3/instruments/candles M1 price=BA (read-only)",
         "pairs": list(PAIRS),
         "note": "mid OHLC + close bid/ask; volume = tick count; times UTC",
