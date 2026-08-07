@@ -999,6 +999,18 @@
   - 長期エントリータイミングで生きているのは**銘柄レベルのイベント駆動のみ**
     （V4増配×低PBR: 中央値+4.6%・集中6pt差でNO-GO・フォワード継続が唯一の道）。
 
+- 2026-08-08 **V4増配×低PBRのフォワード封印体制を構築（SEALED→2027-12-01）**。
+  V4は集中1点のみでNO-GOだったため、仕様不変のまま新期間2026-05-01〜2027-08-31の
+  イベント供給で1回だけ再判定する（`docs/PREREGISTER_VALUE_EVENT_V4_FORWARD.md`）。
+  - fins静的スナップショットは2026-04-24で停止していた → `collect_fins_incremental.py`
+    が日次増分収集（`fins_incremental.json.gz`・load_finsが自動統合・途中保存つき）
+  - `collect_v4_forward_events.py` が凍結仕様の適格イベントを追記専用台帳
+    `data/value_event_v4_forward/events.jsonl` に記録（**リターンは一切計算しない**。
+    凍結Ridge=学習99件の予測値のみ。5-8月キャッチアップ分は backfilled:true）
+  - launchd `jp.finance.v4-forward` 平日19:30に bars→fins→台帳を単独実行
+  - 判定 `verify_v4_forward.py`（日付ガード・verdict上書き不能・オーバーライド無し）:
+    採用≥30・40bps後中央値>0・最大案件シェア<20%。供給不足もNO-GO扱い。
+
 ## ★★★結論: 気配前提は棄却され、ensemble_core は執行不能（2026-07-31 ユーザー実測）
 
 **ユーザーによる実測の結論: 「気配値と寄り付き値の間に有効な関係はない。予測も収束もしない。

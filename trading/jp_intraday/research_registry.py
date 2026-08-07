@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import pathlib
 from pathlib import Path
 
 import pandas as pd
@@ -149,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    v4f=pathlib.Path("data/value_event_v4_forward/events.jsonl")
+    if v4f.exists():
+        n=sum(1 for l in v4f.read_text(encoding="utf-8").splitlines() if l.strip())
+        rows.append({"戦略":"V4増配×低PBR フォワード封印","ファミリー":"CORPORATE_EVENTS",
+          "状態":"SEALED→2027-12-01","実取引":True,"OOS Sharpe":None,
+          "年率%":None,"最大DD%":None,"案件/日数":n,
+          "注記":(f"V4は中央値+4.61%頑健・集中25.96%の1点でNO-GO→仕様不変のまま新期間"
+                 f"2026-05〜2027-08のイベントで1回だけ再判定。台帳{n}件（リターン非計算・"
+                 "凍結Ridge予測のみ記録）。毎営業日19:30にbars→fins→台帳を自動収集。"
+                 "基準: 採用≥30・40bps後中央値>0・最大案件シェア<20%"),
+          "結果":"data/value_event_v4_forward/events.jsonl"})
     fxg=_json("data/fx_gotobi/summary.json")
     if fxg:
         sl=fxg["primary"]["selection"]; au=fxg.get("authenticity_selection",{})
