@@ -66,10 +66,17 @@ box-shadow:var(--shadow);position:relative}
 .bars .b .t{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:9.5px;color:var(--ink3);font-weight:700}
 .blab{display:flex;gap:3px;padding:4px 2px 0}
 .blab span{flex:1;min-width:7px;text-align:center;font-size:9px;color:var(--ink3);font-weight:700}
-table.k{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);
-border-radius:14px;overflow:hidden;box-shadow:var(--shadow);font-size:12.5px}
-table.k th{background:rgba(127,127,127,.07);color:var(--ink2);font-size:11px;letter-spacing:.03em;
-text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);position:sticky;top:52px}
+table.k{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel);
+border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);font-size:12.5px}
+table.k th{background:var(--panel);
+background-image:linear-gradient(rgba(127,127,127,.09),rgba(127,127,127,.09));
+color:var(--ink2);font-size:11px;letter-spacing:.03em;font-weight:800;
+text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);
+position:sticky;top:52px;z-index:5}
+table.k thead th:first-child{border-top-left-radius:13px}
+table.k thead th:last-child{border-top-right-radius:13px}
+table.k tr:last-child td:first-child{border-bottom-left-radius:13px}
+table.k tr:last-child td:last-child{border-bottom-right-radius:13px}
 table.k td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
 table.k tr:last-child td{border-bottom:none}
 table.k td.num{font-variant-numeric:tabular-nums}
