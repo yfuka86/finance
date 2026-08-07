@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    qcc=_json("data/jp_quotefree_cc1/summary.json")
+    if qcc:
+        st=qcc["selection"]["executable_delay1"]["stats"]
+        rows.append({"戦略":"B案: 気配不要ML×cc1引け集中","ファミリー":"QUOTEFREE",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":st.get("sharpe"),
+          "年率%":100*st.get("ann_return",float("nan")),"最大DD%":100*st.get("max_drawdown",float("nan")),
+          "案件/日数":st.get("days"),
+          "注記":(f"AGENTS残る選択肢の最後の未決着枠。グロス{qcc['selection']['executable_delay1']['gross_bps_per_day']}bps vs "
+                 f"全込み{qcc['selection']['executable_delay1']['all_in_cost_bps_per_day']}bps=2倍基準未達・上位5日137%集中。"
+                 "遅延なし上界も負＝グロス不在が死因。気配不要の場中/cc1系はこれで全滅確定"),
+          "結果":"data/jp_quotefree_cc1/summary.json"})
     v4f=pathlib.Path("data/value_event_v4_forward/events.jsonl")
     if v4f.exists():
         n=sum(1 for l in v4f.read_text(encoding="utf-8").splitlines() if l.strip())

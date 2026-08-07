@@ -116,6 +116,20 @@ def page_forward() -> str:
                   f"封印: 2020-2026は未閲覧のまま。フォワード収集 {n_scan}日 / {n_parts}パーツ"
                   "（launchd 毎日12:00・no-peek＝生ティックのみ保存）。"
                   "選択窓 Sh0.856・Sharpe以外の全基準通過→約560取引で最終判定。落ちたら恒久クローズ"))
+    # V4増配×低PBR フォワード封印
+    v4l = ROOT / "data/value_event_v4_forward/events.jsonl"
+    if v4l.exists():
+        evs = [json.loads(l) for l in v4l.read_text(encoding="utf-8").splitlines()
+               if l.strip()]
+        leftv = (dt.date(2027, 12, 1) - dt.date.today()).days
+        recent = "、".join(
+            f"{e['symbol']}({e['event_date'][5:]}・PBR{e['pbr']:.2f})"
+            for e in sorted(evs, key=lambda x: x["event_date"])[-5:]) or "—"
+        items.append(("V4 増配×低PBR（凍結仕様フォワード）", "SEALED",
+                      f"判定日 2027-12-01（あと{leftv}日）",
+                      f"台帳 {len(evs)}件（リターン非計算・凍結Ridge予測のみ記録）。"
+                      f"直近: {recent}。毎営業日19:30に bars→fins→台帳を自動収集。"
+                      "基準: 採用≥30・40bps後中央値>0・最大案件シェア<20%"))
     # 気配不要ML v2
     left2 = (dt.date(2027, 8, 2) - dt.date.today()).days
     items.append(("気配不要ML v2（凍結フォワード）", "FROZEN",
