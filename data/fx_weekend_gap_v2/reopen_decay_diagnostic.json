@@ -1,0 +1,136 @@
+{
+  "n_fired": 1665,
+  "note": "selection window only; exit Mon 12:00 ET",
+  "decay_curve": {
+    "t+0min": {
+      "n": 1665,
+      "gross_to_mon_bps": 2.55,
+      "entry_hs_bps": 3.01,
+      "net_bps": -1.28,
+      "net_t": -1.07
+    },
+    "t+2min": {
+      "n": 1626,
+      "gross_to_mon_bps": 1.69,
+      "entry_hs_bps": 2.96,
+      "net_bps": -2.09,
+      "net_t": -1.71
+    },
+    "t+5min": {
+      "n": 1612,
+      "gross_to_mon_bps": 0.58,
+      "entry_hs_bps": 2.88,
+      "net_bps": -3.13,
+      "net_t": -2.56
+    },
+    "t+10min": {
+      "n": 1577,
+      "gross_to_mon_bps": -0.19,
+      "entry_hs_bps": 2.72,
+      "net_bps": -3.74,
+      "net_t": -3.02
+    },
+    "t+15min": {
+      "n": 1585,
+      "gross_to_mon_bps": -0.32,
+      "entry_hs_bps": 2.64,
+      "net_bps": -3.77,
+      "net_t": -3.06
+    },
+    "t+20min": {
+      "n": 1531,
+      "gross_to_mon_bps": -0.93,
+      "entry_hs_bps": 2.59,
+      "net_bps": -4.33,
+      "net_t": -3.42
+    },
+    "t+30min": {
+      "n": 1566,
+      "gross_to_mon_bps": -0.77,
+      "entry_hs_bps": 2.52,
+      "net_bps": -4.11,
+      "net_t": -3.34
+    },
+    "t+45min": {
+      "n": 1539,
+      "gross_to_mon_bps": -0.79,
+      "entry_hs_bps": 2.43,
+      "net_bps": -4.04,
+      "net_t": -3.21
+    }
+  },
+  "premium_per_bucket_bps": {
+    "0->2": 1.02,
+    "2->5": 0.9,
+    "5->10": 0.99,
+    "10->15": 0.42,
+    "15->20": -0.06,
+    "20->30": 0.19,
+    "30->45": 0.04,
+    "45->exit": -0.79
+  },
+  "spread_quartiles": {
+    "hs_q1_tightest": {
+      "n": 417,
+      "entry_hs_bps": 1.85,
+      "gross_bps": 1.87,
+      "net_bps": -0.56,
+      "net_t": -0.25
+    },
+    "hs_q2": {
+      "n": 416,
+      "entry_hs_bps": 2.4,
+      "gross_bps": 0.56,
+      "net_bps": -2.55,
+      "net_t": -1.05
+    },
+    "hs_q3": {
+      "n": 416,
+      "entry_hs_bps": 2.99,
+      "gross_bps": 4.96,
+      "net_bps": 1.16,
+      "net_t": 0.51
+    },
+    "hs_q4_widest": {
+      "n": 416,
+      "entry_hs_bps": 4.79,
+      "gross_bps": 2.81,
+      "net_bps": -3.18,
+      "net_t": -1.21
+    }
+  },
+  "corr_gross_vs_entry_hs": 0.004,
+  "pit_threshold_cells": {
+    "hs<=1.0bps": {
+      "n": 7
+    },
+    "hs<=1.5bps": {
+      "n": 54,
+      "per_year": 6.0,
+      "net_bps": 8.15,
+      "net_t": 1.47,
+      "portfolio_sharpe": 0.494
+    },
+    "hs<=2.0bps": {
+      "n": 264,
+      "per_year": 29.3,
+      "net_bps": 0.41,
+      "net_t": 0.13,
+      "portfolio_sharpe": 0.044
+    },
+    "hs<=2.5bps": {
+      "n": 708,
+      "per_year": 78.7,
+      "net_bps": -1.72,
+      "net_t": -0.97,
+      "portfolio_sharpe": -0.294
+    },
+    "hs<=3.0bps": {
+      "n": 1034,
+      "per_year": 114.9,
+      "net_bps": -1.15,
+      "net_t": -0.78,
+      "portfolio_sharpe": -0.237
+    }
+  }
+}
