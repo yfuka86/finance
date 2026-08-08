@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    jlh=_json("data/jp_large_holdings/summary.json")
+    if jlh and jlh.get("selection"):
+        st=jlh["selection"]
+        rows.append({"戦略":"大量保有報告書・新規5%イベント(機関あしあと銘柄レベル)","ファミリー":"CORPORATE_EVENTS",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":None,
+          "年率%":st.get("excess_median_pct"),"最大DD%":st.get("es5_pct"),
+          "案件/日数":st.get("cases"),
+          "注記":("メタデータ63,695件を新規収集(縦覧5年ローリング・日次追記化済み)。"
+                 "新規報告→翌寄り20営業日は超過中央値−1.64%・勝率42%=負のドリフト。"
+                 "報告時点は買い圧力の出口。アクティビスト名簿凍結版は未検証(新窓要)"),
+          "結果":"data/jp_large_holdings/summary.json"})
     jif=_json("data/jp_investor_flow/summary.json")
     if jif:
         st=jif["A1_foreign_4w_long_flat_selection"]
