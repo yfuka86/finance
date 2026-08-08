@@ -150,6 +150,27 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    fxs3=_json("data/fx_session/summary.json")
+    if fxs3:
+        st=fxs3["S_primary_selection"]["portfolio"]
+        rows.append({"戦略":"FX セッション効果(Ranaldo・7レッグ)","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":st.get("sharpe"),
+          "年率%":st.get("ann_return_pct"),"最大DD%":st.get("max_drawdown_pct"),
+          "案件/日数":st.get("days"),
+          "注記":("JPYレッグはグロスから負=仲値後反落がフローを食う。EUR/USDのW形"
+                 "(欧州下げ・NY上げ)は実在するがSh0.3止まり。確認窓未開封"),
+          "結果":"data/fx_session/summary.json"})
+    fxm3=_json("data/fx_micro3/summary.json")
+    if fxm3:
+        h1=fxm3["selection"]["H1_weekend_gap"]["stats"]
+        rows.append({"戦略":"FX 残余3セル(週末ギャップ/水曜スワップ/TS週次反転)","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":h1.get("sharpe"),
+          "年率%":h1.get("ann_return_pct"),"最大DD%":h1.get("max_drawdown_pct"),
+          "案件/日数":h1.get("days"),
+          "注記":("最良=週末ギャップfade(+5.0bps/回×188回/年でネット正)だがSh0.345。"
+                 "水曜ロールオーバーは完全調整の帰無成立。TS反転はVR<1実在も規模不足。"
+                 "G8公開価格の探索は20仮説で枯れた"),
+          "結果":"data/fx_micro3/summary.json"})
     fxgrid=_json("data/fx_grid/summary.json")
     if fxgrid:
         st=fxgrid["S_primary_selection"]

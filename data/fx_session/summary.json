@@ -1,0 +1,155 @@
+{
+  "spec": "docs/PREREGISTER_FX_SESSION.md",
+  "S_primary_selection": {
+    "portfolio": {
+      "sharpe": -1.152,
+      "ann_return_pct": -3.371,
+      "max_drawdown_pct": -28.14,
+      "negative_years": 9,
+      "years": 9,
+      "top5_day_share": null,
+      "sharpe_ex_top10": -1.447,
+      "mean_daily_bps": -1.338,
+      "days": 2347
+    },
+    "per_leg_diagnostic": {
+      "JPY": {
+        "net": {
+          "sharpe": -1.414,
+          "ann_return_pct": -6.735,
+          "max_drawdown_pct": -48.47,
+          "negative_years": 9,
+          "years": 9,
+          "top5_day_share": null,
+          "sharpe_ex_top10": -2.175,
+          "mean_daily_bps": -2.673,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": -1.342,
+        "cost_mean_daily_bps": 1.352
+      },
+      "EUR": {
+        "net": {
+          "sharpe": 0.229,
+          "ann_return_pct": 1.45,
+          "max_drawdown_pct": -11.57,
+          "negative_years": 2,
+          "years": 9,
+          "top5_day_share": 0.631,
+          "sharpe_ex_top10": -0.03,
+          "mean_daily_bps": 0.576,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": 1.662,
+        "cost_mean_daily_bps": 1.088
+      },
+      "GBP": {
+        "net": {
+          "sharpe": -0.276,
+          "ann_return_pct": -1.851,
+          "max_drawdown_pct": -23.69,
+          "negative_years": 5,
+          "years": 9,
+          "top5_day_share": null,
+          "sharpe_ex_top10": -0.518,
+          "mean_daily_bps": -0.734,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": 0.584,
+        "cost_mean_daily_bps": 1.326
+      },
+      "AUD": {
+        "net": {
+          "sharpe": -0.721,
+          "ann_return_pct": -4.105,
+          "max_drawdown_pct": -36.5,
+          "negative_years": 7,
+          "years": 9,
+          "top5_day_share": null,
+          "sharpe_ex_top10": -1.084,
+          "mean_daily_bps": -1.629,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": 0.89,
+        "cost_mean_daily_bps": 2.536
+      },
+      "NZD": {
+        "net": {
+          "sharpe": -1.367,
+          "ann_return_pct": -7.706,
+          "max_drawdown_pct": -52.85,
+          "negative_years": 9,
+          "years": 9,
+          "top5_day_share": null,
+          "sharpe_ex_top10": -1.799,
+          "mean_daily_bps": -3.058,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": 1.318,
+        "cost_mean_daily_bps": 4.717
+      },
+      "CHF": {
+        "net": {
+          "sharpe": -0.687,
+          "ann_return_pct": -5.906,
+          "max_drawdown_pct": -46.98,
+          "negative_years": 8,
+          "years": 9,
+          "top5_day_share": null,
+          "sharpe_ex_top10": -1.113,
+          "mean_daily_bps": -2.344,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": -0.266,
+        "cost_mean_daily_bps": 2.106
+      },
+      "USD": {
+        "net": {
+          "sharpe": 0.326,
+          "ann_return_pct": 1.257,
+          "max_drawdown_pct": -9.44,
+          "negative_years": 3,
+          "years": 9,
+          "top5_day_share": 0.666,
+          "sharpe_ex_top10": -0.031,
+          "mean_daily_bps": 0.499,
+          "days": 2347
+        },
+        "gross_mean_daily_bps": 1.696,
+        "cost_mean_daily_bps": 1.219
+      }
+    }
+  },
+  "selection_criteria": {
+    "net_sharpe_ge_1": false,
+    "neg_years_le_third": false,
+    "top5_share_lt_20pct": false,
+    "sharpe_ex_top10_ge_05": false
+  },
+  "sensitivity_selection": {
+    "a_morning_3h": {
+      "sharpe": -2.301,
+      "ann_return_pct": -3.776,
+      "max_drawdown_pct": -30.07,
+      "negative_years": 9,
+      "years": 9,
+      "top5_day_share": null,
+      "sharpe_ex_top10": -2.729,
+      "mean_daily_bps": -1.498,
+      "days": 2347
+    },
+    "b_gmo_cost": {
+      "sharpe": -0.398,
+      "ann_return_pct": -1.165,
+      "max_drawdown_pct": -12.54,
+      "negative_years": 6,
+      "years": 9,
+      "top5_day_share": null,
+      "sharpe_ex_top10": -0.67,
+      "mean_daily_bps": -0.462,
+      "days": 2347
+    }
+  },
+  "confirmation": "UNOPENED",
+  "decision": "NO_GO_AT_SELECTION"
+}
