@@ -1,0 +1,143 @@
+{
+  "spec": "docs/PREREGISTER_FX_GRID.md",
+  "diagnostic_variance_ratios_selection": {
+    "EUR_USD": {
+      "1h->1d": 0.995,
+      "1h->1w": 0.978,
+      "1h->1m": 0.746,
+      "1d->1w": 0.924,
+      "1d->1m": 0.891
+    },
+    "GBP_USD": {
+      "1h->1d": 1.009,
+      "1h->1w": 0.942,
+      "1h->1m": 0.914,
+      "1d->1w": 1.029,
+      "1d->1m": 0.886
+    },
+    "AUD_USD": {
+      "1h->1d": 0.907,
+      "1h->1w": 0.852,
+      "1h->1m": 0.939,
+      "1d->1w": 0.855,
+      "1d->1m": 0.855
+    },
+    "NZD_USD": {
+      "1h->1d": 0.95,
+      "1h->1w": 0.848,
+      "1h->1m": 0.844,
+      "1d->1w": 0.909,
+      "1d->1m": 0.838
+    },
+    "USD_JPY": {
+      "1h->1d": 1.008,
+      "1h->1w": 1.077,
+      "1h->1m": 1.016,
+      "1d->1w": 1.062,
+      "1d->1m": 0.975
+    },
+    "USD_CHF": {
+      "1h->1d": 0.981,
+      "1h->1w": 1.143,
+      "1h->1m": 0.881,
+      "1d->1w": 0.966,
+      "1d->1m": 0.855
+    },
+    "USD_CAD": {
+      "1h->1d": 0.92,
+      "1h->1w": 0.846,
+      "1h->1m": 0.803,
+      "1d->1w": 0.981,
+      "1d->1m": 0.925
+    },
+    "median_across_pairs": {
+      "1h->1d": 0.981,
+      "1h->1w": 0.942,
+      "1h->1m": 0.881,
+      "1d->1w": 0.966,
+      "1d->1m": 0.886
+    }
+  },
+  "S_primary_selection": {
+    "sharpe": 0.163,
+    "ann_return_pct": 0.659,
+    "max_drawdown_pct": -7.92,
+    "negative_years": 3,
+    "years": 8,
+    "top5_day_share": 1.107,
+    "sharpe_ex_top10": -0.159,
+    "worst5_days_sum_pct": -6.2497,
+    "es5_daily_pct": -0.5833,
+    "gross_usd": 0.02332,
+    "swap_usd": 0.00416,
+    "net_total_pct_of_capital": 5.46,
+    "mean_abs_inventory_units": 50.07,
+    "max_inventory_units": 70,
+    "total_fills": 17112,
+    "days": 2087
+  },
+  "selection_criteria": {
+    "net_sharpe_ge_1": false,
+    "neg_years_le_third": false,
+    "top5_share_lt_20pct": false,
+    "sharpe_ex_top10_ge_05": false
+  },
+  "sensitivity_selection": {
+    "a_dx_1.0": {
+      "sharpe": 0.246,
+      "ann_return_pct": 0.778,
+      "max_drawdown_pct": -6.7,
+      "negative_years": 2,
+      "years": 8,
+      "top5_day_share": 0.829,
+      "sharpe_ex_top10": -0.103,
+      "worst5_days_sum_pct": -5.2637,
+      "es5_daily_pct": -0.4607,
+      "gross_usd": 0.03276,
+      "swap_usd": 0.007,
+      "net_total_pct_of_capital": 6.446,
+      "mean_abs_inventory_units": 34.9,
+      "max_inventory_units": 66,
+      "total_fills": 6987,
+      "days": 2087
+    },
+    "b_carry_aligned": {
+      "sharpe": -0.04,
+      "ann_return_pct": -0.12,
+      "max_drawdown_pct": -8.11,
+      "negative_years": 4,
+      "years": 8,
+      "top5_day_share": null,
+      "sharpe_ex_top10": -0.378,
+      "worst5_days_sum_pct": -5.4191,
+      "es5_daily_pct": -0.4679,
+      "gross_usd": -0.07204,
+      "swap_usd": 0.03344,
+      "net_total_pct_of_capital": -0.992,
+      "mean_abs_inventory_units": 28.85,
+      "max_inventory_units": 60,
+      "total_fills": 9041,
+      "days": 2087
+    },
+    "c_half_cost": {
+      "sharpe": 0.201,
+      "ann_return_pct": 0.814,
+      "max_drawdown_pct": -7.74,
+      "negative_years": 2,
+      "years": 8,
+      "top5_day_share": 0.899,
+      "sharpe_ex_top10": -0.12,
+      "worst5_days_sum_pct": -6.2285,
+      "es5_daily_pct": -0.5824,
+      "gross_usd": 0.03683,
+      "swap_usd": 0.00416,
+      "net_total_pct_of_capital": 6.739,
+      "mean_abs_inventory_units": 50.07,
+      "max_inventory_units": 70,
+      "total_fills": 17112,
+      "days": 2087
+    }
+  },
+  "confirmation": "UNOPENED",
+  "decision": "NO_GO_AT_SELECTION"
+}

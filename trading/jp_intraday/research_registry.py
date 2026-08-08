@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    fxgrid=_json("data/fx_grid/summary.json")
+    if fxgrid:
+        st=fxgrid["S_primary_selection"]
+        rows.append({"戦略":"FX 複数通貨L/Sグリッド(トラリピ型)","ファミリー":"FX_BASKET",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":st.get("sharpe"),
+          "年率%":st.get("ann_return_pct"),"最大DD%":st.get("max_drawdown_pct"),
+          "案件/日数":st.get("days"),
+          "注記":("恒等式: グリッド期待値=平均回帰プレミアムのみ(マルチンゲールで0)。"
+                 "VR中央値0.88-0.98=弱い回帰は実在するがグロス+0.3%/年規模。"
+                 "上位5日111%集中・キャリー整合片側は悪化。勝率69%でも期待値0を計測器で実証"),
+          "結果":"data/fx_grid/summary.json"})
     qcc=_json("data/jp_quotefree_cc1/summary.json")
     if qcc:
         st=qcc["selection"]["executable_delay1"]["stats"]
