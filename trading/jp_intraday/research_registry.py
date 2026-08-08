@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    jif=_json("data/jp_investor_flow/summary.json")
+    if jif:
+        st=jif["A1_foreign_4w_long_flat_selection"]
+        rows.append({"戦略":"投資部門別フロー・タイミング(機関あしあと市場レベル)","ファミリー":"JP_FLOW_TIMING",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":st.get("sharpe"),
+          "年率%":st.get("ann_return_pct"),"最大DD%":st.get("max_drawdown_pct"),
+          "案件/日数":jif.get("weeks"),
+          "注記":("18年971週を新規収集・初使用。海外4週ネット順張りSh0.15 vs B&H0.42=完敗。"
+                 "全12部門の翌週IC|t|≤1.35=集計フローに前方予測力なし(同時相関のみ)。"
+                 "銘柄粒度の大量保有報告書へ移行(収集中・縦覧5年ローリング消滅に注意)"),
+          "結果":"data/jp_investor_flow/summary.json"})
     fxs3=_json("data/fx_session/summary.json")
     if fxs3:
         st=fxs3["S_primary_selection"]["portfolio"]
