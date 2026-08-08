@@ -167,10 +167,22 @@ def research_rows() -> pd.DataFrame:
           "状態":"NO-GO","実取引":True,"OOS Sharpe":h1.get("sharpe"),
           "年率%":h1.get("ann_return_pct"),"最大DD%":h1.get("max_drawdown_pct"),
           "案件/日数":h1.get("days"),
-          "注記":("最良=週末ギャップfade(+5.0bps/回×188回/年でネット正)だがSh0.345。"
+          "注記":("週末ギャップの初出+5.0bps/回は保有期間バグで訂正(正しくは−1.33bps/回)。"
                  "水曜ロールオーバーは完全調整の帰無成立。TS反転はVR<1実在も規模不足。"
                  "G8公開価格の探索は20仮説で枯れた"),
           "結果":"data/fx_micro3/summary.json"})
+    fxwg=_json("data/fx_weekend_gap_v2/summary.json")
+    if fxwg:
+        c0=fxwg["selection_grid"]["C0_all13"]
+        rows.append({"戦略":"週末ギャップV2(13銘柄×商品/初動条件付け)","ファミリー":"FX_BASKET",
+          "状態":"NO-GO(恒久)","実取引":True,"OOS Sharpe":c0.get("sharpe"),
+          "年率%":c0.get("ann_return_pct"),"最大DD%":c0.get("max_drawdown_pct"),
+          "案件/日数":c0.get("trades"),
+          "注記":("機構特定: 再開1時間の流動性プレミアム+5.2bps(t=24.7・9年全プラス)だが"
+                 "往復スプレッド6.3bpsと同額=テイカーは収穫不能(流動性供給者の壁7例目)。"
+                 "商品条件付けはCME再開18:00の時点でプレミアム消尽=原理的に不可能。"
+                 "micro3のH1保有期間バグもこの検証で発見・訂正"),
+          "結果":"data/fx_weekend_gap_v2/summary.json"})
     fxgrid=_json("data/fx_grid/summary.json")
     if fxgrid:
         st=fxgrid["S_primary_selection"]

@@ -68,13 +68,22 @@ def h1_weekend_gap(data: dict) -> tuple[pd.Series, dict]:
         fri_cut = dd["week"] + pd.Timedelta(days=4, hours=17)
         sun_open = dd["week"] + pd.Timedelta(days=6, hours=17)
         fri = dd[(dd["ny"] <= fri_cut)].groupby("week").last()
+        fri_ok = (fri_cut.groupby(dd["week"]).first() - fri["ny"]) \
+            <= pd.Timedelta(hours=2)
         sun = dd[(dd["ny"] >= sun_open)].groupby("week").first()
-        mon_cut = dd["week"] + pd.Timedelta(days=7, hours=12)
+        sun_ok = (sun["ny"] - sun_open.groupby(dd["week"]).first()) \
+            <= pd.Timedelta(hours=2)
+        # ★2026-08-08 fix: Monday-noon bars belong to the NEXT week's anchor.
+        # The original `week + 7d12h` cutoff selected the week's own last bar
+        # (= next Sunday evening) => an accidental ~1-week hold. Take Monday
+        # noon from the following week's group and shift its anchor back.
+        mon_cut = dd["week"] + pd.Timedelta(hours=12)
         mon = dd[dd["ny"] <= mon_cut].groupby("week").last()
-        # sun/mon rows belong to the week of THEIR Monday-anchor; align gap:
-        # fri of week w pairs with sun of week w (sun 17:00 ET is day 6 of week w)
-        j = fri[["mid"]].rename(columns={"mid": "fri_mid"}).join(
-            sun[["mid", "half_spread", "ny"]].rename(
+        mon_ok = (mon_cut.groupby(dd["week"]).first() - mon["ny"]) \
+            <= pd.Timedelta(hours=2)
+        mon = mon.where(mon_ok)
+        j = fri[["mid"]].where(fri_ok).rename(columns={"mid": "fri_mid"}).join(
+            sun[["mid", "half_spread", "ny"]].where(sun_ok).rename(
                 columns={"mid": "sun_mid", "half_spread": "sun_hs"}), how="inner")
         nxt = mon[["mid", "half_spread"]].rename(
             columns={"mid": "mon_mid", "half_spread": "mon_hs"})

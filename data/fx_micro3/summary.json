@@ -3,25 +3,25 @@
   "selection": {
     "H1_weekend_gap": {
       "stats": {
-        "sharpe": 0.345,
-        "ann_return_pct": 1.308,
-        "max_drawdown_pct": -6.28,
-        "negative_years": 3,
+        "sharpe": -0.28,
+        "ann_return_pct": -0.345,
+        "max_drawdown_pct": -4.47,
+        "negative_years": 6,
         "years": 9,
-        "top5_day_share": 0.861,
-        "sharpe_ex_top10": -0.188,
-        "mean_daily_bps": 0.519,
+        "top5_day_share": null,
+        "sharpe_ex_top10": -0.812,
+        "mean_daily_bps": -0.137,
         "days": 2341
       },
       "diag": {
-        "trades": 1688,
-        "trades_per_year": 187.6,
-        "hit_rate": 0.511,
-        "mean_bps_per_trade": 5.04
+        "trades": 1685,
+        "trades_per_year": 187.2,
+        "hit_rate": 0.502,
+        "mean_bps_per_trade": -1.333
       },
       "criteria": {
         "net_sharpe_ge_1": false,
-        "neg_years_le_third": true,
+        "neg_years_le_third": false,
         "top5_share_lt_20pct": false,
         "sharpe_ex_top10_ge_05": false
       }
