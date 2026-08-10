@@ -97,7 +97,8 @@ def main() -> int:
         for hhmm, snap in rec["snapshots"].items():
             gq2, ga2 = gaps({s: v["q"] for s, v in snap["quotes"].items()})
             d2 = decompose(gq2, ga2)
-            print(f"   同時 {hhmm}（スメア{snap['smear_s']:.1f}秒・PUSH {snap['push_messages']}件）")
+            quiet = snap.get("quiet_s", snap.get("smear_s", 0))
+            print(f"   同時 {hhmm}（静止{quiet:.0f}秒・PUSH {snap['push_messages']}件）")
             print(f"   {_fmt(d2)}")
 
         # C. 候補50内での建玉一致率（特徴量はPIT=前営業日の行）

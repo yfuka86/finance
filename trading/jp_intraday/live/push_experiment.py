@@ -95,7 +95,10 @@ def select_for_ensemble(last: pd.DataFrame, opens: dict, strategy: str,
     spec = STRATEGIES[strategy]
     members = [m for m, _ in (spec.get("members") or [(strategy, 1.0)])]
     depth = names_per_side
-    while len(chosen) < n and depth < names_per_side * 6:
+    # 深さ上限は要求数に連動させる（固定の names_per_side*6 だと ~96銘柄で頭打ちになり、
+    # バースト用の n=250 に届かない。2026-08-10 テストで発覚）
+    max_depth = max(names_per_side * 6, n)
+    while len(chosen) < n and depth < max_depth:
         depth += 1
         for member in members:
             s = _score_today(last, opens, member)
@@ -108,6 +111,20 @@ def select_for_ensemble(last: pd.DataFrame, opens: dict, strategy: str,
     return chosen, {"book": sorted(book),
                     "per_sleeve": {k: sorted(v) for k, v in per.items()},
                     "depth_used": depth}
+
+
+def burst_list(last: pd.DataFrame, opens: dict, strategy: str,
+               names_per_side: int, chosen: list, n_total: int = 250) -> list:
+    """RESTバーストで叩く銘柄（候補50の外側・**近いtierから順**）。
+
+    狙い: 実効一致率の律速は候補50の器の小ささ（A=17-50%）。最後の2分で
+    未登録銘柄を0.9-1.1秒/件で叩けば+110〜130銘柄をほぼ直前の気配で追加できる。
+    近いtier（スイープ順位51-130位）ほど本来の建玉を含む確率が高いので先に叩く
+    （時間切れで切れるのは遠いtier側になる）。
+    """
+    wide, _ = select_for_ensemble(last, opens, strategy, names_per_side, n_total)
+    in_chosen = set(chosen)
+    return [s for s in wide if s not in in_chosen]
 
 
 def select_symbols(scored: pd.DataFrame, method: str, n: int = MAX_PUSH,

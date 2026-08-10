@@ -22,7 +22,7 @@ from trading.jp_intraday.daily_gap import load_existing_daily
 from trading.jp_intraday.daily_model import build_daily_features
 from trading.jp_intraday.live import push_experiment as px
 from trading.jp_intraday.live.config import LiveConfig
-from trading.jp_intraday.live.kabu_client import KabuClient
+from trading.jp_intraday.live.kabu_client import KabuClient, to_kabu_symbol
 from trading.jp_intraday.live.push_feed import PushBoardFeed
 
 
@@ -90,6 +90,9 @@ def main() -> int:
         early_book = set(diag["book"])
         for m, b in diag["per_sleeve"].items():
             print(f"   スリーブ {m}: 建玉{len(b)}銘柄")
+        # RESTバースト対象（候補50の外側・近いtier優先）。08:57以降に叩く
+        burst_names = px.burst_list(last, sweep["quotes"], cfg.strategy, nps, chosen)
+        print(f"   バースト対象 {len(burst_names)}銘柄（時間内に叩けた分だけ記録）")
     else:
         scored = px.score_frame(last, sweep["quotes"], cfg.strategy)
         if "prev_value" not in scored:
@@ -152,11 +155,50 @@ def main() -> int:
                   f" ・ PUSH受信 {feed.messages}件")
             px.save(record, dry=args.dry)
 
+            # ── RESTバースト: 08:57スナップの直後に候補外~120銘柄を直前気配で叩く ──
+            # 器（候補50）が実効一致率の律速（A=17-50%）なので、最後の2分でプールを
+            # ~170銘柄に広げる。GET /board は自動登録で50枠を食うため、PUSH登録を
+            # 一旦解除して叩き、寄値プリント回収のため最後に candidates を再登録する。
+            if hhmm == "08:57" and not args.dry and burst_names:
+                client.unregister_all()
+                client._board_calls = 0          # board()の45件ごと自動解除と整合させる
+                deadline = dt.datetime.now().replace(hour=8, minute=59, second=15,
+                                                     microsecond=0).timestamp()
+                burst: dict = {}
+                for s in burst_names:
+                    if time.time() >= deadline:
+                        break
+                    try:
+                        b = client.board(s)      # 45件ごとにunregister_allしてくれる
+                    except Exception:  # noqa: BLE001
+                        continue
+                    q = px.quote_from_board(b)
+                    if q > 0:
+                        burst[s] = {"q": q, "at": round(time.time(), 2),
+                                    "bid": b.get("BidPrice"), "ask": b.get("AskPrice")}
+                record["burst"] = {"n_target": len(burst_names), "n_got": len(burst),
+                                   "quotes": burst}
+                print(f"   burst: {len(burst)}/{len(burst_names)}銘柄を取得"
+                      f"（プール={len(burst) + len(chosen)}）")
+                # 寄値プリント回収のため再登録（PUSH再開）
+                try:
+                    client.unregister_all()
+                    client._request("PUT", "/register", json={
+                        "Symbols": [{"Symbol": to_kabu_symbol(s), "Exchange": 1}
+                                    for s in chosen]})
+                    print("   burst後にcandidates 50を再登録（寄値プリント回収用）")
+                except Exception as exc:  # noqa: BLE001
+                    print(f"   再登録に失敗: {exc}")
+                px.save(record, dry=args.dry)
+
         if not args.dry:
             # 寄付きの約定プリント(09:00:00台のCurrentPriceTime)まで録り切ってから
             # 履歴を書き出す。**withブロックの中で行う**（外に出るとfeedが閉じて履歴が消える。
             # 2026-08-05: このブロックがサイレントな置換失敗で欠落し履歴を1日分失った）
-            px.wait_until("09:00:40")
+            # 09:06まで録る: 特別気配の銘柄は寄りが数分遅れる。09:00:40打ち切りだと
+            # 寄値プリントが29/50しか取れず（2026-08-06実測）、遅れて寄る銘柄＝
+            # 大ギャップ銘柄＝一番測りたい銘柄が抜ける上方バイアスになる
+            px.wait_until("09:06:00")
             hist_path = px.out_path().with_name(
                 px.out_path().stem.replace("push_experiment", "push_history") + ".jsonl")
             with hist_path.open("w", encoding="utf-8") as hf:

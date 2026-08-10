@@ -175,3 +175,38 @@ class SecondPrecisionWaitTest(unittest.TestCase):
         self.assertIn("08:59:50", SNAP_TIMES)
         self.assertIn("08:30", SNAP_TIMES)
         self.assertGreaterEqual(len(SNAP_TIMES), 8, "曲線を引くには点が足りない")
+
+
+class BurstListTest(unittest.TestCase):
+    """RESTバースト対象: 候補50の外側を「近いtierから」返す（時間切れは遠い側で起きる）。"""
+
+    def test_excludes_chosen_and_orders_near_tier_first(self):
+        from unittest import mock
+        from trading.jp_intraday.live import push_experiment as pxm
+        last = pd.DataFrame({
+            "symbol": [f"{1000+i}0" for i in range(300)],
+            "shortable": [True] * 300,
+            "prev_value": [5e9] * 300,
+            "short_restricted": [False] * 300,
+        })
+
+        def fake_score(l, opens, member):
+            f = l.copy()
+            f["_s"] = range(len(f))
+            return f
+
+        spec = {"kind": "ensemble", "members": [("A", 1.0)]}
+        with mock.patch.dict("trading.jp_intraday.strategies.STRATEGIES",
+                             {"ENS": spec, "A": spec}, clear=False), \
+             mock.patch("trading.jp_intraday.live.executor._score_today", fake_score):
+            chosen, _ = pxm.select_for_ensemble(last, {}, "ENS", 8, 50)
+            burst = pxm.burst_list(last, {}, "ENS", 8, chosen, n_total=250)
+        self.assertEqual(len(set(burst) & set(chosen)), 0, "候補と重複している")
+        self.assertGreaterEqual(len(burst), 150)
+        # 近いtier優先: バースト先頭は「51位相当」の銘柄群 = chosenに最も近いスコア帯
+        with mock.patch.dict("trading.jp_intraday.strategies.STRATEGIES",
+                             {"ENS": spec, "A": spec}, clear=False), \
+             mock.patch("trading.jp_intraday.live.executor._score_today", fake_score):
+            wide, _ = pxm.select_for_ensemble(last, {}, "ENS", 8, 250)
+        expect_first = [s for s in wide if s not in set(chosen)][0]
+        self.assertEqual(burst[0], expect_first, "近いtierが先頭に来ていない")
