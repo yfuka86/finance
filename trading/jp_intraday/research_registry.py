@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    ffs=_json("data/jp_flow_fund_sector_on/summary.json")
+    if ffs:
+        st=ffs["selection"]["A"]
+        rows.append({"戦略":"フロー×ファンダ・セクター内L/S・夜間","ファミリー":"QUOTEFREE",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":st.get("sharpe"),
+          "年率%":st.get("ann_return_pct"),"最大DD%":st.get("max_drawdown_pct"),
+          "案件/日数":st.get("days"),
+          "注記":("全4セル死。ロング脚は市場夜間ドリフトの通過・ショート脚は逆行=横断面夜間α不在。"
+                 "借株制約を外すと悪化する初の逆転例。バリュー追加は夜間グロスを毀損。"
+                 "3レンズ敵対的検証済(陽性対照=日中IC再現)。旧「夜間IC+0.005」はv11で−0.003に訂正"),
+          "結果":"data/jp_flow_fund_sector_on/summary.json"})
     jlh=_json("data/jp_large_holdings/summary.json")
     if jlh and jlh.get("selection"):
         st=jlh["selection"]
