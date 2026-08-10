@@ -1,0 +1,197 @@
+{
+  "spec": "docs/PREREGISTER_LONG_ONLY_FRONTIER.md",
+  "selection": {
+    "V_h5": {
+      "net_sharpe": 0.354,
+      "ann_return_pct": 7.09,
+      "excess_ir": 0.483,
+      "excess_ann_pct": 4.54,
+      "excess_neg_years": 2,
+      "years": 7,
+      "excess_top5_share": 0.473,
+      "excess_ir_ex_top10": 0.108,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.19,
+      "names_avg": 42.6,
+      "days": 1690,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": true,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "V_h20": {
+      "net_sharpe": 0.443,
+      "ann_return_pct": 8.86,
+      "excess_ir": 0.519,
+      "excess_ann_pct": 4.83,
+      "excess_neg_years": 2,
+      "years": 7,
+      "excess_top5_share": 0.443,
+      "excess_ir_ex_top10": 0.138,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.058,
+      "names_avg": 53.1,
+      "days": 1675,
+      "criteria": {
+        "excess_ir_ge_05": true,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": true,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "V_h60": {
+      "net_sharpe": 0.409,
+      "ann_return_pct": 8.12,
+      "excess_ir": 0.46,
+      "excess_ann_pct": 4.21,
+      "excess_neg_years": 2,
+      "years": 7,
+      "excess_top5_share": 0.504,
+      "excess_ir_ex_top10": 0.071,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.0225,
+      "names_avg": 65.1,
+      "days": 1635,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": true,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "Q_h5": {
+      "net_sharpe": 0.206,
+      "ann_return_pct": 4.4,
+      "excess_ir": 0.208,
+      "excess_ann_pct": 1.62,
+      "excess_neg_years": 2,
+      "years": 7,
+      "excess_top5_share": 1.167,
+      "excess_ir_ex_top10": -0.209,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.1883,
+      "names_avg": 47.5,
+      "days": 1690,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": true,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "Q_h20": {
+      "net_sharpe": 0.296,
+      "ann_return_pct": 6.24,
+      "excess_ir": 0.28,
+      "excess_ann_pct": 2.01,
+      "excess_neg_years": 3,
+      "years": 7,
+      "excess_top5_share": 0.732,
+      "excess_ir_ex_top10": -0.08,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.0607,
+      "names_avg": 62.8,
+      "days": 1675,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": false,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "Q_h60": {
+      "net_sharpe": 0.269,
+      "ann_return_pct": 5.61,
+      "excess_ir": 0.195,
+      "excess_ann_pct": 1.33,
+      "excess_neg_years": 3,
+      "years": 7,
+      "excess_top5_share": 1.003,
+      "excess_ir_ex_top10": -0.161,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.0279,
+      "names_avg": 86.2,
+      "days": 1635,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": false,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "VQ_h5": {
+      "net_sharpe": 0.3,
+      "ann_return_pct": 5.82,
+      "excess_ir": 0.48,
+      "excess_ann_pct": 3.15,
+      "excess_neg_years": 2,
+      "years": 7,
+      "excess_top5_share": 0.497,
+      "excess_ir_ex_top10": 0.091,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.2181,
+      "names_avg": 47.8,
+      "days": 1690,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": true,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "VQ_h20": {
+      "net_sharpe": 0.37,
+      "ann_return_pct": 7.08,
+      "excess_ir": 0.501,
+      "excess_ann_pct": 3.05,
+      "excess_neg_years": 2,
+      "years": 7,
+      "excess_top5_share": 0.426,
+      "excess_ir_ex_top10": 0.139,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.068,
+      "names_avg": 66.2,
+      "days": 1675,
+      "criteria": {
+        "excess_ir_ge_05": true,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": true,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    },
+    "VQ_h60": {
+      "net_sharpe": 0.337,
+      "ann_return_pct": 6.36,
+      "excess_ir": 0.424,
+      "excess_ann_pct": 2.45,
+      "excess_neg_years": 3,
+      "years": 7,
+      "excess_top5_share": 0.557,
+      "excess_ir_ex_top10": 0.034,
+      "topix_bh_sharpe": 0.417,
+      "turnover_per_day": 0.0288,
+      "names_avg": 91.5,
+      "days": 1635,
+      "criteria": {
+        "excess_ir_ge_05": false,
+        "sharpe_beats_bh_plus_02": false,
+        "excess_neg_years_le_third": false,
+        "excess_top5_lt_20pct": false,
+        "excess_ir_ex_top10_ge_025": false
+      }
+    }
+  },
+  "confirmation": "UNOPENED",
+  "passing_cells": [],
+  "decision": "NO_GO_AT_SELECTION"
+}

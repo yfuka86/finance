@@ -150,6 +150,18 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    lof=_json("data/jp_long_only_frontier/summary.json")
+    if lof:
+        best=lof["selection"].get("V_h20",{})
+        rows.append({"戦略":"ロングオンリー断面(バリュー/クオリティ×h5-60・現物)","ファミリー":"QUOTEFREE",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":best.get("net_sharpe"),
+          "年率%":best.get("ann_return_pct"),"最大DD%":None,
+          "案件/日数":best.get("days"),
+          "注記":("全9セル死だがV_h20は断面系最良(超過+4.83%/年・IR0.52)。死因=超過の44%が"
+                 "上位5日集中で、正体は2020-21 COVIDバリューローテーション1回の塊"
+                 "(最大日はワクチン発表+511bps)。残りは+1.4bps/日の細流。"
+                 "バリューは日次αでなく数年周期の因子回転と確定"),
+          "結果":"data/jp_long_only_frontier/summary.json"})
     fhz=_json("data/jp_fund_horizon/summary.json")
     if fhz:
         best=max((v for v in fhz["selection"].values() if v.get("sharpe") is not None),
