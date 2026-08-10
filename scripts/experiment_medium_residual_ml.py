@@ -44,17 +44,14 @@ ALL_FEATURES = PRICE_FEATURES + FUND_FEATURES + FLOW_FEATURES + EXTRA_FEATURES
 
 
 def _fins_records() -> pd.DataFrame:
-    rows = []
-    parts = sorted((ROOT / "data" / "cache").glob("fins_20260424_part*.json.gz"))
-    if not parts:
-        raise FileNotFoundError("fins_20260424_part*.json.gz がありません")
-    for path in parts:
-        with gzip.open(path, "rt", encoding="utf-8") as fh:
-            payload = json.load(fh)
-        for code, records in payload.items():
-            for record in records:
-                rows.append(record | {"symbol": str(code)})
-    return pd.DataFrame(rows)
+    # 2026-08-11 fix: read ALL fins caches (incl. the 2018-2021 backfill) and key
+    # by 4-char code. The original part-file loader also produced 4-char symbols
+    # while the panel uses 5-char ones, so the fundamental merge silently matched
+    # NOTHING (fn_* were 100% NaN through the recorded judgment). See AGENTS.
+    from scripts.run_value_event_v1 import load_fins
+    f = load_fins().copy()
+    f["symbol"] = f["Code"].astype(str).str[:4]
+    return f
 
 
 def build_fundamentals(sessions: pd.Index) -> pd.DataFrame:
@@ -67,6 +64,11 @@ def build_fundamentals(sessions: pd.Index) -> pd.DataFrame:
         f[col] = pd.to_numeric(f.get(col), errors="coerce")
     f = f.sort_values(["symbol", "disc_date", "DiscTime"]).drop_duplicates(
         ["symbol", "disc_date"], keep="last")
+    # Quarterly rows omit BPS/FEPS and parts of the balance sheet. Carry the
+    # last DISCLOSED state forward per issuer (never backward) before ratios,
+    # exactly as value_event_model does -- otherwise merge_asof lands on a
+    # quarterly row and blanks the ratio (coverage 38.7% -> ~97%).
+    f[numeric] = f.groupby("symbol", sort=False)[numeric].ffill()
 
     # Revisions are only comparable inside the same forecast fiscal year.
     fy = f.get("CurFYEn", pd.Series("", index=f.index)).astype(str)
@@ -137,9 +139,15 @@ def build_dataset() -> tuple[pd.DataFrame, pd.DataFrame]:
 
     fund = build_fundamentals(sessions)
     # merge_asof requires the ``on`` key to be globally monotonic even with ``by``.
-    p = p.sort_values(["date", "symbol"])
-    p = pd.merge_asof(p, fund, left_on="date", right_on="known_date", by="symbol",
+    # Fins codes are 4-char; the panel symbol is 5-char -> merge on sym4.
+    p["sym4"] = p["symbol"].str[:4]
+    fund = fund.rename(columns={"symbol": "sym4"})
+    p = p.sort_values(["date", "sym4"])
+    p = pd.merge_asof(p, fund, left_on="date", right_on="known_date", by="sym4",
                       direction="backward")
+    p = p.sort_values(["date", "symbol"])
+    cov = p["_bps"].notna().mean()
+    assert cov > .5, f"fundamental merge failed (coverage {cov:.1%})"
     p["fn_earn_yield"] = (p["_feps"] / p["close"]).clip(-1, 1)
     p["fn_book_to_price"] = (p["_bps"] / p["close"]).clip(-10, 10)
     p = p.drop(columns=["known_date", "_feps", "_bps"], errors="ignore")

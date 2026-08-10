@@ -150,6 +150,18 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    fhz=_json("data/jp_fund_horizon/summary.json")
+    if fhz:
+        best=max((v for v in fhz["selection"].values() if v.get("sharpe") is not None),
+                 key=lambda v: v["sharpe"], default={})
+        rows.append({"戦略":"保有期間フロンティア(ファンダ×フロー×h1-60)","ファミリー":"QUOTEFREE",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":best.get("sharpe"),
+          "年率%":best.get("ann_return_pct"),"最大DD%":best.get("max_drawdown_pct"),
+          "案件/日数":best.get("days"),
+          "注記":("全12セル死。正しくマージした財務の断面αはどのhでも不在(最良グロス0.74bps/日)。"
+                 "構造発見: 中長期L/Sの拘束コストはショート金利0.85bps/日の床で保有延長では消えない。"
+                 "ROEはグロスから負・flowのcc脚も負(日中専用再確認)"),
+          "結果":"data/jp_fund_horizon/summary.json"})
     ffs=_json("data/jp_flow_fund_sector_on/summary.json")
     if ffs:
         st=ffs["selection"]["A"]
