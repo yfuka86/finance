@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Export trade-level detail for the oversold-interaction strategy dashboard.
+
+Re-simulates the two headline cells (ML_ridge_h3 and A0_m0_h5_tp) with full
+trade recording, SELECTION WINDOW ONLY (2018-2024): the 2025+ confirmation
+window stays unopened even for display, so a NO-GO family cannot contaminate
+windows other strategies may still need. Output: data/jp_oversold_interaction/
+detail.json consumed by scripts/build_finance_site.py.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from scripts.experiment_oversold_interaction import (build_arrays, ml_members,
+                                                     COST_OPEN, COST_CLOSE,
+                                                     TP_MULT, SEL_END)
+
+OUT = Path("data/jp_oversold_interaction")
+LO = pd.Timestamp("2018-01-01")
+
+
+def names_map() -> dict:
+    m = pd.read_parquet("data/jp_daily_history/master.parquet",
+                        columns=["Code", "CoName", "S33Nm"])
+    m["Code"] = m["Code"].astype(str)
+    return {r.Code: (r.CoName, r.S33Nm) for r in m.itertuples()}
+
+
+def simulate_recorded(A, members: pd.DataFrame, h: int, use_tp: bool):
+    dates = A["dates"]
+    syms = A["CC"].columns.to_numpy()
+    n = len(dates)
+    strat = np.zeros(n); bench = np.zeros(n); wsum = np.zeros(n)
+    INTRA, CC, ONF, IVOL = (A[k].to_numpy() for k in ("INTRA", "CC", "ONF", "IVOL"))
+    mi, mc, mo = (A[k].to_numpy() for k in ("mkt_intra", "mkt_cc", "mkt_onf"))
+    mem = members.reindex(index=dates, columns=A["CC"].columns).fillna(False).to_numpy()
+    trades = []
+    for i in np.nonzero(mem.any(axis=1))[0]:
+        if dates[i] < LO or dates[i] > SEL_END or i + h + 1 >= n:
+            continue
+        cols = np.nonzero(mem[i])[0]
+        e = i + 1
+        ok = ~np.isnan(INTRA[e, cols])
+        cols = cols[ok]
+        if len(cols) == 0:
+            continue
+        cum = 1 + INTRA[e, cols]
+        thresh = 1 + TP_MULT * IVOL[i, cols] if use_tp else np.full(len(cols), np.inf)
+        alive = np.ones(len(cols), dtype=bool)
+        exit_day = np.full(len(cols), e + h - 1)
+        exit_reason = np.array(["期日引け"] * len(cols), dtype=object)
+        tot = 1 + INTRA[e, cols]
+        strat[e] += np.nansum(INTRA[e, cols]) - len(cols) * COST_OPEN
+        bench[e] += len(cols) * mi[e]; wsum[e] += len(cols)
+        if h > 1:
+            for k in range(1, h):
+                s = e + k
+                hit = alive & (cum >= thresh)
+                if hit.any():
+                    r = np.where(np.isnan(ONF[s - 1, cols[hit]]), 0.0,
+                                 ONF[s - 1, cols[hit]])
+                    strat[s] += r.sum() - hit.sum() * COST_OPEN
+                    bench[s] += hit.sum() * mo[s - 1]; wsum[s] += hit.sum()
+                    tot[hit] *= 1 + r
+                    exit_day[hit] = s; exit_reason[hit] = "利確(翌寄)"
+                    alive &= ~hit
+                if not alive.any():
+                    break
+                r = np.where(np.isnan(CC[s, cols[alive]]), 0.0, CC[s, cols[alive]])
+                strat[s] += r.sum()
+                bench[s] += alive.sum() * mc[s]; wsum[s] += alive.sum()
+                tot[alive] *= 1 + r
+                cum[alive] *= 1 + np.clip(r, -1, None)
+            if alive.any():
+                strat[e + h - 1] -= alive.sum() * COST_CLOSE
+        else:
+            strat[e] -= len(cols) * COST_CLOSE
+        for j, c in enumerate(cols):
+            trades.append({"trigger": str(dates[i].date()),
+                           "entry": str(dates[e].date()),
+                           "exit": str(dates[exit_day[j]].date()),
+                           "sym": str(syms[c]), "ret": round(float(tot[j] - 1), 5),
+                           "reason": str(exit_reason[j])})
+    with np.errstate(invalid="ignore"):
+        daily = np.where(wsum > 0, (strat - bench) / np.maximum(wsum, 1), 0.0)
+    ex = pd.Series(daily, index=dates).loc[LO:SEL_END]
+    return ex, trades
+
+
+def pack(ex: pd.Series, trades: list, nm: dict) -> dict:
+    for t in trades:
+        name, sec = nm.get(t["sym"], ("", ""))
+        t["name"], t["sector"] = name, sec
+    tr = pd.DataFrame(trades)
+    cum = (1 + ex).cumprod()
+    monthly = ex.groupby(ex.index.to_period("M")).sum()
+    agg_sym = (tr.groupby(["sym", "name"])
+               .agg(n=("ret", "size"), mean_ret=("ret", "mean"),
+                    win=("ret", lambda r: (r > 0).mean()))
+               .reset_index().sort_values("n", ascending=False))
+    return {
+        "daily_cum": [[str(d.date()), round(float(v), 5)]
+                      for d, v in cum.iloc[::3].items()],
+        "monthly": [[str(p), round(float(v) * 100, 2)] for p, v in monthly.items()],
+        "trades_recent": tr.sort_values("entry").tail(400).to_dict("records"),
+        "top_winners": tr.nlargest(25, "ret").to_dict("records"),
+        "top_losers": tr.nsmallest(25, "ret").to_dict("records"),
+        "most_traded": agg_sym.head(20).round(4).to_dict("records"),
+        "n_trades": int(len(tr)),
+        "win_rate": round(float((tr["ret"] > 0).mean()), 3),
+        "mean_ret_bps": round(float(tr["ret"].mean() * 1e4), 1),
+        "tp_exit_share": round(float((tr["reason"] == "利確(翌寄)").mean()), 3),
+    }
+
+
+def main() -> None:
+    A = build_arrays()
+    nm = names_map()
+    out = {}
+    oversold = A["Z5"].le(A["Z5"].quantile(.1, axis=1), axis=0)
+    mmask = A["M"].le(0.0)
+    mem_rule = oversold[mmask.reindex(oversold.index).fillna(False)].fillna(False)
+    ex, tr = simulate_recorded(A, mem_rule, 5, True)
+    out["A0_m0_h5_tp"] = pack(ex, tr, nm)
+    mem_ml = ml_members(A, "ridge")
+    ex, tr = simulate_recorded(A, mem_ml, 3, False)
+    out["ML_ridge_h3"] = pack(ex, tr, nm)
+    (OUT / "detail.json").write_text(
+        json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    print(json.dumps({k: {"n_trades": v["n_trades"], "win": v["win_rate"],
+                          "mean_bps": v["mean_ret_bps"]} for k, v in out.items()},
+                     ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

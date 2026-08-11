@@ -346,10 +346,147 @@ def page_kessan() -> str:
             f'{cards}{chart}{table}</div>')
 
 
+def _svg_curve(series, w=920, h=190) -> str:
+    """Inline SVG cumulative curve. series = [[date, value], ...]."""
+    if not series:
+        return ""
+    vals = [v for _, v in series]
+    lo, hi = min(vals), max(vals)
+    rng = (hi - lo) or 1.0
+    pts = " ".join(
+        f"{round(i / (len(vals) - 1) * w, 1)},{round(h - (v - lo) / rng * (h - 14) - 7, 1)}"
+        for i, v in enumerate(vals))
+    years, seen = [], set()
+    for i, (d, _) in enumerate(series):
+        y = d[:4]
+        if y not in seen:
+            seen.add(y)
+            years.append((round(i / (len(series) - 1) * w, 1), y))
+    ticks = "".join(
+        f'<line x1="{x}" y1="0" x2="{x}" y2="{h}" stroke="var(--line)" stroke-width="1"/>'
+        f'<text x="{x + 4}" y="{h - 4}" font-size="10" fill="var(--ink2)">{y}</text>'
+        for x, y in years[1:])
+    base_y = round(h - (1.0 - lo) / rng * (h - 14) - 7, 1)
+    return (f'<svg viewBox="0 0 {w} {h}" style="width:100%;height:auto;display:block">'
+            f'{ticks}<line x1="0" y1="{base_y}" x2="{w}" y2="{base_y}" '
+            f'stroke="var(--ink2)" stroke-dasharray="3 4" stroke-width="1" opacity=".5"/>'
+            f'<polyline points="{pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>'
+            f'<text x="6" y="14" font-size="11" fill="var(--ink)">累積超過 '
+            f'{(vals[-1] - 1) * 100:+.1f}%（最小 {(lo - 1) * 100:+.1f}% / 最大 {(hi - 1) * 100:+.1f}%）</text></svg>')
+
+
+def _trade_rows(trades, cell) -> str:
+    rows = []
+    for t in trades:
+        key = f'{t["sym"]} {t.get("name", "")} {t.get("sector", "")} {t.get("reason", "")}'.lower()
+        c = "#0a7f45" if t["ret"] > 0 else "#b32c2c"
+        rows.append(
+            f'<tr class="r" data-k="{key}"><td>{t["entry"]}</td><td>{t["exit"]}</td>'
+            f'<td><b>{t["sym"]}</b></td><td>{t.get("name", "")[:16]}</td>'
+            f'<td><span class="q">{t.get("sector", "")}</span></td>'
+            f'<td class="num" style="color:{c};font-weight:800">{t["ret"] * 100:+.2f}%</td>'
+            f'<td>{t.get("reason", "")}</td></tr>')
+    return "".join(rows)
+
+
+def _monthly_grid(monthly) -> str:
+    by = {}
+    for p, v in monthly:
+        y, m = p.split("-")
+        by.setdefault(y, {})[int(m)] = v
+    head = "".join(f"<th>{m}月</th>" for m in range(1, 13))
+    body = []
+    for y in sorted(by):
+        cells = []
+        for m in range(1, 13):
+            v = by[y].get(m)
+            if v is None:
+                cells.append("<td></td>")
+            else:
+                c = "#0a7f45" if v > 0 else "#b32c2c"
+                cells.append(f'<td class="num" style="color:{c}">{v:+.1f}</td>')
+        body.append(f'<tr><td><b>{y}</b></td>{"".join(cells)}</tr>')
+    return (f'<div style="overflow-x:auto"><table class="k"><thead><tr><th>年</th>{head}</tr>'
+            f'</thead><tbody>{"".join(body)}</tbody></table></div>'
+            f'<div class="dnote">月次超過リターン（%・対等加重市場）</div>')
+
+
+def page_oversold() -> str:
+    det_p = ROOT / "data/jp_oversold_interaction/detail.json"
+    sum_p = ROOT / "data/jp_oversold_interaction/summary.json"
+    if not det_p.exists():
+        return '<div class="dw"><h1>売られすぎ反転</h1><div class="dnote">detail.json 未生成</div></div>'
+    det = json.loads(det_p.read_text(encoding="utf-8"))
+    summ = json.loads(sum_p.read_text(encoding="utf-8"))
+    meta = {"A0_m0_h5_tp": ("ルール形: 市場5日≤0% × 銘柄5日z下位10% × 5日保有 × 利確(+2×ivol20)",
+                            "ルールセル中の最良。翌営業日寄成で買い、+2×ivol20の終値到達で翌寄成利確、それ以外は5日目引成。"),
+            "ML_ridge_h3": ("ML形: Ridge交互作用8特徴 × 予測上位10% × 3日保有",
+                            "z5日・z1日・z(ivol)・RSI と市場5日リターンの交互作用を年次WFで学習し、上位10%を毎日ロング。")}
+    secs = []
+    for cell, (title, desc) in meta.items():
+        d = det[cell]
+        s = summ["selection"].get(cell, {})
+        cards = f'''<div class="dcards">
+<div class="dcard"><div class="nm">超過IR（選択窓）</div><div class="n">{s.get("ir", "—")}</div>
+<div class="note">超過年率 {s.get("excess_ann_pct", "—")}% / 稼働 {s.get("active_days_per_year", "—")}日/年</div></div>
+<div class="dcard"><div class="nm">売買回数</div><div class="n">{d["n_trades"]:,}<span>回</span></div>
+<div class="note">2018-2024（選択窓）の全建玉</div></div>
+<div class="dcard"><div class="nm">勝率 / 平均</div><div class="n">{d["win_rate"] * 100:.1f}<span>%</span></div>
+<div class="note">1回あたり平均 {d["mean_ret_bps"]:+.1f}bps</div></div>
+<div class="dcard"><div class="nm">利確発動率</div><div class="n">{d.get("tp_exit_share", 0) * 100:.1f}<span>%</span></div>
+<div class="note">終値トリガー→翌寄成の実装可能形のみ</div></div></div>'''
+        wl = "".join(
+            f'<tr class="r" data-k="{t["sym"]} {t.get("name", "")}"><td>{t["entry"]}</td>'
+            f'<td><b>{t["sym"]}</b> {t.get("name", "")[:14]}</td>'
+            f'<td class="num" style="font-weight:800;color:'
+            f'{"#0a7f45" if t["ret"] > 0 else "#b32c2c"}">{t["ret"] * 100:+.1f}%</td>'
+            f'<td>{t.get("reason", "")}</td></tr>'
+            for t in d["top_winners"][:10] + d["top_losers"][:10])
+        most = "".join(
+            f'<tr><td><b>{m["sym"]}</b> {str(m.get("name", ""))[:14]}</td>'
+            f'<td class="num">{m["n"]}</td><td class="num">{m["mean_ret"] * 1e4:+.0f}bps</td>'
+            f'<td class="num">{m["win"] * 100:.0f}%</td></tr>' for m in d["most_traded"][:12])
+        secs.append(f'''<div class="dgrp"><h2>{title}</h2>
+<div class="note" style="margin-bottom:10px">{desc}</div>
+{cards}
+<div class="dcard" style="margin-top:12px">{_svg_curve(d["daily_cum"])}</div>
+{_monthly_grid(d["monthly"])}
+<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800">直近の売買 400件（検索は上の入力欄）</summary>
+<div style="overflow-x:auto"><table class="k"><thead><tr><th>建て</th><th>返済</th><th>コード</th>
+<th>銘柄</th><th>業種</th><th>損益</th><th>退出</th></tr></thead>
+<tbody>{_trade_rows(d["trades_recent"], cell)}</tbody></table></div></details>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div><h2 style="font-size:14px">勝ちトップ10 / 負けトップ10</h2>
+<table class="k"><thead><tr><th>建て</th><th>銘柄</th><th>損益</th><th>退出</th></tr></thead><tbody>{wl}</tbody></table></div>
+<div><h2 style="font-size:14px">頻出銘柄</h2>
+<table class="k"><thead><tr><th>銘柄</th><th>回数</th><th>平均</th><th>勝率</th></tr></thead><tbody>{most}</tbody></table></div>
+</div></div>''')
+    grid_rows = "".join(
+        f'<tr class="r" data-k="{k.lower()}"><td><b>{k}</b></td>'
+        f'<td class="num">{v.get("ir", "—")}</td><td class="num">{v.get("excess_ann_pct", "—")}</td>'
+        f'<td class="num">{v.get("active_days_per_year", "—")}</td>'
+        f'<td class="num">{v.get("neg_years", "—")}/{v.get("years", "—")}</td>'
+        f'<td class="num">{v.get("top5_share", "—")}</td><td class="num">{v.get("ir_ex_top10", "—")}</td></tr>'
+        for k, v in summ["selection"].items())
+    return f'''<div class="dw">
+<h1>売られすぎ反転（詳細）<span class="s">{badge("NO-GO")} 全17セル基準未達・記録用の解剖ページ</span></h1>
+<div class="dnote" style="margin-bottom:14px">表示は<b>選択窓2018-2024のみ</b>。2025年以降は確認窓保全のため
+このページには一切表示しない（NO-GO戦略でも窓を汚染すると他戦略の確認に使えなくなるため）。
+事前登録: docs/PREREGISTER_OVERSOLD_INTERACTION.md</div>
+<input id="q" class="search" placeholder="コード・銘柄名・業種で売買明細を絞り込み…">
+{"".join(secs)}
+<div class="dgrp"><h2>全17セル（選択窓）</h2>
+<table class="k"><thead><tr><th>セル</th><th>IR</th><th>超過年率%</th><th>稼働日/年</th>
+<th>負年</th><th>top5シェア</th><th>top10除去IR</th></tr></thead><tbody>{grid_rows}</tbody></table>
+<div class="dnote">基準: IR≥0.7・稼働≥60日/年・負年≤1/3・top5&lt;20%・top10除去IR≥0.35（全セル未達）</div></div></div>'''
+
+
 def main() -> None:
     pages = [
         {"file": "index.html", "href": "/", "nav": "研究台帳",
          "title": "研究台帳", "body": page_registry()},
+        {"file": "oversold.html", "href": "/oversold.html", "nav": "売られすぎ反転",
+         "title": "売られすぎ反転（詳細）", "body": page_oversold()},
         {"file": "kessan.html", "href": "/kessan.html", "nav": "決算予定",
          "title": "決算発表予定", "body": page_kessan()},
         {"file": "forward.html", "href": "/forward.html", "nav": "フォワード監視",
