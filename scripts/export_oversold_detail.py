@@ -129,6 +129,25 @@ def main() -> None:
     A = build_arrays()
     nm = names_map()
     out = {}
+    # X11 (z20 x low-ivol x h5 x TP, no market gate): the 2nd sweep's closest cell.
+    # Candidates are tomorrow's opening-auction buys (signal only, no fwd P&L calc
+    # beyond the already-disclosed window; display frozen at seal date if sealed).
+    from scripts.oversold_sweep_harness import build as hbuild, members_for
+    HA = hbuild(1e9)
+    x11_mem = members_for(HA, {"dip": "z20", "ivol": "lo", "market": "none"})
+    ex, tr = simulate_recorded(HA, x11_mem, 5, True)
+    # SEALED 2026-08-12: display frozen at the seal date (no-peek forward).
+    seal = pd.Timestamp("2026-08-11")
+    tr = [t for t in tr if t["entry"] <= "2026-08-11"]
+    out["X11_z20_lo_h5tp"] = pack(ex.loc[:seal], tr, nm)
+    out["X11_z20_lo_h5tp"]["sealed_note"] = "成績表示は封印日2026-08-11で凍結（判定2028-08-12）"
+    last_day = x11_mem.index[x11_mem.any(axis=1)][-1]
+    cand = x11_mem.columns[x11_mem.loc[last_day]].tolist()
+    out["x11_candidates"] = {
+        "signal_date": str(pd.Timestamp(last_day).date()),
+        "entry": "翌営業日の寄成（現物ロング・5営業日 or +2×ivol20で翌寄利確）",
+        "names": [{"sym": c, "name": nm.get(c, ("", ""))[0],
+                   "sector": nm.get(c, ("", ""))[1]} for c in sorted(cand)]}
     oversold = A["Z5"].le(A["Z5"].quantile(.1, axis=1), axis=0)
     mmask = A["M"].le(0.0)
     mem_rule = oversold[mmask.reindex(oversold.index).fillna(False)].fillna(False)
@@ -140,7 +159,8 @@ def main() -> None:
     (OUT / "detail.json").write_text(
         json.dumps(out, ensure_ascii=False), encoding="utf-8")
     print(json.dumps({k: {"n_trades": v["n_trades"], "win": v["win_rate"],
-                          "mean_bps": v["mean_ret_bps"]} for k, v in out.items()},
+                          "mean_bps": v["mean_ret_bps"]}
+                      for k, v in out.items() if "n_trades" in v},
                      ensure_ascii=False))
 
 

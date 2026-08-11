@@ -150,6 +150,16 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    x11l=pathlib.Path("data/jp_oversold_x11_forward/candidates.jsonl")
+    if x11l.exists() or True:
+        n=len([l for l in x11l.read_text(encoding="utf-8").splitlines() if l.strip()]) if x11l.exists() else 0
+        rows.append({"戦略":"X11 売られすぎz20×低ボラ(セカンドチャンス封印)","ファミリー":"JP_FLOW_TIMING",
+          "状態":"SEALED→2028-08-12","実取引":True,"OOS Sharpe":None,
+          "年率%":None,"最大DD%":None,"案件/日数":n,
+          "注記":("ユーザー承認で集中基準を30%に緩和し昇格。選択窓IR1.15/7年全勝だが"
+                 "開示済み窓外実測IR0.38=期待値はこちら寄り。24か月no-peek封印・"
+                 "シグナル台帳のみ日次追記。落ちたら恒久クローズ"),
+          "結果":"data/jp_oversold_x11_forward/candidates.jsonl"})
     osw=_json("data/jp_oversold_sweep2/cross.json")
     if osw:
         x11=next((c for c in osw if "X11" in str(c.get("name",""))), {})

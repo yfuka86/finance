@@ -130,6 +130,15 @@ def page_forward() -> str:
                       f"台帳 {len(evs)}件（リターン非計算・凍結Ridge予測のみ記録）。"
                       f"直近: {recent}。毎営業日19:30に bars→fins→台帳を自動収集。"
                       "基準: 採用≥30・40bps後中央値>0・最大案件シェア<20%"))
+    # X11 セカンドチャンス封印
+    x11l = ROOT / "data/jp_oversold_x11_forward/candidates.jsonl"
+    n_x11 = len([l for l in x11l.read_text(encoding="utf-8").splitlines() if l.strip()])         if x11l.exists() else 0
+    leftx = (dt.date(2028, 8, 12) - dt.date.today()).days
+    items.append(("X11 売られすぎz20×低ボラ（セカンドチャンス封印）", "SEALED",
+                  f"判定日 2028-08-12（あと{leftx}日）",
+                  f"選択窓IR1.15・7年全勝→集中基準をユーザー承認で30%に緩和し昇格。"
+                  f"台帳 {n_x11}営業日分（シグナルのみ・成績は判定日まで計算しない）。"
+                  "開示済み窓外実測はIR0.38＝期待値はこちら寄り。落ちたら恒久クローズ（三度目なし）"))
     # 気配不要ML v2
     left2 = (dt.date(2027, 8, 2) - dt.date.today()).days
     items.append(("気配不要ML v2（凍結フォワード）", "FROZEN",
@@ -423,7 +432,10 @@ def page_oversold() -> str:
         return '<div class="dw"><h1>売られすぎ反転</h1><div class="dnote">detail.json 未生成</div></div>'
     det = json.loads(det_p.read_text(encoding="utf-8"))
     summ = json.loads(sum_p.read_text(encoding="utf-8"))
-    meta = {"A0_m0_h5_tp": ("ルール形: 市場5日≤0% × 銘柄5日z下位10% × 5日保有 × 利確(+2×ivol20)",
+    meta = {"X11_z20_lo_h5tp": ("★X11（昇格・封印中）: 5日z下位20% × 低ボラ × 5日保有 × 利確",
+                            "第2掃引の到達点。選択窓IR1.15・7年全勝・前後半1.15/1.15。ユーザー承認で集中基準を緩和し"
+                            "セカンドチャンス封印へ昇格（判定2028-08-12・成績表示は封印日で凍結）。"),
+            "A0_m0_h5_tp": ("ルール形: 市場5日≤0% × 銘柄5日z下位10% × 5日保有 × 利確(+2×ivol20)",
                             "ルールセル中の最良。翌営業日寄成で買い、+2×ivol20の終値到達で翌寄成利確、それ以外は5日目引成。"),
             "ML_ridge_h3": ("ML形: Ridge交互作用8特徴 × 予測上位10% × 3日保有",
                             "z5日・z1日・z(ivol)・RSI と市場5日リターンの交互作用を年次WFで学習し、上位10%を毎日ロング。")}
@@ -453,9 +465,23 @@ def page_oversold() -> str:
             f'<tr><td><b>{m["sym"]}</b> {str(m.get("name", ""))[:14]}</td>'
             f'<td class="num">{m["n"]}</td><td class="num">{m["mean_ret"] * 1e4:+.0f}bps</td>'
             f'<td class="num">{m["win"] * 100:.0f}%</td></tr>' for m in d["most_traded"][:12])
+        cand_html = ""
+        if cell == "X11_z20_lo_h5tp" and "x11_candidates" in det:
+            c = det["x11_candidates"]
+            chips = "".join(
+                f'<tr class="r" data-k="{n["sym"]} {n.get("name","")} {n.get("sector","")}'.lower() + '">'
+                f'<td><b>{n["sym"]}</b></td><td>{str(n.get("name",""))[:18]}</td>'
+                f'<td><span class="q">{n.get("sector","")}</span></td></tr>'
+                for n in c["names"])
+            cand_html = (f'<div class="dcard" style="margin:12px 0">'
+                         f'<div class="nm">本日の買い候補（シグナル日 {c["signal_date"]}・{len(c["names"])}銘柄）</div>'
+                         f'<div class="note">{c["entry"]}。シグナルのみの表示＝封印(no-peek)と両立。毎日19:30に自動更新</div>'
+                         f'<div style="overflow-x:auto;max-height:300px;overflow-y:auto" class="ovx">'
+                         f'<table class="k"><thead><tr><th>コード</th><th>銘柄</th><th>業種</th></tr></thead>'
+                         f'<tbody>{chips}</tbody></table></div></div>')
         secs.append(f'''<div class="dgrp"><h2>{title}</h2>
 <div class="note" style="margin-bottom:10px">{desc}</div>
-{cards}
+{cand_html}{cards}
 <div class="dcard" style="margin-top:12px">{_svg_curve(d["daily_cum"])}</div>
 {_monthly_grid(d["monthly"])}
 <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800">直近の売買 400件（検索は上の入力欄）</summary>
