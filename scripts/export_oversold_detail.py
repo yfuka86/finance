@@ -23,6 +23,60 @@ OUT = Path("data/jp_oversold_interaction")
 LO = pd.Timestamp("2018-01-01")
 
 
+def fundamentals_for(syms: list[str]) -> dict:
+    """PIT fundamental snapshot per 5-digit panel symbol (latest disclosures).
+
+    fins codes are 4-char (width trap!): match on sym[:4]. Growth/ROE use the
+    latest FULL-YEAR rows (quarterly NP is cumulative and would mislead);
+    BPS/forecast dividend use the latest disclosed state of any row.
+    """
+    import numpy as np
+    from scripts.run_value_event_v1 import load_fins
+    from trading.jp_intraday.daily_gap import load_existing_daily
+    f = load_fins()
+    f["sym4"] = f["Code"].astype(str).str[:4]
+    want4 = {s[:4] for s in syms}
+    f = f[f["sym4"].isin(want4)].copy()
+    f["disc"] = pd.to_datetime(f["DiscDate"], errors="coerce")
+    for c in ("Sales", "OP", "NP", "Eq", "BPS", "DivAnn", "FDivAnn"):
+        f[c] = pd.to_numeric(f.get(c), errors="coerce")
+    f = f.sort_values(["sym4", "disc"])
+    st = f.groupby("sym4")[["BPS", "FDivAnn"]].last()
+    fy = f[f["CurPerType"] == "FY"].dropna(subset=["Sales"]).sort_values(["sym4", "disc"])
+    # groupby.nth returns original-index rows (silent mismatch); rank from end instead
+    fy = fy.assign(_rn=fy.groupby("sym4").cumcount(ascending=False))
+    last_fy = fy[fy["_rn"] == 0].set_index("sym4")[["Sales", "OP", "NP", "Eq", "DivAnn"]]
+    prev_fy = fy[fy["_rn"] == 1].set_index("sym4")[["Sales", "OP", "DivAnn"]]
+    d = load_existing_daily()
+    d = d[d["Code"].astype(str).isin(set(syms))]
+    px = (d.assign(Date=pd.to_datetime(d["Date"]))
+          .sort_values("Date").groupby(d["Code"].astype(str))["raw_close"].last())
+    out = {}
+    for s5 in syms:
+        s4 = s5[:4]
+        r = {}
+        close = float(px.get(s5, np.nan))
+        bps = float(st["BPS"].get(s4, np.nan))
+        fdiv = float(st["FDivAnn"].get(s4, np.nan))
+        lf = last_fy.loc[s4] if s4 in last_fy.index else None
+        pf = prev_fy.loc[s4] if s4 in prev_fy.index else None
+        r["pbr"] = round(close / bps, 2) if close > 0 and bps and bps > 0 else None
+        if lf is not None and pd.notna(lf["NP"]) and lf["Eq"]:
+            r["roe_pct"] = round(float(lf["NP"] / lf["Eq"]) * 100, 1)
+        if lf is not None and pf is not None:
+            if pd.notna(lf["Sales"]) and pf["Sales"]:
+                r["sales_yoy_pct"] = round(float(lf["Sales"] / pf["Sales"] - 1) * 100, 1)
+            if pd.notna(lf["OP"]) and pf["OP"] and pf["OP"] > 0:
+                r["op_yoy_pct"] = round(float(lf["OP"] / pf["OP"] - 1) * 100, 1)
+            prev_div = float(lf["DivAnn"]) if pd.notna(lf["DivAnn"]) else None
+            if prev_div is not None and pd.notna(fdiv):
+                r["div_up"] = bool(fdiv > prev_div)
+        if pd.notna(fdiv) and close > 0:
+            r["div_yield_pct"] = round(fdiv / close * 100, 2)
+        out[s5] = r
+    return out
+
+
 def names_map() -> dict:
     m = pd.read_parquet("data/jp_daily_history/master.parquet",
                         columns=["Code", "CoName", "S33Nm"])
@@ -143,11 +197,13 @@ def main() -> None:
     out["X11_z20_lo_h5tp"]["sealed_note"] = "成績表示は封印日2026-08-11で凍結（判定2028-08-12）"
     last_day = x11_mem.index[x11_mem.any(axis=1)][-1]
     cand = x11_mem.columns[x11_mem.loc[last_day]].tolist()
+    fund = fundamentals_for(sorted(cand))
     out["x11_candidates"] = {
         "signal_date": str(pd.Timestamp(last_day).date()),
         "entry": "翌営業日の寄成（現物ロング・5営業日 or +2×ivol20で翌寄利確）",
         "names": [{"sym": c, "name": nm.get(c, ("", ""))[0],
-                   "sector": nm.get(c, ("", ""))[1]} for c in sorted(cand)]}
+                   "sector": nm.get(c, ("", ""))[1], **fund.get(c, {})}
+                  for c in sorted(cand)]}
     oversold = A["Z5"].le(A["Z5"].quantile(.1, axis=1), axis=0)
     mmask = A["M"].le(0.0)
     mem_rule = oversold[mmask.reindex(oversold.index).fillna(False)].fillna(False)

@@ -468,16 +468,31 @@ def page_oversold() -> str:
         cand_html = ""
         if cell == "X11_z20_lo_h5tp" and "x11_candidates" in det:
             c = det["x11_candidates"]
+            def fmt(v, suf=""):
+                return "" if v is None else f"{v}{suf}"
+            def col(v, pos_good=True):
+                if v is None:
+                    return ""
+                good = (v > 0) if pos_good else (v < 1)
+                return f'style="color:{"#0a7f45" if good else "#b32c2c"};font-weight:700"'
             chips = "".join(
                 f'<tr class="r" data-k="{n["sym"]} {n.get("name","")} {n.get("sector","")}'.lower() + '">'
-                f'<td><b>{n["sym"]}</b></td><td>{str(n.get("name",""))[:18]}</td>'
-                f'<td><span class="q">{n.get("sector","")}</span></td></tr>'
+                f'<td><b>{n["sym"]}</b></td><td>{str(n.get("name",""))[:14]}</td>'
+                f'<td><span class="q">{n.get("sector","")}</span></td>'
+                f'<td class="num" {col(n.get("pbr"), pos_good=False)}>{fmt(n.get("pbr"))}</td>'
+                f'<td class="num" {col(n.get("roe_pct"))}>{fmt(n.get("roe_pct"), "%")}</td>'
+                f'<td class="num" {col(n.get("sales_yoy_pct"))}>{fmt(n.get("sales_yoy_pct"), "%")}</td>'
+                f'<td class="num" {col(n.get("op_yoy_pct"))}>{fmt(n.get("op_yoy_pct"), "%")}</td>'
+                f'<td>{"<span class=\'badge fix\'>増配予</span>" if n.get("div_up") else ("減配/維持" if n.get("div_up") is False else "")}</td>'
+                f'<td class="num">{fmt(n.get("div_yield_pct"), "%")}</td></tr>'
                 for n in c["names"])
             cand_html = (f'<div class="dcard" style="margin:12px 0">'
                          f'<div class="nm">本日の買い候補（シグナル日 {c["signal_date"]}・{len(c["names"])}銘柄）</div>'
                          f'<div class="note">{c["entry"]}。シグナルのみの表示＝封印(no-peek)と両立。毎日19:30に自動更新</div>'
                          f'<div style="overflow-x:auto;max-height:300px;overflow-y:auto" class="ovx">'
-                         f'<table class="k"><thead><tr><th>コード</th><th>銘柄</th><th>業種</th></tr></thead>'
+                         f'<table class="k"><thead><tr><th>コード</th><th>銘柄</th><th>業種</th>'
+                         f'<th>PBR</th><th>ROE</th><th>売上YoY</th><th>営業益YoY</th>'
+                         f'<th>配当</th><th>利回り</th></tr></thead>'
                          f'<tbody>{chips}</tbody></table></div></div>')
         secs.append(f'''<div class="dgrp"><h2>{title}</h2>
 <div class="note" style="margin-bottom:10px">{desc}</div>
