@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    ovi=_json("data/jp_oversold_interaction/summary.json")
+    if ovi:
+        ml=ovi["selection"].get("ML_ridge_h3",{})
+        rows.append({"戦略":"売られすぎ交互作用×利確×ML/MLP","ファミリー":"JP_FLOW_TIMING",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":ml.get("ir"),
+          "年率%":ml.get("excess_ann_pct"),"最大DD%":None,
+          "案件/日数":ml.get("active_days_per_year"),
+          "注記":("全17セル死。交互作用は逆符号(市場が弱いほど売られすぎは続落)。"
+                 "TPは+0.04-0.07 IRの正寄与だが桁不足。ML Ridge IR0.59が最良もtop5日42%集中。"
+                 "MLP=Ridge(deep増分なし)。売られすぎ反転はルール・ML両輪で決着"),
+          "結果":"data/jp_oversold_interaction/summary.json"})
     sdl=_json("data/jp_sector_dip_long/summary.json")
     if sdl:
         s1=sdl["selection"]["S1"]
