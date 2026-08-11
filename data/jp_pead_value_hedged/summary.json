@@ -1,0 +1,85 @@
+{
+  "spec": "docs/PREREGISTER_PEAD_VALUE_HEDGED.md",
+  "revision_events": 8587,
+  "cases": 1170,
+  "selection": {
+    "E1_excess": {
+      "cases": 926,
+      "median_pct": -1.11,
+      "mean_pct": 1.001,
+      "win_rate": 0.469,
+      "top_case_share": 0.09,
+      "top5pct_share": 2.079,
+      "es5_pct": -22.24,
+      "criteria": {
+        "n_ok": true,
+        "median_positive": false,
+        "top_share_lt_20": true,
+        "top5pct_lt_40": false
+      }
+    },
+    "E2_excess_flowgate": {
+      "cases": 480,
+      "median_pct": 0.605,
+      "mean_pct": 2.154,
+      "win_rate": 0.519,
+      "top_case_share": 0.08,
+      "top5pct_share": 0.9,
+      "es5_pct": -18.7,
+      "criteria": {
+        "n_ok": true,
+        "median_positive": true,
+        "top_share_lt_20": true,
+        "top5pct_lt_40": false
+      }
+    },
+    "E3_hedged": {
+      "cases": 926,
+      "median_pct": -1.906,
+      "mean_pct": -0.002,
+      "win_rate": 0.438,
+      "top_case_share": null,
+      "top5pct_share": null,
+      "es5_pct": -23.84,
+      "criteria": {
+        "n_ok": true,
+        "median_positive": false,
+        "top_share_lt_20": false,
+        "top5pct_lt_40": false
+      }
+    },
+    "E4_hedged_flowgate": {
+      "cases": 480,
+      "median_pct": -0.792,
+      "mean_pct": 0.941,
+      "win_rate": 0.473,
+      "top_case_share": 0.185,
+      "top5pct_share": 2.004,
+      "es5_pct": -21.11,
+      "criteria": {
+        "n_ok": true,
+        "median_positive": false,
+        "top_share_lt_20": true,
+        "top5pct_lt_40": false
+      }
+    }
+  },
+  "confirmation": "UNOPENED",
+  "flow_vs_outcome_corr": 0.0926,
+  "flow_trajectory_diagnostic": {
+    "post_event_flow_z_mean_t1_t10": {
+      "t+1": -0.044,
+      "t+2": -0.281,
+      "t+3": -0.665,
+      "t+4": -0.285,
+      "t+5": -0.17,
+      "t+6": -0.13,
+      "t+7": -0.095,
+      "t+8": -0.052,
+      "t+9": -0.038,
+      "t+10": 0.017
+    }
+  },
+  "passing_cells": [],
+  "decision": "NO_GO_AT_SELECTION"
+}

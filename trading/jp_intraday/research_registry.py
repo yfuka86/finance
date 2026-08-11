@@ -150,6 +150,18 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    pvh=_json("data/jp_pead_value_hedged/summary.json")
+    if pvh:
+        e2=pvh["selection"]["E2_excess_flowgate"]
+        rows.append({"戦略":"決算上方修正×低PBR×1306ヘッジ×フローゲート","ファミリー":"CORPORATE_EVENTS",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":None,
+          "年率%":e2.get("median_pct"),"最大DD%":e2.get("es5_pct"),
+          "案件/日数":e2.get("cases"),
+          "注記":("上方修正PEAD素は中央値−1.1%で不成立(増配+4.6%とはイベント種で4pp差)。"
+                 "フローゲートで+0.61%に反転=日中ML以外で初のフロー有効例(相関+0.09)。"
+                 "決算後は信用の利確売りがt+1〜9に系統発生(谷t+3)。1306ヘッジは機構OKだが"
+                 "載せるαが先。集中90%で全セル不合格"),
+          "結果":"data/jp_pead_value_hedged/summary.json"})
     lof=_json("data/jp_long_only_frontier/summary.json")
     if lof:
         best=lof["selection"].get("V_h20",{})
