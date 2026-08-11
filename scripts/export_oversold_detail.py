@@ -2,10 +2,10 @@
 """Export trade-level detail for the oversold-interaction strategy dashboard.
 
 Re-simulates the two headline cells (ML_ridge_h3 and A0_m0_h5_tp) with full
-trade recording, SELECTION WINDOW ONLY (2018-2024): the 2025+ confirmation
-window stays unopened even for display, so a NO-GO family cannot contaminate
-windows other strategies may still need. Output: data/jp_oversold_interaction/
-detail.json consumed by scripts/build_finance_site.py.
+trade recording over the FULL period 2018..present. 2025+ display was an
+explicit user decision (2026-08-11): showing it consumes this family's
+confirmation window, which is recorded in AGENTS.md. Output:
+data/jp_oversold_interaction/detail.json for scripts/build_finance_site.py.
 """
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def simulate_recorded(A, members: pd.DataFrame, h: int, use_tp: bool):
     mem = members.reindex(index=dates, columns=A["CC"].columns).fillna(False).to_numpy()
     trades = []
     for i in np.nonzero(mem.any(axis=1))[0]:
-        if dates[i] < LO or dates[i] > SEL_END or i + h + 1 >= n:
+        if dates[i] < LO or i + h + 1 >= n:
             continue
         cols = np.nonzero(mem[i])[0]
         e = i + 1
@@ -87,7 +87,7 @@ def simulate_recorded(A, members: pd.DataFrame, h: int, use_tp: bool):
                            "reason": str(exit_reason[j])})
     with np.errstate(invalid="ignore"):
         daily = np.where(wsum > 0, (strat - bench) / np.maximum(wsum, 1), 0.0)
-    ex = pd.Series(daily, index=dates).loc[LO:SEL_END]
+    ex = pd.Series(daily, index=dates).loc[LO:]
     return ex, trades
 
 
@@ -102,7 +102,15 @@ def pack(ex: pd.Series, trades: list, nm: dict) -> dict:
                .agg(n=("ret", "size"), mean_ret=("ret", "mean"),
                     win=("ret", lambda r: (r > 0).mean()))
                .reset_index().sort_values("n", ascending=False))
+    def window_stats(lo, hi):
+        w = ex.loc[lo:hi]
+        if len(w) < 60 or w.std() == 0:
+            return {}
+        return {"ir": round(float(w.mean() / w.std() * 252 ** .5), 2),
+                "excess_ann_pct": round(float(w.mean() * 252 * 100), 2)}
     return {
+        "sel_stats": window_stats("2018-01-01", str(SEL_END.date())),
+        "post_stats": window_stats("2025-01-01", "2027-12-31"),
         "daily_cum": [[str(d.date()), round(float(v), 5)]
                       for d, v in cum.iloc[::3].items()],
         "monthly": [[str(p), round(float(v) * 100, 2)] for p, v in monthly.items()],

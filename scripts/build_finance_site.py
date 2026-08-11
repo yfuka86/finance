@@ -366,6 +366,11 @@ def _svg_curve(series, w=920, h=190) -> str:
         f'<line x1="{x}" y1="0" x2="{x}" y2="{h}" stroke="var(--line)" stroke-width="1"/>'
         f'<text x="{x + 4}" y="{h - 4}" font-size="10" fill="var(--ink2)">{y}</text>'
         for x, y in years[1:])
+    for x, y in years:
+        if y == "2025":
+            ticks += (f'<line x1="{x}" y1="0" x2="{x}" y2="{h}" stroke="#b32c2c" '
+                      f'stroke-dasharray="4 4" stroke-width="1.5"/>'
+                      f'<text x="{x + 4}" y="26" font-size="10" fill="#b32c2c">選択窓ここまで→</text>')
     base_y = round(h - (1.0 - lo) / rng * (h - 14) - 7, 1)
     return (f'<svg viewBox="0 0 {w} {h}" style="width:100%;height:auto;display:block">'
             f'{ticks}<line x1="0" y1="{base_y}" x2="{w}" y2="{base_y}" '
@@ -426,9 +431,11 @@ def page_oversold() -> str:
     for cell, (title, desc) in meta.items():
         d = det[cell]
         s = summ["selection"].get(cell, {})
+        sel_st, post_st = d.get("sel_stats", {}), d.get("post_stats", {})
         cards = f'''<div class="dcards">
-<div class="dcard"><div class="nm">超過IR（選択窓）</div><div class="n">{s.get("ir", "—")}</div>
-<div class="note">超過年率 {s.get("excess_ann_pct", "—")}% / 稼働 {s.get("active_days_per_year", "—")}日/年</div></div>
+<div class="dcard"><div class="nm">超過IR 選択窓 → 2025+</div>
+<div class="n">{sel_st.get("ir", s.get("ir", "—"))}<span> → {post_st.get("ir", "—")}</span></div>
+<div class="note">超過年率 {sel_st.get("excess_ann_pct", "—")}% → {post_st.get("excess_ann_pct", "—")}%（2025+はユーザー指示で開示）</div></div>
 <div class="dcard"><div class="nm">売買回数</div><div class="n">{d["n_trades"]:,}<span>回</span></div>
 <div class="note">2018-2024（選択窓）の全建玉</div></div>
 <div class="dcard"><div class="nm">勝率 / 平均</div><div class="n">{d["win_rate"] * 100:.1f}<span>%</span></div>
@@ -476,9 +483,9 @@ details table.k th{{position:static}}
 .dw .cols2 h2{{font-size:14px;margin:0 0 8px}}
 </style>
 <h1>売られすぎ反転（詳細）<span class="s">{badge("NO-GO")} 全17セル基準未達・記録用の解剖ページ</span></h1>
-<div class="dnote" style="margin-bottom:14px">表示は<b>選択窓2018-2024のみ</b>。2025年以降は確認窓保全のため
-このページには一切表示しない（NO-GO戦略でも窓を汚染すると他戦略の確認に使えなくなるため）。
-事前登録: docs/PREREGISTER_OVERSOLD_INTERACTION.md</div>
+<div class="dnote" style="margin-bottom:14px">全期間2018〜現在を表示（<b>2025年以降の開示はユーザー指示 2026-08-11</b>。
+これによりこのファミリーの確認窓2025+は消費済み＝以後この族の変種を2025+で「確認」することはできない。AGENTS.mdに記録済み）。
+赤点線が選択窓の境界。事前登録: docs/PREREGISTER_OVERSOLD_INTERACTION.md</div>
 <input id="q" class="search" placeholder="コード・銘柄名・業種で売買明細を絞り込み…">
 {"".join(secs)}
 <div class="dgrp"><h2>全17セル（選択窓）</h2>
