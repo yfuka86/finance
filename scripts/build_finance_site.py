@@ -406,7 +406,7 @@ def _monthly_grid(monthly) -> str:
                 c = "#0a7f45" if v > 0 else "#b32c2c"
                 cells.append(f'<td class="num" style="color:{c}">{v:+.1f}</td>')
         body.append(f'<tr><td><b>{y}</b></td>{"".join(cells)}</tr>')
-    return (f'<div style="overflow-x:auto"><table class="k"><thead><tr><th>年</th>{head}</tr>'
+    return (f'<div class="ovx" style="overflow-x:auto"><table class="k"><thead><tr><th>年</th>{head}</tr>'
             f'</thead><tbody>{"".join(body)}</tbody></table></div>'
             f'<div class="dnote">月次超過リターン（%・対等加重市場）</div>')
 
@@ -452,13 +452,13 @@ def page_oversold() -> str:
 <div class="dcard" style="margin-top:12px">{_svg_curve(d["daily_cum"])}</div>
 {_monthly_grid(d["monthly"])}
 <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800">直近の売買 400件（検索は上の入力欄）</summary>
-<div style="overflow-x:auto"><table class="k"><thead><tr><th>建て</th><th>返済</th><th>コード</th>
+<div class="ovx" style="overflow-x:auto"><table class="k"><thead><tr><th>建て</th><th>返済</th><th>コード</th>
 <th>銘柄</th><th>業種</th><th>損益</th><th>退出</th></tr></thead>
 <tbody>{_trade_rows(d["trades_recent"], cell)}</tbody></table></div></details>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
-<div><h2 style="font-size:14px">勝ちトップ10 / 負けトップ10</h2>
+<div class="cols2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div><h2>勝ちトップ10 / 負けトップ10</h2>
 <table class="k"><thead><tr><th>建て</th><th>銘柄</th><th>損益</th><th>退出</th></tr></thead><tbody>{wl}</tbody></table></div>
-<div><h2 style="font-size:14px">頻出銘柄</h2>
+<div><h2>頻出銘柄</h2>
 <table class="k"><thead><tr><th>銘柄</th><th>回数</th><th>平均</th><th>勝率</th></tr></thead><tbody>{most}</tbody></table></div>
 </div></div>''')
     grid_rows = "".join(
@@ -469,6 +469,12 @@ def page_oversold() -> str:
         f'<td class="num">{v.get("top5_share", "—")}</td><td class="num">{v.get("ir_ex_top10", "—")}</td></tr>'
         for k, v in summ["selection"].items())
     return f'''<div class="dw">
+<style>
+/* overflow コンテナ内では sticky がコンテナ基準になりヘッダが崩れるため無効化 */
+.ovx table.k th{{position:static}}
+details table.k th{{position:static}}
+.dw .cols2 h2{{font-size:14px;margin:0 0 8px}}
+</style>
 <h1>売られすぎ反転（詳細）<span class="s">{badge("NO-GO")} 全17セル基準未達・記録用の解剖ページ</span></h1>
 <div class="dnote" style="margin-bottom:14px">表示は<b>選択窓2018-2024のみ</b>。2025年以降は確認窓保全のため
 このページには一切表示しない（NO-GO戦略でも窓を汚染すると他戦略の確認に使えなくなるため）。
