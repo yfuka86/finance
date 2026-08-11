@@ -36,8 +36,11 @@ MAX_REGISTERED = 50
 class PushBoardFeed:
     """Register ≤50 symbols and keep their latest board in memory via WebSocket."""
 
+    STALL_RECONNECT_S = 90     # この秒数ストリームが無音なら切断とみなして再接続
+    WATCH_INTERVAL_S = 5
+
     def __init__(self, client, symbols: Iterable[str], exchange: int = 1,
-                 seed_via_rest: bool = True, log=print):
+                 seed_via_rest: bool = True, log=print, record_history: bool = False):
         syms = [str(s) for s in symbols]
         if len(syms) > MAX_REGISTERED:
             raise ValueError(f"登録銘柄は最大{MAX_REGISTERED}件（{len(syms)}件が指定された）")
@@ -53,9 +56,15 @@ class PushBoardFeed:
         # **分析ではPUSHで更新された銘柄だけを使う**ため必ず記録する。
         self._source: dict[str, str] = {}
         self._updates: dict[str, int] = {}
-        # 受信履歴（record_history=True のとき）。板寄せの成立が配信でいつ観測されるか
-        # ＝下り遅延の実測に使う。1メッセージ= (受信epoch, 銘柄, 現値時刻, 現値, 寄値/引値)
-        self.record_history = False
+        # ストリーム死活監視: 2026-08-11 に登録直後のサイレント切断で全スナップショットが
+        # 凍結する実障害（受信50件で停止・health()は検知できず）。無音が続いたら再接続する。
+        self._last_msg_at = 0.0
+        self._closed = False
+        self.reconnects = 0
+        self.pause_watchdog = False    # バースト中(意図的な無音)は True にして誤発火を防ぐ
+        # 受信履歴。**コンストラクタで渡す**（start()後に設定すると接続直後の
+        # メッセージを取りこぼす。2026-08-11: 履歴0行の実障害）
+        self.record_history = record_history
         self.history: list[tuple] = []
         self._history_cap = 200_000
         self._lock = threading.Lock()
@@ -74,13 +83,11 @@ class PushBoardFeed:
 
     def start(self) -> None:
         self._register()
-        url = self._client.base.replace("http://", "ws://") + "/websocket"
-        self._ws = websocket.WebSocketApp(
-            url, on_message=self._on_message, on_open=self._on_open,
-            on_error=lambda _ws, e: self._log(f"  push: WebSocketエラー {e}"))
-        self._thread = threading.Thread(target=self._ws.run_forever, daemon=True)
-        self._thread.start()
+        self._open_ws()
         self._connected.wait(timeout=10)
+        self._last_msg_at = time.time()
+        self._watchdog = threading.Thread(target=self._watch, daemon=True)
+        self._watchdog.start()
         if self._seed_via_rest:
             # PUSHは「更新があったときだけ」飛ぶ。初期値はRESTで1回だけ埋める
             # （登録済みなので1銘柄~1.4ms）。
@@ -99,7 +106,37 @@ class PushBoardFeed:
                 except Exception:  # noqa: BLE001
                     pass
 
+    def _open_ws(self) -> None:
+        url = self._client.base.replace("http://", "ws://") + "/websocket"
+        self._ws = websocket.WebSocketApp(
+            url, on_message=self._on_message, on_open=self._on_open,
+            on_error=lambda _ws, e: self._log(f"  push: WebSocketエラー {e}"))
+        self._thread = threading.Thread(target=self._ws.run_forever, daemon=True)
+        self._thread.start()
+
+    def _watch(self) -> None:
+        """無音検知→再接続。接続が黙って死んでもスナップショットを凍結させない。"""
+        while not self._closed:
+            time.sleep(self.WATCH_INTERVAL_S)
+            if self._closed or self.pause_watchdog:
+                continue
+            if time.time() - self._last_msg_at <= self.STALL_RECONNECT_S:
+                continue
+            self.reconnects += 1
+            self._log(f"  push: {self.STALL_RECONNECT_S}秒無受信 → 再接続 #{self.reconnects}")
+            try:
+                self._ws.close()
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                self._register()          # 登録が残っていても冪等
+            except Exception:  # noqa: BLE001
+                pass
+            self._open_ws()
+            self._last_msg_at = time.time()   # 直後の連続発火を防ぐ
+
     def stop(self) -> None:
+        self._closed = True
         if self._ws is not None:
             try:
                 self._ws.close()
@@ -135,6 +172,7 @@ class PushBoardFeed:
         except Exception:  # noqa: BLE001
             return
         self.messages += 1
+        self._last_msg_at = time.time()
         if self.record_history and len(self.history) < self._history_cap:
             # bid/ask も残す: 寄前の気配は bid/ask にしか無い（CalcPrice/CurrentPriceは
             # 前日終値のまま）。無いと履歴から「時刻tの気配」を再構成できない
@@ -218,6 +256,10 @@ class PushBoardFeed:
         """
         with self._lock:
             never = [k for k in self._symbols if self._updates.get(k, 0) == 0]
+        age = time.time() - self._last_msg_at if self._last_msg_at else float("inf")
+        stalled = (not self.pause_watchdog) and age > self.STALL_RECONNECT_S
         return {"connected": self.connected, "messages": self.messages,
                 "symbols": len(self._symbols), "never_pushed": never,
-                "ok": self.connected and not never}
+                "last_msg_age_s": round(age, 1), "stalled": stalled,
+                "reconnects": self.reconnects,
+                "ok": self.connected and not never and not stalled}

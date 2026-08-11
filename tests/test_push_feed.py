@@ -195,3 +195,46 @@ class HealthTest(PushFeedTest):
             h = feed.health()
         self.assertTrue(h["ok"])
         self.assertEqual(h["never_pushed"], [])
+
+
+class WatchdogTest(PushFeedTest):
+    """2026-08-11の実障害: 登録直後のサイレント切断で全スナップショットが凍結した。
+    無音90秒で自動再接続し、health() が停止を検知できることを保証する。"""
+
+    def _fast_feed(self, client, **kw):
+        from trading.jp_intraday.live.push_feed import PushBoardFeed as PBF
+        self.p1 = mock.patch.object(PBF, "WATCH_INTERVAL_S", 0.03)
+        self.p2 = mock.patch.object(PBF, "STALL_RECONNECT_S", 0.15)
+        self.p1.start(); self.addCleanup(self.p1.stop)
+        self.p2.start(); self.addCleanup(self.p2.stop)
+        return PushBoardFeed(client, ["13010"], seed_via_rest=False,
+                             log=lambda *_: None, **kw)
+
+    def test_silent_stall_triggers_reconnect(self):
+        c = FakeClient()
+        with self._fast_feed(c) as feed:
+            time.sleep(0.6)          # 無音のまま待つ → 再接続が走るはず
+            self.assertGreaterEqual(feed.reconnects, 1, "無音でも再接続していない")
+            self.assertGreaterEqual(c.calls.count("register"), 2, "再登録していない")
+            self.assertGreaterEqual(len(FakeWSApp.instances), 2, "WSを張り直していない")
+
+    def test_pause_suppresses_reconnect(self):
+        c = FakeClient()
+        with self._fast_feed(c) as feed:
+            feed.pause_watchdog = True
+            time.sleep(0.5)
+            self.assertEqual(feed.reconnects, 0, "バースト中(pause)に再接続している")
+
+    def test_health_flags_stalled_stream(self):
+        # 既定間隔(5s)のwatchdogは本テスト中には走らない → 状態を直接作ってhealthを読む
+        c = FakeClient()
+        with PushBoardFeed(c, ["13010"], seed_via_rest=False, log=lambda *_: None) as feed:
+            FakeWSApp.instances[-1].push({"Symbol": "1301", "CurrentPrice": 1.0})
+            for _ in range(50):
+                if feed.push_updated():
+                    break
+                time.sleep(0.01)
+            feed._last_msg_at = time.time() - 999
+            h = feed.health()
+        self.assertTrue(h["stalled"], "停止を検知できていない")
+        self.assertFalse(h["ok"], "停止中なのに ok=True")

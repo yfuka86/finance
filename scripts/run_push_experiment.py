@@ -121,11 +121,10 @@ def main() -> int:
     px.save(record, dry=args.dry)
 
     print("③ PUSH登録して同時スナップショット…")
-    with PushBoardFeed(client, chosen) as feed:
+    with PushBoardFeed(client, chosen, record_history=True) as feed:
         # 全メッセージ履歴を録る: 後から**任意の時刻**の選択を再構成できる
         # （スナップショット9点ではなく連続曲線）。寄値もPUSHの約定プリント
         # (CurrentPriceTime=09:00:00) から直接取れる。
-        feed.record_history = True
         feed.wait_ready(timeout=120)
         times = ["now"] if args.dry else list(px.SNAP_TIMES)
         for hhmm in times:
@@ -160,6 +159,7 @@ def main() -> int:
             # ~170銘柄に広げる。GET /board は自動登録で50枠を食うため、PUSH登録を
             # 一旦解除して叩き、寄値プリント回収のため最後に candidates を再登録する。
             if hhmm == "08:57" and not args.dry and burst_names:
+                feed.pause_watchdog = True     # バースト中は意図的な無音（誤再接続を防ぐ）
                 client.unregister_all()
                 client._board_calls = 0          # board()の45件ごと自動解除と整合させる
                 deadline = dt.datetime.now().replace(hour=8, minute=59, second=15,
@@ -187,6 +187,7 @@ def main() -> int:
                         "Symbols": [{"Symbol": to_kabu_symbol(s), "Exchange": 1}
                                     for s in chosen]})
                     print("   burst後にcandidates 50を再登録（寄値プリント回収用）")
+                    feed.pause_watchdog = False
                 except Exception as exc:  # noqa: BLE001
                     print(f"   再登録に失敗: {exc}")
                 px.save(record, dry=args.dry)
