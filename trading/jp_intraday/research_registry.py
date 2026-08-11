@@ -150,6 +150,18 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    sdl=_json("data/jp_sector_dip_long/summary.json")
+    if sdl:
+        s1=sdl["selection"]["S1"]
+        rows.append({"戦略":"平時セクター・ディップのロング×フロー×RSI","ファミリー":"JP_FLOW_TIMING",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":None,
+          "年率%":s1.get("excess_median_pct"),"最大DD%":s1.get("es5_pct"),
+          "案件/日数":s1.get("episodes"),
+          "注記":("素は中央値+0.49%/203件と惜しいが上位5%が利益の96%。正体=鉄鋼・海運の"
+                 "2021-23スーパーサイクル1回(2018-20は3年連続負)。フローゲートは中央値を潰し"
+                 "(イベント文脈と逆=汎用部品でない)、RSI<30は標本を1/9に枯らす。"
+                 "「安いものを買う」系はどの粒度でもレジーム1回の塊(3例目)"),
+          "結果":"data/jp_sector_dip_long/summary.json"})
     pvh=_json("data/jp_pead_value_hedged/summary.json")
     if pvh:
         e2=pvh["selection"]["E2_excess_flowgate"]
