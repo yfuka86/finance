@@ -1,0 +1,351 @@
+[
+ {
+  "ir": 0.195,
+  "excess_ann_pct": 2.71,
+  "active_days_per_year": 61.1,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 1.656,
+  "ir_ex_top10": -0.362,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X1_mid_pos1_turnhi_h5tp0",
+  "spec": {
+   "mcap": "mid",
+   "flow": "pos1",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.072,
+   0.288
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.137,
+  "excess_ann_pct": 1.81,
+  "active_days_per_year": 82.0,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 2.354,
+  "ir_ex_top10": -0.454,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X2_mid_turnhi_h3tp1",
+  "spec": {
+   "mcap": "mid",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   0.373,
+   0.011
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.634,
+  "excess_ann_pct": 6.83,
+  "active_days_per_year": 169.0,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.446,
+  "ir_ex_top10": 0.18,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X3_mid_z20_gap_lo_h5tp1",
+  "spec": {
+   "mcap": "mid",
+   "dip": "z20",
+   "gapdip": "gap",
+   "ivol": "lo",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.693,
+   0.55
+  ],
+  "pos_years": 6
+ },
+ {
+  "ir": 1.307,
+  "excess_ann_pct": 10.17,
+  "active_days_per_year": 182.2,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.258,
+  "ir_ex_top10": 0.889,
+  "criteria": {
+   "ir_ge_07": true,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": true
+  },
+  "name": "X4_f5e8_mid_z20_lo_h5tp1",
+  "spec": {
+   "floor": 500000000,
+   "mcap": "mid",
+   "dip": "z20",
+   "ivol": "lo",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   1.174,
+   1.509
+  ],
+  "pos_years": 7
+ },
+ {
+  "ir": 0.764,
+  "excess_ann_pct": 8.74,
+  "active_days_per_year": 249.9,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.366,
+  "ir_ex_top10": 0.331,
+  "criteria": {
+   "ir_ge_07": true,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X5_mid_h5tp1_mnone",
+  "spec": {
+   "mcap": "mid",
+   "h": 5,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   1.067,
+   0.349
+  ],
+  "pos_years": 6
+ },
+ {
+  "ir": -0.191,
+  "excess_ann_pct": -1.29,
+  "active_days_per_year": 103.2,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.726,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X6_z20_lo_turnhi_h5tp0",
+  "spec": {
+   "dip": "z20",
+   "ivol": "lo",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.631,
+   0.036
+  ],
+  "pos_years": 1
+ },
+ {
+  "ir": -0.3,
+  "excess_ann_pct": -1.92,
+  "active_days_per_year": 84.8,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.835,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X7_z20_lo_turnhi_h3tp1",
+  "spec": {
+   "dip": "z20",
+   "ivol": "lo",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.152,
+   -0.424
+  ],
+  "pos_years": 0
+ },
+ {
+  "ir": 0.634,
+  "excess_ann_pct": 11.47,
+  "active_days_per_year": 138.5,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.466,
+  "ir_ex_top10": 0.127,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X8_pos1_turnhi_h5tp0_mnone",
+  "spec": {
+   "flow": "pos1",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0,
+   "market": "none"
+  },
+  "half_irs": [
+   0.088,
+   1.019
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.417,
+  "excess_ann_pct": 4.4,
+  "active_days_per_year": 140.5,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.684,
+  "ir_ex_top10": -0.08,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "X9_turnhi_h3tp1_mnone",
+  "spec": {
+   "turn": "hi",
+   "h": 3,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.047,
+   0.671
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 1.17,
+  "excess_ann_pct": 9.66,
+  "active_days_per_year": 249.0,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.228,
+  "ir_ex_top10": 0.811,
+  "criteria": {
+   "ir_ge_07": true,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": true
+  },
+  "name": "X10_z20_gap_lo_h5tp1_mnone",
+  "spec": {
+   "dip": "z20",
+   "gapdip": "gap",
+   "ivol": "lo",
+   "h": 5,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.998,
+   1.428
+  ],
+  "pos_years": 7
+ },
+ {
+  "ir": 1.149,
+  "excess_ann_pct": 8.11,
+  "active_days_per_year": 249.0,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.262,
+  "ir_ex_top10": 0.764,
+  "criteria": {
+   "ir_ge_07": true,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": true
+  },
+  "name": "X11_z20_lo_h5tp1_mnone",
+  "spec": {
+   "dip": "z20",
+   "ivol": "lo",
+   "h": 5,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   1.153,
+   1.15
+  ],
+  "pos_years": 7
+ },
+ {
+  "ir": 0.824,
+  "excess_ann_pct": 7.06,
+  "active_days_per_year": 249.0,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.336,
+  "ir_ex_top10": 0.425,
+  "criteria": {
+   "ir_ge_07": true,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": true
+  },
+  "name": "X12_mid_z20_lo_h5tp1_mnone",
+  "spec": {
+   "mcap": "mid",
+   "dip": "z20",
+   "ivol": "lo",
+   "h": 5,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.894,
+   0.727
+  ],
+  "pos_years": 6
+ }
+]

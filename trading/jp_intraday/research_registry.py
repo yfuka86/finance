@@ -150,6 +150,18 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    osw=_json("data/jp_oversold_sweep2/cross.json")
+    if osw:
+        x11=next((c for c in osw if "X11" in str(c.get("name",""))), {})
+        rows.append({"戦略":"売られすぎ族・第2掃引(111セル+交差+近傍検証)","ファミリー":"JP_FLOW_TIMING",
+          "状態":"NO-GO(恒久)","実取引":True,"OOS Sharpe":x11.get("ir"),
+          "年率%":x11.get("excess_ann_pct"),"最大DD%":None,
+          "案件/日数":x11.get("active_days_per_year"),
+          "注記":("z20×低ボラ×h5=IR1.15・7年全勝・前後半1.15/1.15・近傍安定で過去最良の1基準差。"
+                 "落ちたのは上位5日集中(26%vs20%)のみ。小型は継続・出来高スパイクは幻影・"
+                 "強売りフローは継続信号・TPはh10でΔ+0.15の初の正例。"
+                 "再開はユーザー承認のフォワード封印セカンドチャンスのみ"),
+          "結果":"data/jp_oversold_sweep2/"})
     ovi=_json("data/jp_oversold_interaction/summary.json")
     if ovi:
         ml=ovi["selection"].get("ML_ridge_h3",{})

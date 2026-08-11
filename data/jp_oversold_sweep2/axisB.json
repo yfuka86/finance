@@ -1,0 +1,1122 @@
+[
+ {
+  "ir": 0.05,
+  "excess_ann_pct": 0.5,
+  "active_days_per_year": 152.2,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 6.403,
+  "ir_ex_top10": -0.517,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=none|h=3|tp=0",
+  "spec": {
+   "flow": "none",
+   "turn": "none",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   0.011,
+   0.104
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.055,
+  "excess_ann_pct": 0.54,
+  "active_days_per_year": 152.2,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 5.536,
+  "ir_ex_top10": -0.479,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=none|h=3|tp=1",
+  "spec": {
+   "flow": "none",
+   "turn": "none",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.067,
+   0.225
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.099,
+  "excess_ann_pct": 1.02,
+  "active_days_per_year": 183.4,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 2.971,
+  "ir_ex_top10": -0.438,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=none|h=5|tp=0",
+  "spec": {
+   "flow": "none",
+   "turn": "none",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.037,
+   0.278
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.136,
+  "excess_ann_pct": 1.4,
+  "active_days_per_year": 183.4,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 2.207,
+  "ir_ex_top10": -0.39,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=none|h=5|tp=1",
+  "spec": {
+   "flow": "none",
+   "turn": "none",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.04,
+   0.264
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.6,
+  "excess_ann_pct": 5.64,
+  "active_days_per_year": 85.5,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.527,
+  "ir_ex_top10": 0.04,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=hi|h=3|tp=0",
+  "spec": {
+   "flow": "none",
+   "turn": "hi",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.01,
+   1.016
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.658,
+  "excess_ann_pct": 6.24,
+  "active_days_per_year": 85.5,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.529,
+  "ir_ex_top10": 0.088,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=hi|h=3|tp=1",
+  "spec": {
+   "flow": "none",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.07,
+   1.145
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.5,
+  "excess_ann_pct": 4.75,
+  "active_days_per_year": 103.6,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.568,
+  "ir_ex_top10": 0.029,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=hi|h=5|tp=0",
+  "spec": {
+   "flow": "none",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.083,
+   0.806
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.384,
+  "excess_ann_pct": 3.66,
+  "active_days_per_year": 103.5,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.72,
+  "ir_ex_top10": -0.101,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=none|turn=hi|h=5|tp=1",
+  "spec": {
+   "flow": "none",
+   "turn": "hi",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.094,
+   0.71
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.202,
+  "excess_ann_pct": 2.18,
+  "active_days_per_year": 151.6,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 1.447,
+  "ir_ex_top10": -0.312,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=none|h=3|tp=0",
+  "spec": {
+   "flow": "pos",
+   "turn": "none",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.041,
+   0.548
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.215,
+  "excess_ann_pct": 2.26,
+  "active_days_per_year": 151.6,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 1.228,
+  "ir_ex_top10": -0.256,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=none|h=3|tp=1",
+  "spec": {
+   "flow": "pos",
+   "turn": "none",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.135,
+   0.704
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.15,
+  "excess_ann_pct": 1.67,
+  "active_days_per_year": 182.5,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 1.814,
+  "ir_ex_top10": -0.35,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=none|h=5|tp=0",
+  "spec": {
+   "flow": "pos",
+   "turn": "none",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.087,
+   0.464
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.175,
+  "excess_ann_pct": 1.91,
+  "active_days_per_year": 182.3,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 1.588,
+  "ir_ex_top10": -0.338,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=none|h=5|tp=1",
+  "spec": {
+   "flow": "pos",
+   "turn": "none",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.035,
+   0.365
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.479,
+  "excess_ann_pct": 5.52,
+  "active_days_per_year": 84.9,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.71,
+  "ir_ex_top10": -0.083,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=hi|h=3|tp=0",
+  "spec": {
+   "flow": "pos",
+   "turn": "hi",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.075,
+   0.864
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.582,
+  "excess_ann_pct": 6.77,
+  "active_days_per_year": 84.9,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.604,
+  "ir_ex_top10": 0.002,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=hi|h=3|tp=1",
+  "spec": {
+   "flow": "pos",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.068,
+   1.037
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.427,
+  "excess_ann_pct": 4.76,
+  "active_days_per_year": 102.7,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.659,
+  "ir_ex_top10": -0.06,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=hi|h=5|tp=0",
+  "spec": {
+   "flow": "pos",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.154,
+   0.641
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.331,
+  "excess_ann_pct": 3.82,
+  "active_days_per_year": 102.4,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.97,
+  "ir_ex_top10": -0.208,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos|turn=hi|h=5|tp=1",
+  "spec": {
+   "flow": "pos",
+   "turn": "hi",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.023,
+   0.552
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": -0.195,
+  "excess_ann_pct": -2.18,
+  "active_days_per_year": 151.6,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.705,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=none|h=3|tp=0",
+  "spec": {
+   "flow": "neg",
+   "turn": "none",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.037,
+   -0.403
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": -0.225,
+  "excess_ann_pct": -2.49,
+  "active_days_per_year": 151.6,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.722,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=none|h=3|tp=1",
+  "spec": {
+   "flow": "neg",
+   "turn": "none",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.128,
+   -0.351
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": -0.059,
+  "excess_ann_pct": -0.68,
+  "active_days_per_year": 182.5,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.54,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=none|h=5|tp=0",
+  "spec": {
+   "flow": "neg",
+   "turn": "none",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.102,
+   -0.006
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": -0.072,
+  "excess_ann_pct": -0.84,
+  "active_days_per_year": 182.5,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.561,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=none|h=5|tp=1",
+  "spec": {
+   "flow": "neg",
+   "turn": "none",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.131,
+   0.003
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.531,
+  "excess_ann_pct": 6.43,
+  "active_days_per_year": 83.5,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.538,
+  "ir_ex_top10": 0.019,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=hi|h=3|tp=0",
+  "spec": {
+   "flow": "neg",
+   "turn": "hi",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   0.127,
+   0.838
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.564,
+  "excess_ann_pct": 6.8,
+  "active_days_per_year": 83.5,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.508,
+  "ir_ex_top10": 0.053,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=hi|h=3|tp=1",
+  "spec": {
+   "flow": "neg",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   0.075,
+   0.929
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.526,
+  "excess_ann_pct": 6.55,
+  "active_days_per_year": 101.5,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.543,
+  "ir_ex_top10": 0.047,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=hi|h=5|tp=0",
+  "spec": {
+   "flow": "neg",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.491,
+   0.601
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.4,
+  "excess_ann_pct": 5.02,
+  "active_days_per_year": 100.9,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.77,
+  "ir_ex_top10": -0.131,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg|turn=hi|h=5|tp=1",
+  "spec": {
+   "flow": "neg",
+   "turn": "hi",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.283,
+   0.517
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.237,
+  "excess_ann_pct": 3.65,
+  "active_days_per_year": 151.1,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": 1.175,
+  "ir_ex_top10": -0.258,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=none|h=3|tp=0",
+  "spec": {
+   "flow": "pos1",
+   "turn": "none",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.047,
+   0.617
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.258,
+  "excess_ann_pct": 3.93,
+  "active_days_per_year": 151.1,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": 1.117,
+  "ir_ex_top10": -0.243,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=none|h=3|tp=1",
+  "spec": {
+   "flow": "pos1",
+   "turn": "none",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.04,
+   0.664
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.259,
+  "excess_ann_pct": 3.93,
+  "active_days_per_year": 181.6,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 0.949,
+  "ir_ex_top10": -0.186,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=none|h=5|tp=0",
+  "spec": {
+   "flow": "pos1",
+   "turn": "none",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.206,
+   0.325
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.482,
+  "excess_ann_pct": 7.29,
+  "active_days_per_year": 181.3,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.602,
+  "ir_ex_top10": 0.009,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=none|h=5|tp=1",
+  "spec": {
+   "flow": "pos1",
+   "turn": "none",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.609,
+   0.318
+  ],
+  "pos_years": 6
+ },
+ {
+  "ir": 0.532,
+  "excess_ann_pct": 9.26,
+  "active_days_per_year": 74.3,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.752,
+  "ir_ex_top10": -0.124,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=hi|h=3|tp=0",
+  "spec": {
+   "flow": "pos1",
+   "turn": "hi",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.157,
+   0.972
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.465,
+  "excess_ann_pct": 8.03,
+  "active_days_per_year": 74.0,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.868,
+  "ir_ex_top10": -0.213,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=hi|h=3|tp=1",
+  "spec": {
+   "flow": "pos1",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.17,
+   0.864
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.665,
+  "excess_ann_pct": 11.87,
+  "active_days_per_year": 92.6,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.522,
+  "ir_ex_top10": 0.081,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=hi|h=5|tp=0",
+  "spec": {
+   "flow": "pos1",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.198,
+   1.005
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.626,
+  "excess_ann_pct": 11.65,
+  "active_days_per_year": 91.2,
+  "neg_years": 0,
+  "years": 7,
+  "top5_share": 0.64,
+  "ir_ex_top10": -0.026,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=pos1|turn=hi|h=5|tp=1",
+  "spec": {
+   "flow": "pos1",
+   "turn": "hi",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.15,
+   0.964
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": -0.319,
+  "excess_ann_pct": -5.22,
+  "active_days_per_year": 150.0,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.862,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=none|h=3|tp=0",
+  "spec": {
+   "flow": "neg1",
+   "turn": "none",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   -0.367,
+   -0.246
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": -0.38,
+  "excess_ann_pct": -6.15,
+  "active_days_per_year": 150.0,
+  "neg_years": 5,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.92,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=none|h=3|tp=1",
+  "spec": {
+   "flow": "neg1",
+   "turn": "none",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   -0.449,
+   -0.276
+  ],
+  "pos_years": 2
+ },
+ {
+  "ir": -0.003,
+  "excess_ann_pct": -0.06,
+  "active_days_per_year": 181.1,
+  "neg_years": 5,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.519,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=none|h=5|tp=0",
+  "spec": {
+   "flow": "neg1",
+   "turn": "none",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.12,
+   -0.192
+  ],
+  "pos_years": 2
+ },
+ {
+  "ir": 0.038,
+  "excess_ann_pct": 0.66,
+  "active_days_per_year": 180.6,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": 8.337,
+  "ir_ex_top10": -0.526,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=none|h=5|tp=1",
+  "spec": {
+   "flow": "neg1",
+   "turn": "none",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.209,
+   -0.231
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": 0.157,
+  "excess_ann_pct": 2.44,
+  "active_days_per_year": 66.6,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 1.996,
+  "ir_ex_top10": -0.44,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=hi|h=3|tp=0",
+  "spec": {
+   "flow": "neg1",
+   "turn": "hi",
+   "h": 3,
+   "tp": 0
+  },
+  "half_irs": [
+   0.233,
+   0.121
+  ],
+  "pos_years": 2
+ },
+ {
+  "ir": 0.088,
+  "excess_ann_pct": 1.38,
+  "active_days_per_year": 66.3,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 3.52,
+  "ir_ex_top10": -0.51,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=hi|h=3|tp=1",
+  "spec": {
+   "flow": "neg1",
+   "turn": "hi",
+   "h": 3,
+   "tp": 1
+  },
+  "half_irs": [
+   0.233,
+   -0.002
+  ],
+  "pos_years": 2
+ },
+ {
+  "ir": 0.088,
+  "excess_ann_pct": 1.45,
+  "active_days_per_year": 86.3,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 3.395,
+  "ir_ex_top10": -0.48,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=hi|h=5|tp=0",
+  "spec": {
+   "flow": "neg1",
+   "turn": "hi",
+   "h": 5,
+   "tp": 0
+  },
+  "half_irs": [
+   0.437,
+   -0.161
+  ],
+  "pos_years": 2
+ },
+ {
+  "ir": -0.014,
+  "excess_ann_pct": -0.23,
+  "active_days_per_year": 85.7,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.592,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "flow=neg1|turn=hi|h=5|tp=1",
+  "spec": {
+   "flow": "neg1",
+   "turn": "hi",
+   "h": 5,
+   "tp": 1
+  },
+  "half_irs": [
+   0.293,
+   -0.236
+  ],
+  "pos_years": 2
+ }
+]

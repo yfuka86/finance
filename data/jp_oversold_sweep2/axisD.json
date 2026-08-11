@@ -1,0 +1,434 @@
+[
+ {
+  "ir": 0.38,
+  "excess_ann_pct": 4.41,
+  "active_days_per_year": 245.2,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.715,
+  "ir_ex_top10": -0.056,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h1_tp0_mnone",
+  "spec": {
+   "h": 1,
+   "tp": 0,
+   "market": "none"
+  },
+  "half_irs": [
+   0.624,
+   0.028
+  ],
+  "pos_years": 6
+ },
+ {
+  "ir": 0.38,
+  "excess_ann_pct": 4.41,
+  "active_days_per_year": 245.2,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.715,
+  "ir_ex_top10": -0.056,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h1_tp1_mnone",
+  "spec": {
+   "h": 1,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.624,
+   0.028
+  ],
+  "pos_years": 6
+ },
+ {
+  "ir": -0.548,
+  "excess_ann_pct": -4.95,
+  "active_days_per_year": 108.4,
+  "neg_years": 6,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -1.165,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h1_tp0_m0",
+  "spec": {
+   "h": 1,
+   "tp": 0,
+   "market": "m0"
+  },
+  "half_irs": [
+   -0.668,
+   -0.375
+  ],
+  "pos_years": 1
+ },
+ {
+  "ir": -0.548,
+  "excess_ann_pct": -4.95,
+  "active_days_per_year": 108.4,
+  "neg_years": 6,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -1.165,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h1_tp1_m0",
+  "spec": {
+   "h": 1,
+   "tp": 1,
+   "market": "m0"
+  },
+  "half_irs": [
+   -0.668,
+   -0.375
+  ],
+  "pos_years": 1
+ },
+ {
+  "ir": 0.341,
+  "excess_ann_pct": 3.76,
+  "active_days_per_year": 247.6,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 0.782,
+  "ir_ex_top10": -0.098,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h3_tp0_mnone",
+  "spec": {
+   "h": 3,
+   "tp": 0,
+   "market": "none"
+  },
+  "half_irs": [
+   0.673,
+   -0.114
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.379,
+  "excess_ann_pct": 4.14,
+  "active_days_per_year": 247.6,
+  "neg_years": 1,
+  "years": 7,
+  "top5_share": 0.698,
+  "ir_ex_top10": -0.048,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h3_tp1_mnone",
+  "spec": {
+   "h": 3,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.663,
+   -0.014
+  ],
+  "pos_years": 6
+ },
+ {
+  "ir": 0.05,
+  "excess_ann_pct": 0.5,
+  "active_days_per_year": 152.2,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 6.403,
+  "ir_ex_top10": -0.517,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h3_tp0_m0",
+  "spec": {
+   "h": 3,
+   "tp": 0,
+   "market": "m0"
+  },
+  "half_irs": [
+   0.011,
+   0.104
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.055,
+  "excess_ann_pct": 0.54,
+  "active_days_per_year": 152.2,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 5.536,
+  "ir_ex_top10": -0.479,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h3_tp1_m0",
+  "spec": {
+   "h": 3,
+   "tp": 1,
+   "market": "m0"
+  },
+  "half_irs": [
+   -0.067,
+   0.225
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.432,
+  "excess_ann_pct": 4.49,
+  "active_days_per_year": 249.9,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 0.635,
+  "ir_ex_top10": -0.027,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h5_tp0_mnone",
+  "spec": {
+   "h": 5,
+   "tp": 0,
+   "market": "none"
+  },
+  "half_irs": [
+   0.71,
+   0.068
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.501,
+  "excess_ann_pct": 5.2,
+  "active_days_per_year": 249.9,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 0.569,
+  "ir_ex_top10": 0.046,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h5_tp1_mnone",
+  "spec": {
+   "h": 5,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.775,
+   0.134
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.099,
+  "excess_ann_pct": 1.02,
+  "active_days_per_year": 183.4,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 2.971,
+  "ir_ex_top10": -0.438,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h5_tp0_m0",
+  "spec": {
+   "h": 5,
+   "tp": 0,
+   "market": "m0"
+  },
+  "half_irs": [
+   -0.037,
+   0.278
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.136,
+  "excess_ann_pct": 1.4,
+  "active_days_per_year": 183.4,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 2.207,
+  "ir_ex_top10": -0.39,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h5_tp1_m0",
+  "spec": {
+   "h": 5,
+   "tp": 1,
+   "market": "m0"
+  },
+  "half_irs": [
+   0.04,
+   0.264
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": 0.097,
+  "excess_ann_pct": 0.86,
+  "active_days_per_year": 251.1,
+  "neg_years": 2,
+  "years": 7,
+  "top5_share": 2.708,
+  "ir_ex_top10": -0.397,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": true,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h10_tp0_mnone",
+  "spec": {
+   "h": 10,
+   "tp": 0,
+   "market": "none"
+  },
+  "half_irs": [
+   0.042,
+   0.164
+  ],
+  "pos_years": 5
+ },
+ {
+  "ir": 0.247,
+  "excess_ann_pct": 2.26,
+  "active_days_per_year": 251.1,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": 1.134,
+  "ir_ex_top10": -0.231,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h10_tp1_mnone",
+  "spec": {
+   "h": 10,
+   "tp": 1,
+   "market": "none"
+  },
+  "half_irs": [
+   0.436,
+   0.011
+  ],
+  "pos_years": 4
+ },
+ {
+  "ir": -0.246,
+  "excess_ann_pct": -2.53,
+  "active_days_per_year": 228.1,
+  "neg_years": 4,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.719,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h10_tp0_m0",
+  "spec": {
+   "h": 10,
+   "tp": 0,
+   "market": "m0"
+  },
+  "half_irs": [
+   -0.684,
+   0.284
+  ],
+  "pos_years": 3
+ },
+ {
+  "ir": -0.082,
+  "excess_ann_pct": -0.87,
+  "active_days_per_year": 228.1,
+  "neg_years": 3,
+  "years": 7,
+  "top5_share": null,
+  "ir_ex_top10": -0.549,
+  "criteria": {
+   "ir_ge_07": false,
+   "freq_ge_60py": true,
+   "neg_years_le_third": false,
+   "top5_lt_20pct": false,
+   "ir_ex10_ge_035": false
+  },
+  "name": "h10_tp1_m0",
+  "spec": {
+   "h": 10,
+   "tp": 1,
+   "market": "m0"
+  },
+  "half_irs": [
+   -0.205,
+   0.069
+  ],
+  "pos_years": 4
+ }
+]
