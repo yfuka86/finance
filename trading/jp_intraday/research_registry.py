@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    cao=_json("data/jp_close_auction_overnight/summary.json")
+    if cao:
+        s3=cao["selection"].get("S3_ridge",{})
+        rows.append({"戦略":"引けオークション反転×オーバーナイト往復(分足マイクロ)","ファミリー":"QUOTEFREE",
+          "状態":"NO-GO","実取引":True,"OOS Sharpe":s3.get("sharpe"),
+          "年率%":s3.get("ann_pct"),"最大DD%":None,"案件/日数":s3.get("days"),
+          "注記":("Optiver診断の残路。分足マイクロ特徴がオーバーナイト残差に実在の予測力"
+                 "(分足ネイティブ Sh2.03/IC0.019/t3.0・リーク検証5点通過)=R7を更新(R7は日足特徴)。"
+                 "同一バー結合auction_jumpを捕捉除外。NO-GO理由は集中top5=46-63%のみ。"
+                 "唯一集中で落ちた実行可能気配不要シグナル。要ユーザー判断(封印)"),
+          "結果":"data/jp_close_auction_overnight/summary.json"})
     clp=_json("data/jp_close_prediction/summary.json")
     if clp:
         pr=clp["pooled_ridge"]
