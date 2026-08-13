@@ -150,6 +150,17 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    clp=_json("data/jp_close_prediction/summary.json")
+    if clp:
+        pr=clp["pooled_ridge"]
+        rows.append({"戦略":"引け予測 Optiver転用診断(後場→15:30残差)","ファミリー":"DIAGNOSTIC",
+          "状態":"DIAGNOSTIC","実取引":False,"OOS Sharpe":None,
+          "年率%":None,"最大DD%":None,"案件/日数":pr.get("oos_days"),
+          "注記":(f"2年1分足。後場→引け残差は予測可(OOS IC{pr['oos_ic_mean']}/t{pr['oos_ic_t']})・"
+                 "効くのは反転系(r_last10 t−6)＝投稿の『特徴量は有効』を実証。"
+                 f"だが10分位グロス{pr['decile_ls_gross_bps_per_day']}bps<往復7.2bps(15:00テイカー)で非取引。"
+                 "板imbalance代理は無情報。翌寄り残差予測なら往復オークションで取れる可能性(要事前登録)"),
+          "結果":"data/jp_close_prediction/summary.json"})
     x11l=pathlib.Path("data/jp_oversold_x11_forward/candidates.jsonl")
     if x11l.exists() or True:
         n=len([l for l in x11l.read_text(encoding="utf-8").splitlines() if l.strip()]) if x11l.exists() else 0
