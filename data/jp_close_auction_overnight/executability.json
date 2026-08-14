@@ -1,0 +1,64 @@
+{
+  "spec": "docs/PREREGISTER_CLOSE_AUCTION_OVERNIGHT.md",
+  "note": "concentration criterion intentionally IGNORED per user decision",
+  "executable_cells_selection": {
+    "S6_LS_seido_borrowfilter": {
+      "sharpe": 1.794,
+      "ann_pct": 63.62,
+      "neg_months": 1,
+      "months": 9,
+      "top5_share": 0.837,
+      "sharpe_ex_top10": -0.735,
+      "days": 180
+    },
+    "S6_LS_ippan_borrowfilter": {
+      "sharpe": 1.717,
+      "ann_pct": 60.87,
+      "neg_months": 1,
+      "months": 9,
+      "top5_share": 0.873,
+      "sharpe_ex_top10": -0.833,
+      "days": 180
+    },
+    "S6_LS_no_borrowfilter": {
+      "sharpe": 2.081,
+      "ann_pct": 76.06,
+      "neg_months": 1,
+      "months": 9,
+      "top5_share": 0.711,
+      "sharpe_ex_top10": -0.226,
+      "days": 180
+    },
+    "S5_longonly_excess": {
+      "sharpe": 4.061,
+      "ann_pct": 36.76,
+      "neg_months": 0,
+      "months": 9,
+      "top5_share": 0.397,
+      "sharpe_ex_top10": 2.589,
+      "days": 180
+    }
+  },
+  "best_cell": "S5_longonly_excess",
+  "best_stats": {
+    "sharpe": 4.061,
+    "ann_pct": 36.76,
+    "neg_months": 0,
+    "months": 9,
+    "top5_share": 0.397,
+    "sharpe_ex_top10": 2.589,
+    "days": 180
+  },
+  "borrow_wall_impact_sharpe": 0.287,
+  "executability_checklist": {
+    "quote_independence_CRITICAL": "★ユーザー実測『寄前気配と寄値は無相関』は本戦略に当たらない。理由: 銘柄選択は前日15:24の確定分足で完了済み＝寄前気配を一切参照しない。翌寄りは寄成(成行)で板寄せ価格を受け取るだけで、気配から寄値を予測する必要がない。ensemble_coreが死んだのは『寄前気配で寄りの参加銘柄を選別・サイズ』したから＝本戦略と機構が異なる。",
+    "quote_free": "signal fixed at 15:24 from completed 1-min bars; NO board/quote data needed (unlike ensemble_core's opening cross)",
+    "entry_order": "引成 (market-on-close, FrontOrderType exists on kabu) -> fills at 15:30 auction print",
+    "exit_order": "寄成 (market-on-open) -> fills at next 09:00 auction print",
+    "no_lookahead": "auction_jump(15:30) dropped; all features <=15:24; 5 leak tests passed (shuffle/shift/winsor/top10/native)",
+    "overnight_financing": "modeled both legs per calendar night (long 0.028, short seido 0.0115/ippan 0.042)",
+    "borrow_short_leg": "shorts recent winners (hard-to-borrow risk); production 制度貸借∧非規制 filter applied",
+    "auction_impact": "1.5bps open + 0.5bps close (AGENTS measured auction cost)",
+    "remaining_risks": "overnight gap risk (stop-high margin modeled); concentration (top5 ~46-63%, accepted by user); 2-year window only (SE~0.9); confirmation still sealed"
+  }
+}

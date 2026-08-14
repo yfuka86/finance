@@ -130,6 +130,16 @@ def page_forward() -> str:
                       f"台帳 {len(evs)}件（リターン非計算・凍結Ridge予測のみ記録）。"
                       f"直近: {recent}。毎営業日19:30に bars→fins→台帳を自動収集。"
                       "基準: 採用≥30・40bps後中央値>0・最大案件シェア<20%"))
+    # 引けオークション反転 Long-only 封印
+    cal = ROOT / "data/jp_close_auction_overnight/forward_candidates.jsonl"
+    n_ca = len([l for l in cal.read_text(encoding="utf-8").splitlines() if l.strip()]) \
+        if cal.exists() else 0
+    leftca = (dt.date(2028, 8, 14) - dt.date.today()).days
+    items.append(("引けオークション反転 Long-only（採用・封印）", "SEALED",
+                  f"判定日 2028-08-14（あと{leftca}日）",
+                  f"気配不要(前日15:24選択→引成→翌寄成)。選択窓Sh4.06・上位10日除去でも2.59で頑健。"
+                  f"ユーザー承認で集中無視・採用。台帳 {n_ca}営業日分(シグナルのみ)。"
+                  "要日次分足収集。落ちたら恒久クローズ"))
     # X11 セカンドチャンス封印
     x11l = ROOT / "data/jp_oversold_x11_forward/candidates.jsonl"
     n_x11 = len([l for l in x11l.read_text(encoding="utf-8").splitlines() if l.strip()])         if x11l.exists() else 0
@@ -475,17 +485,19 @@ def page_oversold() -> str:
                     return ""
                 good = (v > 0) if pos_good else (v < 1)
                 return f'style="color:{"#0a7f45" if good else "#b32c2c"};font-weight:700"'
-            chips = "".join(
-                f'<tr class="r" data-k="{n["sym"]} {n.get("name","")} {n.get("sector","")}'.lower() + '">'
-                f'<td><b>{n["sym"]}</b></td><td>{str(n.get("name",""))[:14]}</td>'
-                f'<td><span class="q">{n.get("sector","")}</span></td>'
-                f'<td class="num" {col(n.get("pbr"), pos_good=False)}>{fmt(n.get("pbr"))}</td>'
-                f'<td class="num" {col(n.get("roe_pct"))}>{fmt(n.get("roe_pct"), "%")}</td>'
-                f'<td class="num" {col(n.get("sales_yoy_pct"))}>{fmt(n.get("sales_yoy_pct"), "%")}</td>'
-                f'<td class="num" {col(n.get("op_yoy_pct"))}>{fmt(n.get("op_yoy_pct"), "%")}</td>'
-                f'<td>{"<span class=\'badge fix\'>増配予</span>" if n.get("div_up") else ("減配/維持" if n.get("div_up") is False else "")}</td>'
-                f'<td class="num">{fmt(n.get("div_yield_pct"), "%")}</td></tr>'
-                for n in c["names"])
+            up_badge = '<span class="badge fix">増配予</span>'
+            def x11_chip(n):
+                k = f'{n["sym"]} {n.get("name","")} {n.get("sector","")}'.lower()
+                dv = up_badge if n.get("div_up") else ("減配/維持" if n.get("div_up") is False else "")
+                return (f'<tr class="r" data-k="{k}">'
+                        f'<td><b>{n["sym"]}</b></td><td>{str(n.get("name",""))[:14]}</td>'
+                        f'<td><span class="q">{n.get("sector","")}</span></td>'
+                        f'<td class="num" {col(n.get("pbr"), pos_good=False)}>{fmt(n.get("pbr"))}</td>'
+                        f'<td class="num" {col(n.get("roe_pct"))}>{fmt(n.get("roe_pct"), "%")}</td>'
+                        f'<td class="num" {col(n.get("sales_yoy_pct"))}>{fmt(n.get("sales_yoy_pct"), "%")}</td>'
+                        f'<td class="num" {col(n.get("op_yoy_pct"))}>{fmt(n.get("op_yoy_pct"), "%")}</td>'
+                        f'<td>{dv}</td><td class="num">{fmt(n.get("div_yield_pct"), "%")}</td></tr>')
+            chips = "".join(x11_chip(n) for n in c["names"])
             cand_html = (f'<div class="dcard" style="margin:12px 0">'
                          f'<div class="nm">本日の買い候補（シグナル日 {c["signal_date"]}・{len(c["names"])}銘柄）</div>'
                          f'<div class="note">{c["entry"]}。シグナルのみの表示＝封印(no-peek)と両立。毎日19:30に自動更新</div>'
@@ -535,10 +547,98 @@ details table.k th{{position:static}}
 <div class="dnote">基準: IR≥0.7・稼働≥60日/年・負年≤1/3・top5&lt;20%・top10除去IR≥0.35（全セル未達）</div></div></div>'''
 
 
+def page_close_auction() -> str:
+    dp = ROOT / "data/jp_close_auction_overnight/detail.json"
+    if not dp.exists():
+        return '<div class="dw"><h1>引けオークション反転</h1><div class="dnote">detail.json 未生成</div></div>'
+    d = json.loads(dp.read_text(encoding="utf-8"))
+    ex = d["executability"]
+    cc = d["cell_comparison"]
+    # cell comparison table
+    label = {"S5_longonly_excess": "★Long-only（採用・借株不要）",
+             "S6_LS_seido_borrowfilter": "L/S 単元・貸借制約(制度1.15%)",
+             "S6_LS_ippan_borrowfilter": "L/S 単元・貸借制約(一般4.2%)",
+             "S6_LS_no_borrowfilter": "L/S 単元・貸借制約なし(実行不能)"}
+    def crow_cells(k, v):
+        hl = ' style="background:rgba(15,157,88,.08)"' if k == "S5_longonly_excess" else ""
+        exc = v.get("sharpe_ex_top10")
+        exc_color = "#0a7f45" if (exc or -9) > 0 else "#b32c2c"
+        return (f'<tr{hl}><td><b>{label.get(k, k)}</b></td>'
+                f'<td class="num">{v.get("sharpe")}</td>'
+                f'<td class="num">{v.get("ann_pct")}%</td>'
+                f'<td class="num">{int((v.get("top5_share") or 0) * 100)}%</td>'
+                f'<td class="num" style="font-weight:800;color:{exc_color}">{exc}</td></tr>')
+    crows = "".join(crow_cells(k, v) for k, v in
+                    sorted(cc.items(), key=lambda kv: -(kv[1].get("sharpe") or -9)))
+    # candidates table with fundamentals
+    c = d["candidates"]
+    def col(v, good):
+        return "" if v is None else f'style="color:{"#0a7f45" if good(v) else "#b32c2c"};font-weight:700"'
+    def fmt(v, suf=""):
+        return "" if v is None else f"{v}{suf}"
+    div_badge = '<span class="badge fix">増配予</span>'
+    def cand_row(n):
+        k = f'{n["sym"]} {n.get("name","")} {n.get("sector","")}'.lower()
+        db = div_badge if n.get("div_up") else ""
+        return (f'<tr class="r" data-k="{k}">'
+                f'<td class="num">{n["pred_rank"]}</td><td><b>{n["sym"]}</b></td>'
+                f'<td>{str(n.get("name",""))[:14]}</td>'
+                f'<td><span class="q">{n.get("sector","")}</span></td>'
+                f'<td class="num" {col(n.get("pbr"), lambda v: v<1)}>{fmt(n.get("pbr"))}</td>'
+                f'<td class="num" {col(n.get("roe_pct"), lambda v: v>0)}>{fmt(n.get("roe_pct"),"%")}</td>'
+                f'<td class="num" {col(n.get("sales_yoy_pct"), lambda v: v>0)}>{fmt(n.get("sales_yoy_pct"),"%")}</td>'
+                f'<td class="num" {col(n.get("op_yoy_pct"), lambda v: v>0)}>{fmt(n.get("op_yoy_pct"),"%")}</td>'
+                f'<td>{db}</td><td class="num">{fmt(n.get("div_yield_pct"),"%")}</td></tr>')
+    crow = "".join(cand_row(n) for n in c["names"])
+    checks = "".join(
+        f'<div class="dcard"><div class="nm">{k}</div>'
+        f'<div class="note" style="color:var(--ink)">{v}</div></div>'
+        for k, v in ex.items())
+    return f'''<div class="dw">
+<h1>引けオークション反転 × オーバーナイト<span class="s">{badge("SEALED→forward")}
+気配不要・分足マイクロで翌寄りを予測（Optiver "Trading at the Close" 由来）</span></h1>
+<div class="dnote" style="margin-bottom:14px">
+D引け15:30に引成で買い → 翌営業日09:00寄成で売る。<b>銘柄選択は前日15:24の確定分足で完了</b>＝
+寄前気配を一切使わない（気配→寄値が無相関でも影響しない）。成績表示は封印日2026-08-11で凍結、
+判定はフォワード。事前登録: docs/PREREGISTER_CLOSE_AUCTION_OVERNIGHT.md</div>
+
+<div class="dgrp"><h2>セル比較（採用の根拠）</h2>
+<div class="note" style="margin-bottom:8px">αは<b>ロング脚（引けにかけて負けた銘柄を翌朝に買い戻す）</b>に宿り頑健。
+ショート脚（勝ち組売り）は裾依存の幻影でL/Sを殺す＝借株の壁の逆パターン。<b>Long-only を採用</b>。</div>
+<table class="k"><thead><tr><th>セル</th><th>Sharpe</th><th>年率</th><th>top5集中</th>
+<th>上位10日除去後Sh</th></tr></thead><tbody>{crows}</tbody></table>
+<div class="dnote">「上位10日除去後Sh」が頑健性の鍵: Long-onlyだけ +2.59 で生存、L/Sは負に転落。</div></div>
+
+<div class="dgrp"><h2>採用セルの成績（選択窓2025-01〜09・封印凍結）</h2>
+<div class="dcards">
+<div class="dcard"><div class="nm">超過Sharpe</div><div class="n">{d["sel_sharpe"]}</div>
+<div class="note">年率超過 {d["sel_ann_pct"]}%（対等加重市場）</div></div>
+<div class="dcard"><div class="nm">上位10日除去後Sh</div><div class="n">{d["sel_ir_ex_top10"]}</div>
+<div class="note">頑健＝少数日依存でない</div></div>
+<div class="dcard"><div class="nm">建玉日数</div><div class="n">{d["n_book_days"]}<span>日</span></div>
+<div class="note">毎営業日ロング10分位</div></div></div>
+<div class="dcard" style="margin-top:12px">{_svg_curve(d["daily_cum"])}</div>
+{_monthly_grid(d["monthly"])}</div>
+
+<div class="dgrp"><h2>実行可能性の検証</h2>
+<div class="dcards" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">{checks}</div></div>
+
+<div class="dgrp"><h2>本日の買い候補（シグナル日 {c["signal_date"]}・{len(c["names"])}銘柄）</h2>
+<div class="note" style="margin-bottom:8px">{c["entry"]}</div>
+<input id="q" class="search" placeholder="コード・銘柄名・業種で絞り込み…">
+<div class="ovx" style="overflow-x:auto"><table class="k"><thead><tr><th>順位</th><th>コード</th><th>銘柄</th>
+<th>業種</th><th>PBR</th><th>ROE</th><th>売上YoY</th><th>営業益YoY</th><th>配当</th><th>利回り</th>
+</tr></thead><tbody>{crow}</tbody></table></div>
+<div class="dnote">分足データは2026-07-24まで。フォワード運用には日次の分足収集が必要（構築中）。</div></div>
+<style>.ovx table.k th{{position:static}}</style></div>'''
+
+
 def main() -> None:
     pages = [
         {"file": "index.html", "href": "/", "nav": "研究台帳",
          "title": "研究台帳", "body": page_registry()},
+        {"file": "close_auction.html", "href": "/close_auction.html", "nav": "引けオークション反転",
+         "title": "引けオークション反転", "body": page_close_auction()},
         {"file": "oversold.html", "href": "/oversold.html", "nav": "売られすぎ反転",
          "title": "売られすぎ反転（詳細）", "body": page_oversold()},
         {"file": "kessan.html", "href": "/kessan.html", "nav": "決算予定",

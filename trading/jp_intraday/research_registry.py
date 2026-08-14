@@ -150,6 +150,16 @@ def research_rows() -> pd.DataFrame:
           "案件/日数":w.get("trade_days"),
           "注記":"凍結規則の毎年再選択・全リターンOOSでSh0.11/後半−0.21。t≥2.5の時間帯効果はOOSで持続しない",
           "結果":"data/fx_hourly_seasonality/summary.json"})
+    caf=pathlib.Path("data/jp_close_auction_overnight/detail.json")
+    if caf.exists():
+        dd=_json("data/jp_close_auction_overnight/detail.json")
+        rows.append({"戦略":"引けオークション反転 Long-only(採用・封印)","ファミリー":"QUOTEFREE",
+          "状態":"SEALED→2028-08-14","実取引":True,"OOS Sharpe":dd.get("sel_sharpe"),
+          "年率%":dd.get("sel_ann_pct"),"最大DD%":None,"案件/日数":dd.get("n_book_days"),
+          "注記":("気配不要(前日15:24選択→引成→翌寄成・寄前気配不使用)。αはロング脚に宿り頑健"
+                 f"(選択窓Sh{dd.get('sel_sharpe')}・上位10日除去{dd.get('sel_ir_ex_top10')})。"
+                 "L/Sはショート裾依存で死。ユーザー承認で集中無視・採用しフォワード封印"),
+          "結果":"data/jp_close_auction_overnight/detail.json"})
     cao=_json("data/jp_close_auction_overnight/summary.json")
     if cao:
         s3=cao["selection"].get("S3_ridge",{})
