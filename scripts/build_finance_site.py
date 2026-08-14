@@ -537,6 +537,28 @@ details table.k th{{position:static}}
 <div class="dnote">基準: IR≥0.7・稼働≥60日/年・負年≤1/3・top5&lt;20%・top10除去IR≥0.35（全セル未達）</div></div></div>'''
 
 
+def _ca_scrutiny_block() -> str:
+    sp = ROOT / "data/jp_close_auction_overnight/scrutiny.json"
+    if not sp.exists():
+        return ""
+    sc = json.loads(sp.read_text(encoding="utf-8"))
+    c = sc["cells"]
+    return (
+        '<div class="dgrp"><h2>★精査（junkなし・クリーン母集団）: αは無く純βだった</h2>'
+        '<div class="note" style="margin-bottom:8px">クリーン母集団の見かけの超過0.83を分解すると、'
+        f'ブックの実現β={sc["book_realized_beta"]}（高β＝直近安値銘柄）。市場が夜間下げる晩に'
+        f'{c["long_on_market_down_nights_bps"]}bps・上げる晩に+{c["long_on_market_up_nights_bps"]}bps＝β露出そのもの。</div>'
+        '<table class="k"><thead><tr><th>構成</th><th>全窓Sharpe</th><th>備考</th></tr></thead><tbody>'
+        f'<tr><td>ロング等加重超過（β=1控除・既存）</td><td class="num">{c["long_only_ew_excess"]["full_sharpe"]}</td>'
+        f'<td>{c["long_only_ew_excess"]["note"]}</td></tr>'
+        f'<tr style="background:rgba(179,44,44,.08)"><td><b>ロング PITβ中立（1306ヘッジ）</b></td>'
+        f'<td class="num" style="font-weight:800">{c["long_only_beta_neutral_PIT"]["full_sharpe"]}</td>'
+        f'<td>{c["long_only_beta_neutral_PIT"]["note"]}</td></tr>'
+        f'<tr><td>ショート脚</td><td class="num">{c["short_leg"]["full_sharpe"]}</td>'
+        f'<td>{c["short_leg"]["note"]}</td></tr></tbody></table>'
+        f'<div class="dnote">{sc["conclusion"]}</div></div>')
+
+
 def page_close_auction() -> str:
     dp = ROOT / "data/jp_close_auction_overnight/detail.json"
     if not dp.exists():
@@ -617,6 +639,8 @@ D引け15:30に引成で買い → 翌営業日09:00寄成で売る。<b>銘柄�
 事前登録: docs/PREREGISTER_CLOSE_AUCTION_OVERNIGHT.md</div>
 
 {cmp_html}
+
+{_ca_scrutiny_block()}
 
 <div class="dgrp"><h2>セル比較（フィルタなし・参考）</h2>
 <div class="note" style="margin-bottom:8px">下は<b>フィルタなし</b>のセル比較。Long-onlyがL/Sより頑健
