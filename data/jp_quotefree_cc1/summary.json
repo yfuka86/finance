@@ -1,0 +1,43 @@
+{
+  "spec": "docs/PREREGISTER_quotefree_cc1.md",
+  "n_features": 19,
+  "selection": {
+    "executable_delay1": {
+      "stats": {
+        "sharpe": 0.224,
+        "ann_return": 0.0832,
+        "max_drawdown": -0.6823,
+        "days": 1210,
+        "negative_years": 3,
+        "years": 5,
+        "top5_day_share": 1.371,
+        "sharpe_ex_top10": -0.299
+      },
+      "gross_bps_per_day": 4.25,
+      "all_in_cost_bps_per_day": 2.43
+    },
+    "diagnostic_delay0_not_executable": {
+      "stats": {
+        "sharpe": -0.074,
+        "ann_return": -0.0291,
+        "max_drawdown": -0.6674,
+        "days": 1211,
+        "negative_years": 3,
+        "years": 5,
+        "top5_day_share": null,
+        "sharpe_ex_top10": -0.563
+      },
+      "gross_bps_per_day": 1.83,
+      "all_in_cost_bps_per_day": 2.43
+    }
+  },
+  "confirmation": "UNOPENED",
+  "selection_criteria": {
+    "net_sharpe_ge_1": false,
+    "neg_years_le_third": false,
+    "top5_share_lt_20pct": false,
+    "sharpe_ex_top10_ge_05": false,
+    "gross_ge_2x_cost": false
+  },
+  "decision": "NO_GO_AT_SELECTION"
+}

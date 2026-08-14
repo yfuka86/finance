@@ -1,0 +1,124 @@
+{
+  "note": "4 hypotheses tested simultaneously — multiplicity acknowledged; confirmation opened only for selection passes",
+  "results": {
+    "A_dollar_timing": {
+      "selection": {
+        "days": 3286,
+        "sharpe": -0.06,
+        "ann_return": -0.0033,
+        "max_drawdown": -0.2587,
+        "top5_week_share": 0.0698,
+        "sharpe_ex_top10w": -0.455,
+        "negative_years": 4,
+        "years": 9,
+        "by_year": {
+          "2011": 0.0335,
+          "2012": 0.0207,
+          "2013": -0.0393,
+          "2014": -0.0833,
+          "2015": -0.0789,
+          "2016": 0.1013,
+          "2017": -0.0615,
+          "2018": 0.0607,
+          "2019": 0.0038
+        }
+      },
+      "selection_failed": [
+        "sharpe_lt_1.0",
+        "too_many_negative_years",
+        "sharpe_ex_top10w_lt_0.5"
+      ],
+      "confirmation": "NOT_OPENED (selection failed; window preserved)",
+      "decision": "NO_GO"
+    },
+    "B_longterm_reversal": {
+      "selection": {
+        "days": 3286,
+        "sharpe": 0.114,
+        "ann_return": 0.0083,
+        "max_drawdown": -0.1746,
+        "top5_week_share": 0.0895,
+        "sharpe_ex_top10w": -0.328,
+        "negative_years": 4,
+        "years": 9,
+        "by_year": {
+          "2011": -0.0368,
+          "2012": 0.0678,
+          "2013": -0.0985,
+          "2014": -0.0411,
+          "2015": 0.0414,
+          "2016": 0.0498,
+          "2017": 0.1165,
+          "2018": -0.0094,
+          "2019": 0.0187
+        }
+      },
+      "selection_failed": [
+        "sharpe_lt_1.0",
+        "too_many_negative_years",
+        "sharpe_ex_top10w_lt_0.5"
+      ],
+      "confirmation": "NOT_OPENED (selection failed; window preserved)",
+      "decision": "NO_GO"
+    },
+    "C_rate_momentum": {
+      "selection": {
+        "days": 3286,
+        "sharpe": -0.075,
+        "ann_return": -0.0049,
+        "max_drawdown": -0.2223,
+        "top5_week_share": 0.1077,
+        "sharpe_ex_top10w": -0.619,
+        "negative_years": 3,
+        "years": 9,
+        "by_year": {
+          "2011": -0.0601,
+          "2012": -0.0667,
+          "2013": 0.0662,
+          "2014": 0.005,
+          "2015": 0.0337,
+          "2016": -0.1751,
+          "2017": 0.0353,
+          "2018": 0.0047,
+          "2019": 0.0929
+        }
+      },
+      "selection_failed": [
+        "sharpe_lt_1.0",
+        "sharpe_ex_top10w_lt_0.5"
+      ],
+      "confirmation": "NOT_OPENED (selection failed; window preserved)",
+      "decision": "NO_GO"
+    },
+    "D_weekly_reversal": {
+      "selection": {
+        "days": 3286,
+        "sharpe": -0.364,
+        "ann_return": -0.0311,
+        "max_drawdown": -0.4593,
+        "top5_week_share": 0.1211,
+        "sharpe_ex_top10w": -1.12,
+        "negative_years": 7,
+        "years": 9,
+        "by_year": {
+          "2011": 0.1142,
+          "2012": -0.0185,
+          "2013": -0.1147,
+          "2014": 0.0034,
+          "2015": -0.1236,
+          "2016": -0.0225,
+          "2017": -0.0589,
+          "2018": -0.1351,
+          "2019": -0.05
+        }
+      },
+      "selection_failed": [
+        "sharpe_lt_1.0",
+        "too_many_negative_years",
+        "sharpe_ex_top10w_lt_0.5"
+      ],
+      "confirmation": "NOT_OPENED (selection failed; window preserved)",
+      "decision": "NO_GO"
+    }
+  }
+}

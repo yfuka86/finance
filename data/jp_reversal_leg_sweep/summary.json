@@ -1,0 +1,180 @@
+{
+  "window": [
+    "2021-01-01",
+    "2024-12-31"
+  ],
+  "quantile": 0.1,
+  "cost_bps_side": 1.0,
+  "cells": {
+    "form1/raw/hold1": {
+      "long_excess": -0.359,
+      "long_raw": -0.054,
+      "short_free": 0.473,
+      "short_borrow": -0.051,
+      "ls_borrow": -0.122
+    },
+    "form1/raw/hold5": {
+      "long_excess": -0.052,
+      "long_raw": 0.116,
+      "short_free": 0.309,
+      "short_borrow": -0.192,
+      "ls_borrow": -0.146
+    },
+    "form1/raw/hold20": {
+      "long_excess": -0.039,
+      "long_raw": 0.086,
+      "short_free": 0.027,
+      "short_borrow": -0.227,
+      "ls_borrow": -0.504
+    },
+    "form1/sector/hold1": {
+      "long_excess": -0.725,
+      "long_raw": -0.214,
+      "short_free": 0.397,
+      "short_borrow": -0.266,
+      "ls_borrow": -0.661
+    },
+    "form1/sector/hold5": {
+      "long_excess": 0.006,
+      "long_raw": 0.135,
+      "short_free": 0.311,
+      "short_borrow": -0.246,
+      "ls_borrow": -0.256
+    },
+    "form1/sector/hold20": {
+      "long_excess": 0.033,
+      "long_raw": 0.106,
+      "short_free": -0.013,
+      "short_borrow": -0.289,
+      "ls_borrow": -0.745
+    },
+    "form5/raw/hold1": {
+      "long_excess": -0.574,
+      "long_raw": 0.012,
+      "short_free": 0.329,
+      "short_borrow": -0.302,
+      "ls_borrow": -0.31
+    },
+    "form5/raw/hold5": {
+      "long_excess": -0.266,
+      "long_raw": 0.18,
+      "short_free": 0.195,
+      "short_borrow": -0.347,
+      "ls_borrow": -0.159
+    },
+    "form5/raw/hold20": {
+      "long_excess": 0.185,
+      "long_raw": 0.398,
+      "short_free": -0.109,
+      "short_borrow": -0.39,
+      "ls_borrow": 0.115
+    },
+    "form5/sector/hold1": {
+      "long_excess": -0.603,
+      "long_raw": 0.031,
+      "short_free": 0.193,
+      "short_borrow": -0.566,
+      "ls_borrow": -0.681
+    },
+    "form5/sector/hold5": {
+      "long_excess": -0.315,
+      "long_raw": 0.183,
+      "short_free": 0.075,
+      "short_borrow": -0.485,
+      "ls_borrow": -0.413
+    },
+    "form5/sector/hold20": {
+      "long_excess": -0.08,
+      "long_raw": 0.313,
+      "short_free": -0.184,
+      "short_borrow": -0.499,
+      "ls_borrow": -0.334
+    },
+    "form20/raw/hold1": {
+      "long_excess": -0.43,
+      "long_raw": 0.018,
+      "short_free": 0.496,
+      "short_borrow": -0.208,
+      "ls_borrow": -0.183
+    },
+    "form20/raw/hold5": {
+      "long_excess": -0.223,
+      "long_raw": 0.116,
+      "short_free": 0.277,
+      "short_borrow": -0.215,
+      "ls_borrow": -0.081
+    },
+    "form20/raw/hold20": {
+      "long_excess": 0.02,
+      "long_raw": 0.267,
+      "short_free": -0.016,
+      "short_borrow": -0.275,
+      "ls_borrow": 0.022
+    },
+    "form20/sector/hold1": {
+      "long_excess": -0.443,
+      "long_raw": 0.049,
+      "short_free": 0.33,
+      "short_borrow": -0.472,
+      "ls_borrow": -0.485
+    },
+    "form20/sector/hold5": {
+      "long_excess": -0.175,
+      "long_raw": 0.16,
+      "short_free": 0.069,
+      "short_borrow": -0.455,
+      "ls_borrow": -0.342
+    },
+    "form20/sector/hold20": {
+      "long_excess": -0.092,
+      "long_raw": 0.228,
+      "short_free": -0.075,
+      "short_borrow": -0.389,
+      "ls_borrow": -0.205
+    },
+    "form60/raw/hold1": {
+      "long_excess": -0.094,
+      "long_raw": 0.192,
+      "short_free": 0.266,
+      "short_borrow": -0.174,
+      "ls_borrow": 0.023
+    },
+    "form60/raw/hold5": {
+      "long_excess": 0.004,
+      "long_raw": 0.226,
+      "short_free": 0.257,
+      "short_borrow": -0.081,
+      "ls_borrow": 0.162
+    },
+    "form60/raw/hold20": {
+      "long_excess": -0.259,
+      "long_raw": 0.119,
+      "short_free": -0.028,
+      "short_borrow": -0.254,
+      "ls_borrow": -0.163
+    },
+    "form60/sector/hold1": {
+      "long_excess": -0.169,
+      "long_raw": 0.173,
+      "short_free": 0.15,
+      "short_borrow": -0.339,
+      "ls_borrow": -0.188
+    },
+    "form60/sector/hold5": {
+      "long_excess": 0.08,
+      "long_raw": 0.273,
+      "short_free": 0.132,
+      "short_borrow": -0.198,
+      "ls_borrow": 0.102
+    },
+    "form60/sector/hold20": {
+      "long_excess": -0.209,
+      "long_raw": 0.163,
+      "short_free": -0.11,
+      "short_borrow": -0.345,
+      "ls_borrow": -0.248
+    }
+  },
+  "best_long_excess": 0.185,
+  "note": "long_excess is the only executable column; any positive cell needs one confirmation run on 2025+ before it means anything"
+}

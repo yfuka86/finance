@@ -1,0 +1,39 @@
+{
+  "names_per_side": 8,
+  "cost_bps_side": 1.0,
+  "median_names_per_day": 459,
+  "ladder": {
+    "A_ideal_no_constraints": {
+      "ann_return": 0.7665689206277726,
+      "ann_vol": 0.21928774043620833,
+      "sharpe": 3.4957217357564527,
+      "max_drawdown": -0.1424422990579568,
+      "total_return": 34.90855985751668,
+      "days": 1217,
+      "win_rate": 0.6055875102711585
+    },
+    "B_ideal_plus_borrow_filter": {
+      "sharpe": -0.026,
+      "ann_return": -0.004,
+      "max_drawdown": -0.4547
+    },
+    "C_unitlot_noshortconstraints_capital2000M": {
+      "sharpe": 3.635,
+      "ann_return": 1.7327,
+      "max_drawdown": -0.2975
+    },
+    "D_unitlot_noshortconstraints_capital20M": {
+      "sharpe": 3.628,
+      "ann_return": 1.6661,
+      "max_drawdown": -0.2982
+    },
+    "E_unitlot_production_capital20M": {
+      "sharpe": 0.429,
+      "ann_return": 0.1425,
+      "max_drawdown": -0.6202
+    }
+  },
+  "one_lot_exceeds_budget_share": 0.0168,
+  "median_positions_filled_of_16": 16,
+  "days_with_fewer_than_16": 0.1118
+}

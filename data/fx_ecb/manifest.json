@@ -1,0 +1,19 @@
+{
+  "source": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip",
+  "sha256": "c4e783373d6a042b7aa88bab7b1a09ac9e3fdc48f26b24c88389de17e2416361",
+  "rows": 7062,
+  "start": "1999-01-04",
+  "end": "2026-08-03",
+  "currencies": [
+    "EUR",
+    "USD",
+    "JPY",
+    "GBP",
+    "CHF",
+    "AUD",
+    "CAD",
+    "NZD"
+  ],
+  "fetched_at": "2026-08-03T15:41:54.987415+00:00",
+  "caveat": "ECB reference rates are 14:15 CET fixings, not tradable quotes"
+}

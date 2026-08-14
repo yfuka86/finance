@@ -1,0 +1,137 @@
+{
+  "spec": {
+    "trigger": -0.03,
+    "hold": 10,
+    "names": 20,
+    "cost_round_trip": 0.002,
+    "capital": 20000000.0
+  },
+  "primary": {
+    "episodes": 26,
+    "excess_mean": -0.0151,
+    "excess_median": -0.0197,
+    "win_rate": 0.3462,
+    "top_episode_profit_share": 0.2892,
+    "excess_worst": -0.117,
+    "raw_net_mean": 0.0093,
+    "market_mean": 0.0244,
+    "median_filled": 18
+  },
+  "sensitivity": {
+    "trigger_-4pct": {
+      "episodes": 9,
+      "excess_mean": -0.0046,
+      "excess_median": 0.0215,
+      "win_rate": 0.5556,
+      "top_episode_profit_share": 0.4821,
+      "excess_worst": -0.0965,
+      "raw_net_mean": 0.0529,
+      "market_mean": 0.0574,
+      "median_filled": 18
+    },
+    "trigger_-5pct": {
+      "episodes": 6,
+      "excess_mean": -0.0048,
+      "excess_median": -0.0134,
+      "win_rate": 0.5,
+      "top_episode_profit_share": 0.7304,
+      "excess_worst": -0.0938,
+      "raw_net_mean": 0.0809,
+      "market_mean": 0.0857,
+      "median_filled": 18
+    },
+    "hold_5": {
+      "episodes": 26,
+      "excess_mean": 0.0023,
+      "excess_median": 0.0016,
+      "win_rate": 0.5,
+      "top_episode_profit_share": 0.1829,
+      "excess_worst": -0.0777,
+      "raw_net_mean": 0.0091,
+      "market_mean": 0.0068,
+      "median_filled": 18
+    },
+    "hold_20": {
+      "episodes": 26,
+      "excess_mean": -0.0067,
+      "excess_median": 0.0064,
+      "win_rate": 0.5385,
+      "top_episode_profit_share": 0.2266,
+      "excess_worst": -0.1471,
+      "raw_net_mean": 0.038,
+      "market_mean": 0.0447,
+      "median_filled": 18
+    },
+    "names_10": {
+      "episodes": 26,
+      "excess_mean": -0.0144,
+      "excess_median": -0.0138,
+      "win_rate": 0.4231,
+      "top_episode_profit_share": 0.2473,
+      "excess_worst": -0.192,
+      "raw_net_mean": 0.01,
+      "market_mean": 0.0244,
+      "median_filled": 9
+    },
+    "names_40": {
+      "episodes": 26,
+      "excess_mean": -0.0183,
+      "excess_median": -0.0181,
+      "win_rate": 0.3077,
+      "top_episode_profit_share": 0.2209,
+      "excess_worst": -0.1147,
+      "raw_net_mean": 0.0061,
+      "market_mean": 0.0244,
+      "median_filled": 30
+    },
+    "us_stabilized": {
+      "episodes": 16,
+      "excess_mean": -0.0223,
+      "excess_median": -0.0237,
+      "win_rate": 0.3125,
+      "top_episode_profit_share": 0.3473,
+      "excess_worst": -0.117,
+      "raw_net_mean": 0.0014,
+      "market_mean": 0.0238,
+      "median_filled": 18
+    },
+    "no_barriers": {
+      "episodes": 26,
+      "excess_mean": -0.0078,
+      "excess_median": -0.0177,
+      "win_rate": 0.3846,
+      "top_episode_profit_share": 0.2759,
+      "excess_worst": -0.084,
+      "raw_net_mean": 0.0166,
+      "market_mean": 0.0244,
+      "median_filled": 18
+    },
+    "vwap_entry": {
+      "episodes": 26,
+      "excess_mean": -0.0156,
+      "excess_median": -0.0172,
+      "win_rate": 0.3462,
+      "top_episode_profit_share": 0.3519,
+      "excess_worst": -0.1237,
+      "raw_net_mean": 0.0087,
+      "market_mean": 0.0244,
+      "median_filled": 18
+    }
+  },
+  "failed_criteria": [
+    "episodes_lt_30",
+    "excess_median_not_positive",
+    "top_episode_share_ge_20pct",
+    "excess_mean_not_positive",
+    "win_rate_lt_50pct"
+  ],
+  "decision": "NO_GO",
+  "by_year": {
+    "2018": -0.0034,
+    "2020": -0.0152,
+    "2022": -0.0209,
+    "2024": 0.0092,
+    "2025": -0.014,
+    "2026": -0.0455
+  }
+}

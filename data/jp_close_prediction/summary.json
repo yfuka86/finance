@@ -1,0 +1,54 @@
+{
+  "n_obs": 351395,
+  "n_days": 419,
+  "decision": "15:00",
+  "target": "15:00->15:30 residual",
+  "target_std_bps": 49.5,
+  "feature_ic": {
+    "r_morning": {
+      "ic_mean": -0.008,
+      "t": -1.64
+    },
+    "r_aft_sofar": {
+      "ic_mean": -0.0049,
+      "t": -1.03
+    },
+    "r_last30": {
+      "ic_mean": -0.0163,
+      "t": -3.68
+    },
+    "r_last10": {
+      "ic_mean": -0.0245,
+      "t": -6.06
+    },
+    "rvol_aft": {
+      "ic_mean": -0.0179,
+      "t": -3.13
+    },
+    "vwap_dev": {
+      "ic_mean": -0.0124,
+      "t": -2.6
+    },
+    "hl_range": {
+      "ic_mean": -0.0166,
+      "t": -2.99
+    },
+    "late_vol_share": {
+      "ic_mean": 0.0006,
+      "t": 0.22
+    }
+  },
+  "pooled_ridge": {
+    "oos_ic_mean": 0.017,
+    "oos_ic_t": 3.81,
+    "decile_ls_gross_bps_per_day": 3.43,
+    "decile_ls_t": 3.78,
+    "oos_days": 360
+  },
+  "cost_context": {
+    "taker_entry_bps_side": 6.66,
+    "auction_exit_bps_side": 0.5,
+    "round_trip_bps": 7.16,
+    "note": "entry at 15:00 is continuous-session TAKER; exit at 15:30 auction. gross decile spread must clear ~7bps round trip to be tradable."
+  }
+}

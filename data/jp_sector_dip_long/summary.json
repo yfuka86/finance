@@ -1,0 +1,79 @@
+{
+  "spec": "docs/PREREGISTER_SECTOR_DIP_LONG.md",
+  "episodes_total": 292,
+  "selection": {
+    "S1": {
+      "episodes": 203,
+      "excess_median_pct": 0.486,
+      "excess_mean_pct": 1.287,
+      "win_rate": 0.527,
+      "top_episode_share": 0.172,
+      "top5pct_share": 0.963,
+      "es5_pct": -11.38,
+      "criteria": {
+        "n_ok": true,
+        "median_positive": true,
+        "top_share_lt_20": true,
+        "top5pct_lt_40": false
+      }
+    },
+    "S2": {
+      "episodes": 136,
+      "excess_median_pct": 0.005,
+      "excess_mean_pct": 1.264,
+      "win_rate": 0.5,
+      "top_episode_share": 0.261,
+      "top5pct_share": 1.051,
+      "es5_pct": -11.94,
+      "criteria": {
+        "n_ok": true,
+        "median_positive": true,
+        "top_share_lt_20": false,
+        "top5pct_lt_40": false
+      }
+    },
+    "S3": {
+      "episodes": 23,
+      "excess_median_pct": 0.177,
+      "excess_mean_pct": -0.977,
+      "win_rate": 0.565,
+      "top_episode_share": null,
+      "top5pct_share": null,
+      "es5_pct": -18.2,
+      "criteria": {
+        "n_ok": false,
+        "median_positive": true,
+        "top_share_lt_20": false,
+        "top5pct_lt_40": false
+      }
+    },
+    "S4": {
+      "episodes": 6,
+      "excess_median_pct": -1.232,
+      "excess_mean_pct": -0.302,
+      "win_rate": 0.5,
+      "top_episode_share": null,
+      "top5pct_share": null,
+      "es5_pct": -5.79,
+      "criteria": {
+        "n_ok": false,
+        "median_positive": false,
+        "top_share_lt_20": false,
+        "top5pct_lt_40": false
+      }
+    }
+  },
+  "confirmation": "UNOPENED",
+  "passing_cells": [],
+  "decision": "NO_GO_AT_SELECTION",
+  "per_sector_episode_counts": {
+    "海運業": 35,
+    "電気･ガス業": 23,
+    "石油･石炭製品": 18,
+    "鉄鋼": 16,
+    "銀行業": 10,
+    "保険業": 9,
+    "非鉄金属": 8,
+    "その他製品": 8
+  }
+}

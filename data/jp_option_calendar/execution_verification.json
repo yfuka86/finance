@@ -1,0 +1,108 @@
+{
+  "note": "signal from D settle; entry_lag=1 = enter at D+1 settle (executable form)",
+  "base_same_day": {
+    "all": {
+      "trades": 86,
+      "sharpe": 1.97,
+      "mean": 0.072,
+      "win_rate": 0.686,
+      "worst": -0.7136,
+      "top_share": 0.0532
+    },
+    "first_half": {
+      "trades": 34,
+      "sharpe": 1.366,
+      "mean": 0.0524,
+      "win_rate": 0.6765,
+      "worst": -0.7136,
+      "top_share": 0.1092
+    },
+    "second_half": {
+      "trades": 52,
+      "sharpe": 2.383,
+      "mean": 0.0848,
+      "win_rate": 0.6923,
+      "worst": -0.603,
+      "top_share": 0.0835
+    }
+  },
+  "t1_executable": {
+    "all": {
+      "trades": 82,
+      "sharpe": 0.473,
+      "mean": 0.0205,
+      "win_rate": 0.622,
+      "worst": -0.8943,
+      "top_share": 0.0496
+    },
+    "first_half": {
+      "trades": 34,
+      "sharpe": -0.451,
+      "mean": -0.022,
+      "win_rate": 0.6176,
+      "worst": -0.8943,
+      "top_share": 0.1171
+    },
+    "second_half": {
+      "trades": 48,
+      "sharpe": 1.292,
+      "mean": 0.0506,
+      "win_rate": 0.625,
+      "worst": -0.6968,
+      "top_share": 0.082
+    }
+  },
+  "parity_avg_same_day": {
+    "all": {
+      "trades": 86,
+      "sharpe": 1.616,
+      "mean": 0.0562,
+      "win_rate": 0.7093,
+      "worst": -0.7357,
+      "top_share": 0.0468
+    },
+    "first_half": {
+      "trades": 34,
+      "sharpe": 1.503,
+      "mean": 0.0569,
+      "win_rate": 0.7353,
+      "worst": -0.7357,
+      "top_share": 0.1148
+    },
+    "second_half": {
+      "trades": 52,
+      "sharpe": 1.688,
+      "mean": 0.0558,
+      "win_rate": 0.6923,
+      "worst": -0.5556,
+      "top_share": 0.0782
+    }
+  },
+  "parity_avg_t1": {
+    "all": {
+      "trades": 82,
+      "sharpe": 0.958,
+      "mean": 0.0414,
+      "win_rate": 0.6341,
+      "worst": -0.7862,
+      "top_share": 0.0515
+    },
+    "first_half": {
+      "trades": 34,
+      "sharpe": 0.391,
+      "mean": 0.0181,
+      "win_rate": 0.6471,
+      "worst": -0.7862,
+      "top_share": 0.0946
+    },
+    "second_half": {
+      "trades": 48,
+      "sharpe": 1.404,
+      "mean": 0.0579,
+      "win_rate": 0.625,
+      "worst": -0.6883,
+      "top_share": 0.0872
+    }
+  },
+  "verdict": "SAME_BAR_ARTIFACT_CONFIRMED"
+}

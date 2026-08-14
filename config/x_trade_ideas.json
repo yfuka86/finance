@@ -1,0 +1,63 @@
+{
+  "max_pages_per_query": 2,
+  "browser_scrolls": 8,
+  "recent_hours": 24,
+  "history_days": 7,
+  "queries": [
+    {
+      "id": "jp_market_structure",
+      "query": "(日本株 OR TOPIX OR 日経平均 OR 東証) (需給 OR フロー OR 裁定 OR リバランス OR 自社株買い OR 空売り) lang:ja -is:retweet"
+    },
+    {
+      "id": "global_systematic",
+      "query": "(systematic OR quant OR positioning OR flows) (equity OR futures OR options OR volatility) lang:en -is:retweet"
+    },
+    {
+      "id": "crypto_structure",
+      "query": "(BTC OR ETH OR crypto) (funding OR basis OR liquidation OR open interest OR options skew) lang:en -is:retweet"
+    }
+  ],
+  "hype_terms": ["絶対", "必勝", "爆益", "guaranteed", "100x", "moon", "secret signal"],
+  "themes": [
+    {
+      "id": "buyback_flow",
+      "label": "自社株買い実行フロー",
+      "keywords": ["自社株買い", "buyback", "share repurchase"],
+      "mechanism": "公表ではなく実買付の継続が一時的な非弾力的需要を作るか",
+      "proxy": "EDINET/J-QuantsのPIT買付実績、残量、ADV比、期限",
+      "falsification": "事前登録したforward期間でコスト後効果がなく、案件集中基準にも違反する"
+    },
+    {
+      "id": "index_rebalance",
+      "label": "指数リバランス需給",
+      "keywords": ["TOPIX", "rebalanc", "リバランス", "index inclusion", "指数採用"],
+      "mechanism": "指数連動資金の期限付き売買が引けオークション前後に価格圧力を作るか",
+      "proxy": "公式構成変更、FFW、浮動株時価総額、引け出来高比率",
+      "falsification": "公式PIT入力で候補を凍結後、未使用forwardの実現価格圧力がコストを下回る"
+    },
+    {
+      "id": "short_positioning",
+      "label": "空売り・ポジショニング偏り",
+      "keywords": ["空売り", "short interest", "short squeeze", "ショートカバー", "positioning"],
+      "mechanism": "借株可能な流動銘柄で偏ったポジションの解消が予測可能なフローになるか",
+      "proxy": "PIT空売り残高、貸借、規制、売買内訳、出来高・価格反応",
+      "falsification": "貸借・規制・単元・実勢コスト適用後に効果が消える、または少数銘柄依存になる"
+    },
+    {
+      "id": "volatility_skew",
+      "label": "IV・スキュー需給",
+      "keywords": ["volatility", "implied vol", "IV", "skew", "スキュー", "ボラティリティ"],
+      "mechanism": "特定ストライクのヘッジ需要が実現分布に対して持続的な相対価格の歪みを作るか",
+      "proxy": "前日清算値から作るIV面、DTE、出来高、OI、翌日以降の実現分布",
+      "falsification": "清算値・保守コスト・固定ルールの未使用OOSで正の期待値がない"
+    },
+    {
+      "id": "crypto_carry",
+      "label": "暗号資産キャリー・清算",
+      "keywords": ["funding", "basis", "liquidation", "open interest", "資金調達率", "建玉"],
+      "mechanism": "極端な資金調達率・ベーシスと建玉解消が短期のキャリーまたは反転を作るか",
+      "proxy": "BybitのPIT funding、先物basis、OI、強制清算、板スプレッド",
+      "falsification": "ウォークフォワードで手数料・funding・スリッページ後の成績が基準未達"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "spec": "clean-universe scrutiny of close-auction overnight (user: junkなしで精査)",
+  "clean_universe": "≥¥300億 AND プライム/スタンダード AND 増担保除外",
+  "book_realized_beta": 1.2,
+  "cells": {
+    "long_only_ew_excess": {"full_sharpe": 0.83, "ex_top10": -0.83, "note": "β=1控除。0.2余剰βが上昇相場で儲けた見かけ"},
+    "long_only_beta_neutral_PIT": {"full_sharpe": 0.0, "ann_pct": 0.0, "note": "PITローリングβで中立化→αゼロ"},
+    "short_leg": {"full_sharpe": -1.04, "note": "勝ち組売りはモメンタムに負ける"},
+    "ls": {"full_sharpe": 0.44, "ex_top10": -1.42},
+    "long_on_market_down_nights_bps": -38.7,
+    "long_on_market_up_nights_bps": 12.9
+  },
+  "conclusion": "クリーン母集団に銘柄選択αは存在しない。等加重超過0.83は実現β1.2の余剰βが上昇相場で儲けただけで、PITβ中立化するとSharpe0.0。junk母集団のα(非流動小型株)は取れず、クリーン母集団のαはゼロ=決定的NO-GO。気配不要の機構は本物だが載せるαが無い。"
+}

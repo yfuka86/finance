@@ -1,0 +1,137 @@
+{
+  "spec": "docs/PREREGISTER_JP_INVESTOR_FLOW.md",
+  "weeks": 969,
+  "A1_foreign_4w_long_flat_selection": {
+    "sharpe": 0.146,
+    "ann_return_pct": 2.03,
+    "max_drawdown_pct": -33.56,
+    "negative_years": 6,
+    "years": 11,
+    "top5_day_share": 1.161,
+    "sharpe_ex_top10": -0.143,
+    "bh_sharpe": 0.419,
+    "beats_bh": false,
+    "exposure": 0.54
+  },
+  "selection_criteria": {
+    "net_sharpe_ge_1": false,
+    "neg_years_le_third": false,
+    "top5_share_lt_20pct": false,
+    "sharpe_ex_top10_ge_05": false,
+    "beats_buy_and_hold": false
+  },
+  "sensitivity_selection": {
+    "A2_long_short": {
+      "sharpe": -0.296,
+      "ann_return_pct": -5.68,
+      "max_drawdown_pct": -65.93,
+      "negative_years": 7,
+      "years": 11,
+      "top5_day_share": null,
+      "sharpe_ex_top10": -0.561,
+      "bh_sharpe": 0.419,
+      "beats_bh": false,
+      "exposure": 0.939
+    },
+    "A3_13w": {
+      "sharpe": 0.229,
+      "ann_return_pct": 3.19,
+      "max_drawdown_pct": -37.13,
+      "negative_years": 4,
+      "years": 11,
+      "top5_day_share": 0.717,
+      "sharpe_ex_top10": -0.048,
+      "bh_sharpe": 0.419,
+      "beats_bh": false,
+      "exposure": 0.515
+    }
+  },
+  "diagnostic_ic_selection": {
+    "Prop": {
+      "ic": -0.0065,
+      "t": -0.15,
+      "partial_ic_price_controlled": -0.0235,
+      "partial_t": -0.56,
+      "corr_with_past4w_ret": 0.412
+    },
+    "Brk": {
+      "ic": 0.0022,
+      "t": 0.05,
+      "partial_ic_price_controlled": 0.018,
+      "partial_t": 0.43,
+      "corr_with_past4w_ret": -0.386
+    },
+    "Ind": {
+      "ic": -0.022,
+      "t": -0.53,
+      "partial_ic_price_controlled": -0.028,
+      "partial_t": -0.67,
+      "corr_with_past4w_ret": -0.527
+    },
+    "Frgn": {
+      "ic": 0.0371,
+      "t": 0.89,
+      "partial_ic_price_controlled": 0.0327,
+      "partial_t": 0.78,
+      "corr_with_past4w_ret": 0.43
+    },
+    "SecCo": {
+      "ic": -0.0145,
+      "t": -0.35,
+      "partial_ic_price_controlled": -0.0198,
+      "partial_t": -0.47,
+      "corr_with_past4w_ret": -0.546
+    },
+    "InvTr": {
+      "ic": -0.0308,
+      "t": -0.74,
+      "partial_ic_price_controlled": -0.0222,
+      "partial_t": -0.53,
+      "corr_with_past4w_ret": -0.344
+    },
+    "BusCo": {
+      "ic": 0.0067,
+      "t": 0.16,
+      "partial_ic_price_controlled": 0.0063,
+      "partial_t": 0.15,
+      "corr_with_past4w_ret": -0.236
+    },
+    "OthCo": {
+      "ic": -0.0365,
+      "t": -0.87,
+      "partial_ic_price_controlled": -0.0316,
+      "partial_t": -0.76,
+      "corr_with_past4w_ret": -0.079
+    },
+    "InsCo": {
+      "ic": -0.0107,
+      "t": -0.26,
+      "partial_ic_price_controlled": -0.0086,
+      "partial_t": -0.21,
+      "corr_with_past4w_ret": -0.33
+    },
+    "Bank": {
+      "ic": 0.023,
+      "t": 0.55,
+      "partial_ic_price_controlled": 0.0266,
+      "partial_t": 0.64,
+      "corr_with_past4w_ret": -0.266
+    },
+    "TrstBnk": {
+      "ic": -0.0139,
+      "t": -0.33,
+      "partial_ic_price_controlled": -0.0121,
+      "partial_t": -0.29,
+      "corr_with_past4w_ret": -0.273
+    },
+    "OthFin": {
+      "ic": -0.0452,
+      "t": -1.08,
+      "partial_ic_price_controlled": -0.0562,
+      "partial_t": -1.35,
+      "corr_with_past4w_ret": -0.412
+    }
+  },
+  "confirmation": "UNOPENED",
+  "decision": "NO_GO_AT_SELECTION"
+}

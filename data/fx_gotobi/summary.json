@@ -1,0 +1,98 @@
+{
+  "spec": "gotobi(5/10/15/20/25/30, roll-back) 09:00->10:00 JST long USDJPY, ask in / bid out",
+  "n_gotobi_days": 1102,
+  "n_control_days": 4589,
+  "primary": {
+    "selection": {
+      "days": 3287,
+      "trades": 637,
+      "sharpe": 0.117,
+      "ann_return": 0.0013,
+      "trade_mean_bps": 0.27,
+      "trade_win_rate": 0.5118,
+      "top5_trade_share": 0.1213,
+      "sharpe_ex_top10": -0.318,
+      "negative_years": 5,
+      "years": 9,
+      "by_year_bps": {
+        "2011": 114.1,
+        "2012": -110.9,
+        "2013": 40.1,
+        "2014": -45.1,
+        "2015": 20.6,
+        "2016": -63.0,
+        "2017": 232.5,
+        "2018": -7.1,
+        "2019": -11.3
+      }
+    },
+    "selection_failed": [
+      "sharpe_lt_1.0",
+      "too_many_negative_years",
+      "sharpe_ex_top10_lt_0.5"
+    ],
+    "confirmation": "NOT_OPENED"
+  },
+  "authenticity_selection": {
+    "gotobi_mean_bps": 0.27,
+    "control_mean_bps": -1.95,
+    "t_diff": 3.36
+  },
+  "decision": "NO_GO",
+  "control_diagnostic": {
+    "selection": {
+      "days": 3287,
+      "trades": 2650,
+      "sharpe": -2.733,
+      "ann_return": -0.0396,
+      "trade_mean_bps": -1.95,
+      "trade_win_rate": 0.3004,
+      "top5_trade_share": 0.0462,
+      "sharpe_ex_top10": -3.221,
+      "negative_years": 9,
+      "years": 9,
+      "by_year_bps": {
+        "2011": -627.9,
+        "2012": -378.4,
+        "2013": -230.2,
+        "2014": -584.3,
+        "2015": -627.8,
+        "2016": -1105.2,
+        "2017": -454.5,
+        "2018": -537.7,
+        "2019": -622.3
+      }
+    }
+  },
+  "gmo_scenario": {
+    "selection": {
+      "days": 3287,
+      "trades": 637,
+      "sharpe": 0.277,
+      "ann_return": 0.0031,
+      "trade_mean_bps": 0.63,
+      "trade_win_rate": 0.54,
+      "top5_trade_share": 0.118,
+      "sharpe_ex_top10": -0.121,
+      "negative_years": 4,
+      "years": 9,
+      "by_year_bps": {
+        "2011": 195.3,
+        "2012": -62.9,
+        "2013": 68.3,
+        "2014": -32.7,
+        "2015": 35.2,
+        "2016": -42.2,
+        "2017": 242.1,
+        "2018": 3.7,
+        "2019": -5.4
+      }
+    },
+    "selection_failed": [
+      "sharpe_lt_1.0",
+      "too_many_negative_years",
+      "sharpe_ex_top10_lt_0.5"
+    ],
+    "note": "post-registration execution-venue scenario (GMO 0.2sen, mid-to-mid)"
+  }
+}

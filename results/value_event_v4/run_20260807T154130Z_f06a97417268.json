@@ -1,0 +1,29 @@
+{
+  "cases": 61,
+  "mean": 0.03634027481141167,
+  "median": 0.04611389521640086,
+  "win_rate": 0.5573770491803278,
+  "expected_shortfall_5pct": -0.2301590397036614,
+  "max_loss": -0.24255421686746992,
+  "top_case_profit_share": 0.25955491441452627,
+  "sum": 2.216756763496112,
+  "floor_yen": 100000000.0,
+  "cost_round_trip": 0.004,
+  "eligible_cases": 263,
+  "training_cases": 99,
+  "oos_start": "2024-01-01",
+  "holding_sessions": 60,
+  "increment_cases": 50,
+  "increment_median": 0.04122769176369556,
+  "cost20bps_comparison": {
+    "cases": 61,
+    "median": 0.04811389521640086,
+    "mean": 0.03834027481141167,
+    "top_case_profit_share": 0.24687052584466657
+  },
+  "status": "TESTED",
+  "failed_criteria": [
+    "top_share_ge_20pct"
+  ],
+  "decision": "NO_GO"
+}

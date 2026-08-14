@@ -1,0 +1,20 @@
+{
+  "status": "INVALID_AUDIT_ONLY",
+  "invalid_reason": "Adjusted historical prices were mixed with per-share BPS stated on the disclosure-date share basis; later stock splits created false low-PBR eligibility and false return outliers.",
+  "cases": 35,
+  "mean": 0.11986188047298332,
+  "median": 0.05391798695246974,
+  "win_rate": 0.6857142857142857,
+  "expected_shortfall_5pct": -0.27921235237043734,
+  "max_loss": -0.3004365228267668,
+  "top_case_profit_share": 0.45745641806702053,
+  "sum": 4.195165816554416,
+  "detected_events": 1637,
+  "eligible_cases": 81,
+  "training_cases": 35,
+  "oos_candidates": 37,
+  "oos_start": "2024-01-01",
+  "holding_sessions": 60,
+  "round_trip_cost_bps": 20,
+  "do_not_use_for_performance_claims": true
+}

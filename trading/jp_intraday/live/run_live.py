@@ -66,6 +66,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="kabuステーション 場中フラット トレーダー")
     ap.add_argument("action", choices=["train", "preflight", "plan", "entry", "exit", "state", "shadow", "quotesnap", "cost"])
     ap.add_argument("--force", action="store_true", help="entry: allow same-day re-run")
+    ap.add_argument("--shortlist", type=int, default=50,
+                    help="quotesnap: 気配を取る候補数（0で全銘柄）。既定50は約5秒で撮れる規模")
     args = ap.parse_args()
 
     if args.action == "train":  # 年次1回: 当年より前の全データでridgeを学習・保存
@@ -120,10 +122,12 @@ def main() -> None:
 
     elif args.action == "quotesnap":
         # 寄前気配の3時点スナップショット（発注なし。戦略成立性の検証: 気配vs実寄値）
-        from .quotesnap import run_quotesnap
+        from .quotesnap import run_quotesnap, shortlist_symbols
         panel = build_daily_features(load_existing_daily(), min_value_yen=cfg.min_value_yen)
-        last = panel[panel["date"].eq(panel["date"].max())]
-        summary = run_quotesnap(client, cfg, list(last["symbol"]))
+        # 467銘柄だと取得に49-66秒かかり銘柄ごとに最大1分の観測時刻ずれが乗る。
+        # 前日確定データだけで50銘柄へ絞れば約5秒＝ほぼ同時のスナップショットになる。
+        syms = shortlist_symbols(panel, args.shortlist or None)
+        summary = run_quotesnap(client, cfg, syms)
         print(json.dumps(summary, ensure_ascii=False, default=str))
         reporter.report(cfg, "quotesnap", summary, _now())
 

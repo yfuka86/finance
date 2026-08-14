@@ -78,9 +78,9 @@ def load_existing_daily() -> pd.DataFrame:
         # Normalise to AdjO/AdjH/AdjL/AdjC/AdjVo/Va; also keep RAW open/close where
         # present (needed for ¥ unit-lot sizing — adjusted prices are not tradable levels).
         if "AdjC" in df.columns:
-            keep = ["Date", "Code", "AdjO", "AdjH", "AdjL", "AdjC", "AdjVo", "Va", "O", "C"]
+            keep = ["Date", "Code", "AdjO", "AdjH", "AdjL", "AdjC", "AdjVo", "Va", "O", "C", "Vo"]
             df = df[[c for c in keep if c in df.columns]].rename(
-                columns={"O": "raw_open", "C": "raw_close"})
+                columns={"O": "raw_open", "C": "raw_close", "Vo": "raw_volume"})
         elif "AdjClose" in df.columns:  # legacy naming, just in case
             df = df.rename(columns={"AdjOpen": "AdjO", "AdjHigh": "AdjH",
                                     "AdjLow": "AdjL", "AdjClose": "AdjC",

@@ -1,0 +1,106 @@
+{
+  "note": "DIAGNOSTIC. Clusters formed on year Y-1 correlations (K=33), all numbers evaluated on year Y (out-of-sample).",
+  "A_oos_variance_share": {
+    "1m": {
+      "cluster": 0.2024,
+      "s33": 0.1557,
+      "periods": 83
+    },
+    "3m": {
+      "cluster": 0.181,
+      "s33": 0.1383,
+      "periods": 23
+    }
+  },
+  "B_oos_within_group_pairwise_corr": {
+    "cluster": 0.411,
+    "s33": 0.411,
+    "by_year": [
+      {
+        "year": 2019,
+        "cluster": 0.362,
+        "s33": 0.369
+      },
+      {
+        "year": 2020,
+        "cluster": 0.461,
+        "s33": 0.466
+      },
+      {
+        "year": 2021,
+        "cluster": 0.368,
+        "s33": 0.385
+      },
+      {
+        "year": 2022,
+        "cluster": 0.448,
+        "s33": 0.421
+      },
+      {
+        "year": 2023,
+        "cluster": 0.398,
+        "s33": 0.376
+      },
+      {
+        "year": 2024,
+        "cluster": 0.449,
+        "s33": 0.455
+      },
+      {
+        "year": 2025,
+        "cluster": 0.387,
+        "s33": 0.405
+      },
+      {
+        "year": 2026,
+        "cluster": NaN,
+        "s33": NaN
+      }
+    ]
+  },
+  "C_cluster_pair_survival_yoy": {
+    "mean": 0.295,
+    "by_year": [
+      {
+        "year": 2020,
+        "pair_survival": 0.334
+      },
+      {
+        "year": 2021,
+        "pair_survival": 0.253
+      },
+      {
+        "year": 2022,
+        "pair_survival": 0.292
+      },
+      {
+        "year": 2023,
+        "pair_survival": 0.355
+      },
+      {
+        "year": 2024,
+        "pair_survival": 0.313
+      },
+      {
+        "year": 2025,
+        "pair_survival": 0.267
+      },
+      {
+        "year": 2026,
+        "pair_survival": 0.249
+      }
+    ]
+  },
+  "D_cluster_momentum_ic": {
+    "1m": {
+      "mean_ic": 0.045,
+      "t": 1.23,
+      "n": 67
+    },
+    "3m": {
+      "mean_ic": 0.017,
+      "t": 0.29,
+      "n": 67
+    }
+  }
+}

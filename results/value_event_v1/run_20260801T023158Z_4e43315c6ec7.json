@@ -1,0 +1,11 @@
+{
+  "detected_events": 1637,
+  "eligible_cases_with_raw_price": 2,
+  "training_cases": 0,
+  "oos_start": "2024-01-01",
+  "holding_sessions": 60,
+  "round_trip_cost_bps": 20,
+  "status": "DATA_BLOCKED",
+  "reason": "insufficient completed training cases: 0",
+  "required_data": "raw historical close at each disclosure date"
+}

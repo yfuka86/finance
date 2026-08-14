@@ -22,3 +22,19 @@ data/jp_ticks*/
 data/jp_daily_history/
 data/live_reports/
 nohup.out
+
+# X API由来の再収集可能データ・分析レポート（投稿本文をGitへ入れない）
+data/x_trade_ideas/
+
+# 再生成可能な生API保存（コレクタで再構築可・GCSバンドルで共有）
+data/jp_ownership/filings.jsonl
+data/jp_buybacks/edinet/raw/
+data/jp_buybacks/edinet/error_payloads/
+# FX分足（約2GB・コレクタで再生成可能）
+data/fx_dukascopy_min/parts/
+data/fx_dukascopy_hour/parts/
+data/fx_ticks_fix/*.parquet
+data/fx_histdata_min/parts/
+data/fx_oanda_min/parts/
+data/fx_oanda_us/parts/
+data/kessan_site/

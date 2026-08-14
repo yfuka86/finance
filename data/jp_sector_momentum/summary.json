@@ -1,0 +1,112 @@
+{
+  "note": "DIAGNOSTIC only — no costs, no execution, no strategy claim. Stocks 2018-2026 (survivorship-safe panel), sector indices 2008-2026.",
+  "A_variance_share_by_horizon": {
+    "1m": {
+      "periods": 102,
+      "mean_share": 0.0475,
+      "p25": 0.0262,
+      "p75": 0.058
+    },
+    "3m": {
+      "periods": 34,
+      "mean_share": 0.0505,
+      "p25": 0.0298,
+      "p75": 0.06
+    },
+    "6m": {
+      "periods": 17,
+      "mean_share": 0.053,
+      "p25": 0.0288,
+      "p75": 0.0771
+    },
+    "12m": {
+      "periods": 8,
+      "mean_share": 0.0619,
+      "p25": 0.0345,
+      "p75": 0.0797
+    }
+  },
+  "B_momentum_screen_sector_contamination": {
+    "rank_corr_stockmom_vs_sectormom": {
+      "mean": 0.251,
+      "p25": 0.21,
+      "p75": 0.275
+    },
+    "top_decile_momentum_share_from_sector": 0.082,
+    "periods": 30
+  },
+  "C_sector_momentum_persistence_2008_2026": {
+    "F3m_H1m": {
+      "mean_rank_ic": -0.002,
+      "t_overlap_adj": -0.12,
+      "mean_top_minus_bottom_pct": 0.08,
+      "periods": 215
+    },
+    "F3m_H3m": {
+      "mean_rank_ic": -0.024,
+      "t_overlap_adj": -0.73,
+      "mean_top_minus_bottom_pct": -0.06,
+      "periods": 213
+    },
+    "F3m_H6m": {
+      "mean_rank_ic": -0.014,
+      "t_overlap_adj": -0.3,
+      "mean_top_minus_bottom_pct": 0.26,
+      "periods": 210
+    },
+    "F3m_H12m": {
+      "mean_rank_ic": 0.012,
+      "t_overlap_adj": 0.19,
+      "mean_top_minus_bottom_pct": 0.2,
+      "periods": 204
+    },
+    "F6m_H1m": {
+      "mean_rank_ic": -0.007,
+      "t_overlap_adj": -0.32,
+      "mean_top_minus_bottom_pct": -0.13,
+      "periods": 212
+    },
+    "F6m_H3m": {
+      "mean_rank_ic": -0.023,
+      "t_overlap_adj": -0.65,
+      "mean_top_minus_bottom_pct": -0.35,
+      "periods": 210
+    },
+    "F6m_H6m": {
+      "mean_rank_ic": 0.011,
+      "t_overlap_adj": 0.24,
+      "mean_top_minus_bottom_pct": 0.42,
+      "periods": 207
+    },
+    "F6m_H12m": {
+      "mean_rank_ic": -0.002,
+      "t_overlap_adj": -0.03,
+      "mean_top_minus_bottom_pct": -0.13,
+      "periods": 201
+    },
+    "F12m_H1m": {
+      "mean_rank_ic": 0.03,
+      "t_overlap_adj": 1.28,
+      "mean_top_minus_bottom_pct": 0.25,
+      "periods": 206
+    },
+    "F12m_H3m": {
+      "mean_rank_ic": 0.017,
+      "t_overlap_adj": 0.44,
+      "mean_top_minus_bottom_pct": 0.58,
+      "periods": 204
+    },
+    "F12m_H6m": {
+      "mean_rank_ic": 0.011,
+      "t_overlap_adj": 0.22,
+      "mean_top_minus_bottom_pct": 1.04,
+      "periods": 201
+    },
+    "F12m_H12m": {
+      "mean_rank_ic": 0.036,
+      "t_overlap_adj": 0.53,
+      "mean_top_minus_bottom_pct": 2.43,
+      "periods": 195
+    }
+  }
+}

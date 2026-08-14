@@ -80,3 +80,26 @@ class ForwardReturnGuardTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BackwardReturnGuardTest(unittest.TestCase):
+    def test_ret_is_nan_when_previous_row_is_not_the_adjacent_session(self):
+        """`ret` にも隣接セッション判定が要る（2026-08-02発見）.
+
+        パネルは流動性フィルタ済みで行が連続しないため、素の pct_change は
+        「一度ユニバースから外れて再参入した」銘柄の数週間ぶんの値動きを1日の
+        リターンとして拾う。銘柄は上昇・出来高急増のあとに再参入するので
+        バイアスは系統的にプラスで、実測では全行の10.7%が該当し平均+128bps
+        （隣接行は+2.7bps）、等加重市場の年率が+6.5%→+39.9%に化けていた。
+        """
+        panel = build_daily_features(_daily(years=2), min_value_yen=0)
+        sessions = pd.Index(sorted(panel["date"].unique()))
+        no = pd.Series(range(len(sessions)), index=sessions)
+        panel = panel.sort_values(["symbol", "date"])
+        cur = panel["date"].map(no)
+        prev = cur.groupby(panel["symbol"]).shift(1)
+        non_adjacent = prev.notna() & prev.ne(cur - 1)
+        if non_adjacent.any():
+            self.assertTrue(panel.loc[non_adjacent, "ret"].isna().all())
+        adjacent = prev.eq(cur - 1)
+        self.assertGreater(panel.loc[adjacent, "ret"].notna().mean(), 0.9)

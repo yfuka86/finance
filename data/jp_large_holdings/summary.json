@@ -1,0 +1,23 @@
+{
+  "spec": "docs/PREREGISTER_JP_LARGE_HOLDINGS.md",
+  "new_filings_total": 8807,
+  "cases_total": 4419,
+  "selection": {
+    "cases": 2778,
+    "excess_median_pct": -1.64,
+    "excess_mean_pct": -1.071,
+    "win_rate": 0.424,
+    "raw_median_pct": -0.643,
+    "top_case_share": null,
+    "top5pct_share": null,
+    "es5_pct": -33.06,
+    "criteria": {
+      "n_ok": true,
+      "median_positive": false,
+      "top_share_lt_20": false,
+      "top5pct_lt_40": false
+    }
+  },
+  "confirmation": "UNOPENED",
+  "decision": "NO_GO_AT_SELECTION"
+}

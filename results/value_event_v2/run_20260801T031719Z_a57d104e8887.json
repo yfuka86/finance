@@ -1,0 +1,46 @@
+{
+  "registered_at": "2026-08-01",
+  "multiple_testing_ci": 0.975,
+  "models": [
+    {
+      "model": "dividend_resumption",
+      "detected_events": 75,
+      "eligible_cases": 0,
+      "training_cases": 0,
+      "holding_sessions": 60,
+      "round_trip_cost_bps": 20,
+      "status": "DATA_BLOCKED",
+      "decision": "DATA_BLOCKED",
+      "reason": "insufficient completed training cases: 0"
+    },
+    {
+      "model": "treasury_cancellation_proxy",
+      "detected_events": 542,
+      "eligible_cases": 44,
+      "training_cases": 19,
+      "holding_sessions": 60,
+      "round_trip_cost_bps": 20,
+      "cases": 21,
+      "mean": -0.028290840371673915,
+      "median": -0.011782608695652173,
+      "win_rate": 0.47619047619047616,
+      "expected_shortfall_5pct": -0.27326777473455144,
+      "max_loss": -0.3565454545454545,
+      "top_case_profit_share": NaN,
+      "sum": -0.5941076478051522,
+      "status": "TESTED",
+      "decision": "NO_GO",
+      "failed_criteria": [
+        "median_not_positive",
+        "max_loss_le_minus_30pct",
+        "nonpositive_calendar_year"
+      ],
+      "yearly_case_sum": {
+        "2024": -0.11153510327247662,
+        "2025": 0.06094792017807138,
+        "2026": -0.543520464710747
+      },
+      "oos_candidates": 23
+    }
+  ]
+}

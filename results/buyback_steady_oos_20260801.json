@@ -1,0 +1,68 @@
+{
+  "evaluation_start": "2026-03-01",
+  "primary": "steady",
+  "cost_bps_roundtrip": 20,
+  "results": {
+    "steady": {
+      "stats": {
+        "ann_return": -0.0015771422709339887,
+        "ann_vol": 0.002967204289399581,
+        "sharpe": -0.5315246666932819,
+        "max_drawdown": -0.0013145979452039436,
+        "total_return": -0.0006462004124458964,
+        "days": 103,
+        "win_rate": 0.0970873786407767
+      },
+      "trades": 1,
+      "median_case": -0.02320141342756188,
+      "win_rate_case": 0.0,
+      "top_case_profit_share": null
+    },
+    "acceleration": {
+      "stats": {
+        "ann_return": 0.0,
+        "ann_vol": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "days": 103,
+        "win_rate": 0.0
+      },
+      "trades": 0,
+      "median_case": null,
+      "win_rate_case": null,
+      "top_case_profit_share": null
+    },
+    "union": {
+      "stats": {
+        "ann_return": -0.0015771422709339887,
+        "ann_vol": 0.002967204289399581,
+        "sharpe": -0.5315246666932819,
+        "max_drawdown": -0.0013145979452039436,
+        "total_return": -0.0006462004124458964,
+        "days": 103,
+        "win_rate": 0.0970873786407767
+      },
+      "trades": 1,
+      "median_case": -0.02320141342756188,
+      "win_rate_case": 0.0,
+      "top_case_profit_share": null
+    },
+    "steady_40bps": {
+      "stats": {
+        "ann_return": -0.0017239383874388433,
+        "ann_vol": 0.0029954486459195647,
+        "sharpe": -0.575519259790086,
+        "max_drawdown": -0.0013745517203771485,
+        "total_return": -0.0007061943133236381,
+        "days": 103,
+        "win_rate": 0.0970873786407767
+      },
+      "trades": 1,
+      "median_case": -0.025201413427561877,
+      "win_rate_case": 0.0,
+      "top_case_profit_share": null
+    }
+  },
+  "decision": "NO-GO"
+}

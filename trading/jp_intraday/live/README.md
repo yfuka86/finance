@@ -10,7 +10,21 @@ auカブコム証券の **kabuステーションAPI** で執行し、結果を *
 **ユーザー実測により「気配値と寄り付き値に有効な関係なし・予測も収束もしない」が確定。**
 事前登録した基準（建玉一致率<50%→NO-GO）に照らし **実弾NO-GO**。
 `ensemble_core` は現構成では執行不能（理由の鎖は AGENTS.md / STATUS.md §0）。
-**以下の検証手順は歴史的記録**。quotesnap の再実行・気配の再探索は不要。
+**以下の検証手順は歴史的記録**（全銘柄版）。
+
+### ★2026-08-03 更新: quotesnap は K=50 で**再実行する価値がある**
+
+上のNO-GO判定は **467銘柄を49〜66秒かけて舐めた気配**で測ったもので、
+**銘柄ごとに最大1分の観測時刻ずれ（スメア）と分離できていない**。
+
+前日確定データだけで候補を50銘柄に絞れば**約5秒**で撮れる（スメア1/12）ことが分かり、
+その構成のシミュレーション成績は **単元OOS24+ Sharpe 1.69**（全銘柄版は3.43）。
+基準1.0を超えるので、**気配の予測力をはじめて正しく測れる状態になった**。
+
+- 実行: `PYTHONUTF8=1 python -m trading.jp_intraday.live.run_live quotesnap`（既定で50銘柄）
+- 手順書: **`docs/RUNBOOK_QUOTE_SHORTLIST_WINDOWS.md`**
+- 根拠: `docs/PREREGISTER_QUOTE_SHORTLIST.md` / `data/jp_quote_shortlist/summary.json`
+- **発注はしない。GO判定が出ても実弾投入はユーザー承認が必要。**
 
 <details><summary>（旧）最優先検証タスクの手順</summary>
 
