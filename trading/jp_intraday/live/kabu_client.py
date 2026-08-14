@@ -21,6 +21,8 @@ dry-run guard so nothing is sent unless live trading is deliberately enabled.
 """
 from __future__ import annotations
 
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from typing import Protocol, runtime_checkable
 
 import requests
@@ -75,18 +77,34 @@ class KabuClient:
         self._session = requests.Session()
         self._last_call = 0.0
         self._board_calls = 0
+        # boards() で並列に叩くため、スロットルとセッションをスレッド安全にする。
+        # Session はスレッドごとに分ける（1本を共有するとコネクションプールで詰まる）。
+        self._throttle_lock = threading.Lock()
+        self._auth_lock = threading.Lock()
+        self._local = threading.local()
+        self._session_factory = requests.Session   # テストで差し替え可能にしておく
+
+    @property
+    def _sess(self) -> requests.Session:
+        s = getattr(self._local, "session", None)
+        if s is None:
+            s = self._session if threading.current_thread() is threading.main_thread() \
+                else self._session_factory()
+            self._local.session = s
+        return s
 
     # ── auth ────────────────────────────────────────────────────────
     def authenticate(self) -> str:
-        r = self._session.post(f"{self.base}/token", json={"APIPassword": self._api_password},
-                               timeout=self.timeout)
-        r.raise_for_status()
-        body = r.json()
-        token = body.get("Token")
-        if not token:
-            raise KabuAPIError(f"authentication failed: {body}")
-        self._token = token
-        return token
+        with self._auth_lock:      # 並列取得中に複数スレッドが同時発行しないように
+            r = self._sess.post(f"{self.base}/token", json={"APIPassword": self._api_password},
+                                timeout=self.timeout)
+            r.raise_for_status()
+            body = r.json()
+            token = body.get("Token")
+            if not token:
+                raise KabuAPIError(f"authentication failed: {body}")
+            self._token = token
+            return token
 
     def _headers(self) -> dict:
         if not self._token:
@@ -94,18 +112,20 @@ class KabuClient:
         return {"Content-Type": "application/json", "X-API-KEY": self._token}
 
     def _throttle(self) -> None:
+        """送信開始のタイミングだけを直列化する（レート制限はプロセス全体で10req/s）。"""
         import time
-        wait = self.MIN_INTERVAL - (time.monotonic() - self._last_call)
-        if wait > 0:
-            time.sleep(wait)
-        self._last_call = time.monotonic()
+        with self._throttle_lock:
+            wait = self.MIN_INTERVAL - (time.monotonic() - self._last_call)
+            if wait > 0:
+                time.sleep(wait)
+            self._last_call = time.monotonic()
 
     def _request(self, method: str, path: str, *, params=None, json=None):
         url = f"{self.base}{path}"
         for attempt in range(3):  # retry after re-auth on 401 / brief backoff on 429
             self._throttle()
-            r = self._session.request(method, url, headers=self._headers(),
-                                      params=params, json=json, timeout=self.timeout)
+            r = self._sess.request(method, url, headers=self._headers(),
+                                   params=params, json=json, timeout=self.timeout)
             if r.status_code == 401 and attempt == 0:
                 self._token = None
                 continue
@@ -137,6 +157,61 @@ class KabuClient:
                 pass  # 消去失敗は次の board エラーで顕在化する
         self._board_calls += 1
         return self._request("GET", f"/board/{to_kabu_symbol(symbol)}@{exchange}")
+
+    # 板の一括取得（全ユニバースを寄付き前に舐めるための唯一の実用経路）
+    #
+    # 実測 2026-07-30（本番・863銘柄・成功率100%）:
+    #   1件ずつ直列     0.72件/秒 → 20分  ← 寄付きに間に合わない（当日の実障害）
+    #   並列8+一括登録  1.45件/秒 → 10分
+    # 未登録銘柄の GET /board はステーションが取引所へ取りに行くため中央値~900ms
+    # (1割はちょうど5秒)。登録済みなら3ms。並列化してもステーション側で直列化される
+    # ため2倍が上限だが、この2倍が「寄付きに間に合うか否か」を分ける。
+    BOARD_CHUNK = 45          # 登録上限50に対する安全域
+    BOARD_WORKERS = 8         # これ以上増やしてもステーション側で詰まるだけ
+
+    def boards(self, symbols, workers: int | None = None, on_progress=None) -> dict:
+        """Fetch boards for many symbols. Returns {symbol: board}（失敗銘柄は欠落）.
+
+        45件ごとに登録リストを作り直しつつ、チャンク内は並列に取得する。
+        キーは入力の symbol をそのまま使う（J-Quants 5桁のまま返る）。
+        """
+        syms = list(symbols)
+        out: dict = {}
+        self._headers()                      # 並列に入る前に認証を済ませておく
+        workers = workers or self.BOARD_WORKERS
+        for i in range(0, len(syms), self.BOARD_CHUNK):
+            part = syms[i:i + self.BOARD_CHUNK]
+            # 登録の作り直しは高速化のための補助でしかない。ここでの失敗
+            # (タイムアウト含む) で全体を落とさない — 落とすと寄付きに間に合わない。
+            # ただし登録を消せていないと上限50に達して取得自体が失敗するため、
+            # 消去だけは一度リトライする。
+            for attempt in range(2):
+                try:
+                    self.unregister_all()
+                    self._board_calls = 0    # 単発 board() 側のカウンタと整合させる
+                    break
+                except Exception:  # noqa: BLE001
+                    if attempt:
+                        pass
+            try:
+                self._request("PUT", "/register", json={
+                    "Symbols": [{"Symbol": to_kabu_symbol(s), "Exchange": 1} for s in part]})
+            except Exception:  # noqa: BLE001
+                pass                         # 登録失敗でも取得自体は可能（遅くなるだけ）
+            with ThreadPoolExecutor(max_workers=workers) as ex:
+                for sym, board in zip(part, ex.map(self._board_or_none, part)):
+                    if board is not None:
+                        out[sym] = board
+            if on_progress:
+                on_progress(min(i + self.BOARD_CHUNK, len(syms)), len(syms))
+        return out
+
+    def _board_or_none(self, symbol: str, exchange: int = 1):
+        """board() の登録管理を通さない素の取得（登録は boards() がチャンク単位で管理）。"""
+        try:
+            return self._request("GET", f"/board/{to_kabu_symbol(symbol)}@{exchange}")
+        except Exception:  # noqa: BLE001  1銘柄の失敗で全体を落とさない
+            return None
 
     def symbol_info(self, symbol: str, exchange: int = 1) -> dict:
         return self._request("GET", f"/symbol/{to_kabu_symbol(symbol)}@{exchange}")
@@ -240,6 +315,9 @@ class HybridKabuClient:
     # 参照系 → 本番 (読み取りのみ)
     def board(self, symbol: str, exchange: int = 1) -> dict:
         return self._data.board(symbol, exchange)
+
+    def boards(self, symbols, workers: int | None = None, on_progress=None) -> dict:
+        return self._data.boards(symbols, workers=workers, on_progress=on_progress)
 
     def symbol_info(self, symbol: str, exchange: int = 1) -> dict:
         return self._data.symbol_info(symbol, exchange)

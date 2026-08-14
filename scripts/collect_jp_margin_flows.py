@@ -32,6 +32,33 @@ def _retry(fn, tries=10, base=2.0, cap=300.0):
             time.sleep(min(base ** i, cap))
 
 
+def _parquet_safe(df: pd.DataFrame) -> pd.DataFrame:
+    """J-Quantsは欠測を文字列 '-' で返す列がある（実障害: 空売り残高報告の ShrtOutChg）。
+
+    数値と '-' が混ざった object 列は parquet 書き込みが ArrowInvalid で落ちる。
+    **'-' を含む列だけ**を欠測化して数値に寄せる（Code のような文字列列を
+    数値化してしまわないよう、対象を最小限に絞るのが要点）。
+    """
+    out = df.copy()
+    for c in out.columns:
+        if out[c].dtype != object:
+            continue
+        col = out[c]
+        try:
+            has_dash = bool((col == "-").any())
+            # 文字列と数値が混在する列も落ちる（実障害: ShrtOutRatio の str+float 混在）
+            mixed = bool(col.map(lambda v: v is not None and not isinstance(v, str)).any()) \
+                and bool(col.map(lambda v: isinstance(v, str)).any())
+        except Exception:  # noqa: BLE001  dict等の判定不能な列は触らない
+            continue
+        if not (has_dash or mixed):
+            continue          # 純粋な文字列列（Code等）は数値化しない
+        s = col.replace({"-": None, "": None})
+        num = pd.to_numeric(s, errors="coerce")
+        out[c] = num if num.notna().sum() == s.notna().sum() else s.astype("string")
+    return out
+
+
 def _trading_days(client, year: int) -> list[str]:
     cal = _retry(lambda: client.get_mkt_calendar(from_yyyymmdd=f"{year}0101",
                                                  to_yyyymmdd=f"{year}1231"))
@@ -63,9 +90,9 @@ def _collect_daily(client, year: int, path: Path, date_col: str, fetch) -> None:
             frames.append(df)
             got += len(df)
         if (i + 1) % FLUSH_EVERY == 0 and frames:
-            pd.concat(frames, ignore_index=True).to_parquet(path, index=False)
+            _parquet_safe(pd.concat(frames, ignore_index=True)).to_parquet(path, index=False)
     if frames:
-        pd.concat(frames, ignore_index=True).to_parquet(path, index=False)
+        _parquet_safe(pd.concat(frames, ignore_index=True)).to_parquet(path, index=False)
     print(f"{year} {path.stem.rsplit('_', 1)[0]}: +{got} rows ({len(todo)} days fetched)",
           flush=True)
 
@@ -82,7 +109,7 @@ def main() -> None:
             df = _retry(lambda: client.get_mkt_margin_interest_range(
                 start_dt=f"{year}0101", end_dt=f"{year}1231"))
             if len(df):
-                df.to_parquet(p, index=False)
+                _parquet_safe(df).to_parquet(p, index=False)
             print(f"{year} margin_interest: {len(df)} rows", flush=True)
             time.sleep(5)
 
@@ -97,7 +124,7 @@ def main() -> None:
                 start_dt=f"{year}0101", end_dt=f"{year}1231"))
             if len(df):
                 df["PubReason"] = df["PubReason"].astype(str)  # dict列→str(parquet安全)
-                df.to_parquet(p, index=False)
+                _parquet_safe(df).to_parquet(p, index=False)
             print(f"{year} margin_alert: {len(df)} rows", flush=True)
             time.sleep(5)
 
