@@ -130,16 +130,6 @@ def page_forward() -> str:
                       f"台帳 {len(evs)}件（リターン非計算・凍結Ridge予測のみ記録）。"
                       f"直近: {recent}。毎営業日19:30に bars→fins→台帳を自動収集。"
                       "基準: 採用≥30・40bps後中央値>0・最大案件シェア<20%"))
-    # 引けオークション反転 Long-only 封印
-    cal = ROOT / "data/jp_close_auction_overnight/forward_candidates.jsonl"
-    n_ca = len([l for l in cal.read_text(encoding="utf-8").splitlines() if l.strip()]) \
-        if cal.exists() else 0
-    leftca = (dt.date(2028, 8, 14) - dt.date.today()).days
-    items.append(("引けオークション反転 Long-only（採用・封印）", "SEALED",
-                  f"判定日 2028-08-14（あと{leftca}日）",
-                  f"気配不要(前日15:24選択→引成→翌寄成)。選択窓Sh4.06・上位10日除去でも2.59で頑健。"
-                  f"ユーザー承認で集中無視・採用。台帳 {n_ca}営業日分(シグナルのみ)。"
-                  "要日次分足収集。落ちたら恒久クローズ"))
     # X11 セカンドチャンス封印
     x11l = ROOT / "data/jp_oversold_x11_forward/candidates.jsonl"
     n_x11 = len([l for l in x11l.read_text(encoding="utf-8").splitlines() if l.strip()])         if x11l.exists() else 0
@@ -594,27 +584,52 @@ def page_close_auction() -> str:
         f'<div class="dcard"><div class="nm">{k}</div>'
         f'<div class="note" style="color:var(--ink)">{v}</div></div>'
         for k, v in ex.items())
+    yj = json.loads((ROOT / "data/jp_close_auction_overnight/by_year.json").read_text(
+        encoding="utf-8")) if (ROOT / "data/jp_close_auction_overnight/by_year.json").exists() else None
+    cmp_html = ""
+    if yj and "compare" in yj:
+        cu = yj["compare"]["unfiltered_junk_included"]
+        cf = yj["compare"]["filtered_clean"]
+        cmp_html = (
+            '<div class="dgrp"><h2>★決定的発見: αは「変な小型株」に宿っていた</h2>'
+            '<div class="note" style="margin-bottom:8px">ユーザー要望で変な小型株（≥¥300億未満・'
+            'グロース・増担保）を除外したところ、エッジが崩壊。除外対象こそがα源だった。</div>'
+            '<table class="k"><thead><tr><th>母集団</th><th>選択窓Sh</th>'
+            '<th>選択窓 上位10日除去後</th><th>全窓Sh</th><th>全窓 上位10日除去後</th></tr></thead><tbody>'
+            f'<tr><td><b>フィルタなし（junk込み）</b></td><td class="num">{cu["selection"]["sharpe"]}</td>'
+            f'<td class="num" style="color:#0a7f45">{cu["selection"]["ex_top10_sharpe"]}</td>'
+            f'<td class="num">{cu["full"]["sharpe"]}</td>'
+            f'<td class="num" style="color:#0a7f45">{cu["full"]["ex_top10_sharpe"]}</td></tr>'
+            f'<tr style="background:rgba(179,44,44,.08)"><td><b>フィルタあり（クリーン・実運用品質）</b></td>'
+            f'<td class="num">{cf["selection"]["sharpe"]}</td>'
+            f'<td class="num" style="color:#b32c2c;font-weight:800">{cf["selection"]["ex_top10_sharpe"]}</td>'
+            f'<td class="num">{cf["full"]["sharpe"]}</td>'
+            f'<td class="num" style="color:#b32c2c;font-weight:800">{cf["full"]["ex_top10_sharpe"]}</td></tr>'
+            '</tbody></table>'
+            f'<div class="dnote">{yj.get("conclusion","")}</div></div>')
     return f'''<div class="dw">
-<h1>引けオークション反転 × オーバーナイト<span class="s">{badge("SEALED→forward")}
-気配不要・分足マイクロで翌寄りを予測（Optiver "Trading at the Close" 由来）</span></h1>
+<h1>引けオークション反転 × オーバーナイト<span class="s">{badge("NO-GO")}
+気配不要は本物だが、αは除外すべき小型株に宿る（Optiver "Trading at the Close" 由来）</span></h1>
 <div class="dnote" style="margin-bottom:14px">
 D引け15:30に引成で買い → 翌営業日09:00寄成で売る。<b>銘柄選択は前日15:24の確定分足で完了</b>＝
-寄前気配を一切使わない（気配→寄値が無相関でも影響しない）。成績表示は封印日2026-08-11で凍結、
-判定はフォワード。事前登録: docs/PREREGISTER_CLOSE_AUCTION_OVERNIGHT.md</div>
+寄前気配を一切使わない（気配→寄値が無相関でも影響しない）＝<b>気配問題は回避できている</b>。
+しかし下表のとおり、実運用品質のクリーン母集団ではエッジが消える。フォワード封印は撤回。
+事前登録: docs/PREREGISTER_CLOSE_AUCTION_OVERNIGHT.md</div>
 
-<div class="dgrp"><h2>セル比較（採用の根拠）</h2>
-<div class="note" style="margin-bottom:8px">αは<b>ロング脚（引けにかけて負けた銘柄を翌朝に買い戻す）</b>に宿り頑健。
-ショート脚（勝ち組売り）は裾依存の幻影でL/Sを殺す＝借株の壁の逆パターン。<b>Long-only を採用</b>。</div>
+{cmp_html}
+
+<div class="dgrp"><h2>セル比較（フィルタなし・参考）</h2>
+<div class="note" style="margin-bottom:8px">下は<b>フィルタなし</b>のセル比較。Long-onlyがL/Sより頑健
+（ショート脚は裾依存）だが、これはjunk込みの数字。クリーン母集団では上表のとおり崩壊する。</div>
 <table class="k"><thead><tr><th>セル</th><th>Sharpe</th><th>年率</th><th>top5集中</th>
-<th>上位10日除去後Sh</th></tr></thead><tbody>{crows}</tbody></table>
-<div class="dnote">「上位10日除去後Sh」が頑健性の鍵: Long-onlyだけ +2.59 で生存、L/Sは負に転落。</div></div>
+<th>上位10日除去後Sh</th></tr></thead><tbody>{crows}</tbody></table></div>
 
-<div class="dgrp"><h2>採用セルの成績（選択窓2025-01〜09・封印凍結）</h2>
+<div class="dgrp"><h2>クリーン母集団の成績（選択窓・封印凍結値）</h2>
 <div class="dcards">
 <div class="dcard"><div class="nm">超過Sharpe</div><div class="n">{d["sel_sharpe"]}</div>
 <div class="note">年率超過 {d["sel_ann_pct"]}%（対等加重市場）</div></div>
 <div class="dcard"><div class="nm">上位10日除去後Sh</div><div class="n">{d["sel_ir_ex_top10"]}</div>
-<div class="note">頑健＝少数日依存でない</div></div>
+<div class="note">負＝少数日依存（頑健性なし）</div></div>
 <div class="dcard"><div class="nm">建玉日数</div><div class="n">{d["n_book_days"]}<span>日</span></div>
 <div class="note">毎営業日ロング10分位</div></div></div>
 <div class="dcard" style="margin-top:12px">{_svg_curve(d["daily_cum"])}</div>

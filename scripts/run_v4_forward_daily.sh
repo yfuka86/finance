@@ -13,10 +13,9 @@ LOG=data/value_event_v4_forward/collect.log
   python3 scripts/collect_edinet_large_holdings.py
   # X11封印フォワード台帳(シグナルのみ・no-peek)
   python3 scripts/collect_x11_forward.py
-  # 引けオークション反転: 分足を日次前進収集 → 封印台帳(シグナルのみ) → 明細
+  # 引けオークション反転は NO-GO(2026-08-14・クリーン母集団で頑健性喪失)＝フォワード撤回。
+  # 分足収集のみ継続(他分析で有用)。台帳追記は停止。
   python3 scripts/collect_jp_minutes_daily.py || echo "minute collect skipped"
-  python3 scripts/collect_close_auction_forward.py || echo "close-auction ledger skipped"
-  python3 scripts/export_close_auction_detail.py || echo "close-auction export skipped"
   python3 scripts/export_oversold_detail.py
   python3 scripts/build_finance_site.py
 } >> "$LOG" 2>&1

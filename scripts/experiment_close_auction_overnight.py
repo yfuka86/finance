@@ -67,14 +67,44 @@ def close_features() -> pd.DataFrame:
     return f.drop(columns="symbol")
 
 
-def attach_target() -> pd.DataFrame:
+QUALITY = True                 # user-directed 2026-08-14: avoid weird small caps
+MCAP_FLOOR = 3e10              # ¥300億
+GROWTH_EXCLUDE = {"グロース", "その他", "TOKYO PRO MARKET"}
+
+
+def _quality_mask(m: pd.DataFrame) -> pd.Series:
+    """Exclude weird small caps and flagged names (user request).
+
+    - market cap >= ¥300億 (drops penny/micro like ランド, ソレイジア)
+    - established market only (Prime/Standard; excludes Growth where most of the
+      speculative IPO names live) -- via current master (segment rarely changes)
+    - not under 増担保規制 (xt_alert_flag == 0) = the "注記あり" proxy we have
+    """
+    ok = m["mktcap_yen"].fillna(0) >= MCAP_FLOOR
+    if "MktNm" in m:
+        ok &= ~m["MktNm"].isin(GROWTH_EXCLUDE)
+    if "xt_alert_flag" in m:
+        ok &= m["xt_alert_flag"].fillna(0) <= 0
+    return ok
+
+
+def attach_target(quality: bool = QUALITY) -> pd.DataFrame:
     p = load_panel_cached(min_value_yen=1e9)[
         ["date", "symbol", "ret_on_fwd", "shortable", "short_restricted",
-         "raw_close", "prev_value", "ivol"]].copy()
+         "raw_close", "prev_value", "ivol", "mktcap_yen"]].copy()
     p["sym4"] = p["symbol"].astype(str).str[:4]
+    if quality:
+        from trading.jp_intraday.extra_features import attach_extra_features
+        p = attach_extra_features(p)
+        mst = pd.read_parquet("data/jp_daily_history/master.parquet",
+                              columns=["Code", "MktNm"]).drop_duplicates("Code")
+        mst["sym4"] = mst["Code"].astype(str).str[:4]
+        p = p.merge(mst[["sym4", "MktNm"]].drop_duplicates("sym4"), on="sym4", how="left")
     f = close_features()
     m = f.merge(p, on=["date", "sym4"], how="inner")
     assert m["ret_on_fwd"].notna().mean() > .3, "target merge too sparse"
+    if quality:
+        m = m[_quality_mask(m)].copy()
     m["target"] = m["ret_on_fwd"] - m.groupby("date")["ret_on_fwd"].transform("mean")
     return m.dropna(subset=["target"])
 

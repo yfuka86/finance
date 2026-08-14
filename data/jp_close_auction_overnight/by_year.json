@@ -1,0 +1,74 @@
+{
+  "note": "minute data 2024-08 earliest; ★edge is in the excluded small caps",
+  "compare": {
+    "unfiltered_junk_included": {
+      "selection": {
+        "days": 180,
+        "sharpe": 4.06,
+        "ann_pct": 36.8,
+        "ex_top10_sharpe": 2.59
+      },
+      "full": {
+        "days": 383,
+        "sharpe": 2.57,
+        "ann_pct": 30.8,
+        "ex_top10_sharpe": 1.46
+      }
+    },
+    "filtered_clean": {
+      "selection": {
+        "days": 180,
+        "sharpe": 1.64,
+        "ann_pct": 14.1,
+        "ex_top10_sharpe": -1.07
+      },
+      "full": {
+        "days": 383,
+        "sharpe": 0.83,
+        "ann_pct": 10.2,
+        "ex_top10_sharpe": -0.83
+      }
+    }
+  },
+  "filtered_by_year": {
+    "2025": {
+      "days": 241,
+      "sharpe": 0.73,
+      "ann_pct": 6.7,
+      "ex_top10_sharpe": -1.45
+    },
+    "2026": {
+      "days": 142,
+      "sharpe": 0.99,
+      "ann_pct": 16.0,
+      "ex_top10_sharpe": -2.32
+    }
+  },
+  "filtered_by_half": {
+    "2025H1": {
+      "days": 118,
+      "sharpe": 1.6,
+      "ann_pct": 15.1,
+      "ex_top10_sharpe": -2.13
+    },
+    "2025H2": {
+      "days": 123,
+      "sharpe": -0.15,
+      "ann_pct": -1.4,
+      "ex_top10_sharpe": -3.11
+    },
+    "2026H1": {
+      "days": 116,
+      "sharpe": 0.49,
+      "ann_pct": 6.7,
+      "ex_top10_sharpe": -2.72
+    },
+    "2026H2": {
+      "days": 26,
+      "sharpe": 2.27,
+      "ann_pct": 57.9,
+      "ex_top10_sharpe": -15.56
+    }
+  },
+  "conclusion": "クリーン母集団(ユーザー要望)では選択窓Sh1.64/ex-top10−1.07・全窓Sh0.83/−0.83で頑健性喪失＝NO-GO。αは除外対象の変な小型株(直近安値の小型/グロース/増担保)のオーバーナイト反発に宿っていた。実運用品質の母集団では成立しない。"
+}

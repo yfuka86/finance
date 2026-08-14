@@ -1,88 +1,88 @@
 {
   "spec": "docs/PREREGISTER_CLOSE_AUCTION_OVERNIGHT.md",
-  "n_obs": 196446,
-  "n_days": 413,
+  "n_obs": 186969,
+  "n_days": 422,
   "feature_ic_selection": {
     "last30": {
-      "ic": -0.0175,
-      "t": -2.49
+      "ic": -0.017,
+      "t": -2.42
     },
     "afternoon": {
-      "ic": -0.0011,
-      "t": -0.13
+      "ic": -0.0031,
+      "t": -0.36
     },
     "rvol_aft": {
-      "ic": 0.0113,
-      "t": 0.84
+      "ic": 0.0037,
+      "t": 0.28
     },
     "vwap_dev": {
-      "ic": -0.0104,
-      "t": -1.38
+      "ic": -0.0094,
+      "t": -1.25
     },
     "day": {
-      "ic": 0.0122,
-      "t": 1.29
+      "ic": 0.0079,
+      "t": 0.81
     },
     "late_vol_share": {
-      "ic": -0.0175,
-      "t": -2.96
+      "ic": -0.0153,
+      "t": -2.53
     }
   },
   "executable_note": "auction_jump dropped: look-ahead (uses 15:30 to trade at 15:30) + same-bar coupling with ret_on_fwd denominator.",
   "selection": {
     "S2_last30_reversal": {
-      "sharpe": 1.22,
-      "ann_pct": 16.04,
-      "gross_bps_day": 10.08,
+      "sharpe": 0.491,
+      "ann_pct": 5.86,
+      "gross_bps_day": 6.04,
       "cost_bps_day": 3.71,
-      "neg_months": 3,
+      "neg_months": 5,
       "months": 11,
-      "top5_share": 1.102,
+      "top5_share": 2.653,
       "days": 219
     },
     "S2b_afternoon_reversal": {
-      "sharpe": 0.667,
-      "ann_pct": 8.11,
-      "gross_bps_day": 6.93,
+      "sharpe": -0.009,
+      "ann_pct": -0.11,
+      "gross_bps_day": 3.67,
       "cost_bps_day": 3.71,
-      "neg_months": 4,
+      "neg_months": 5,
       "months": 11,
-      "top5_share": 2.189,
+      "top5_share": null,
       "days": 219
     },
     "S3_ridge": {
-      "sharpe": 3.764,
-      "ann_pct": 49.7,
-      "gross_bps_day": 23.44,
+      "sharpe": 1.106,
+      "ann_pct": 14.24,
+      "gross_bps_day": 9.37,
       "cost_bps_day": 3.71,
-      "neg_months": 0,
+      "neg_months": 3,
       "months": 9,
-      "top5_share": 0.464,
+      "top5_share": 1.498,
       "days": 180
     },
     "S4_last30_longonly": {
-      "sharpe": 1.814,
-      "ann_pct": 13.58,
-      "gross_bps_day": 9.1,
+      "sharpe": 0.797,
+      "ann_pct": 4.85,
+      "gross_bps_day": 5.64,
       "cost_bps_day": 3.71,
-      "neg_months": 4,
+      "neg_months": 5,
       "months": 11,
-      "top5_share": 0.75,
+      "top5_share": 1.699,
       "days": 219
     },
     "S5_ridge_longonly": {
-      "sharpe": 4.34,
-      "ann_pct": 39.28,
-      "gross_bps_day": 19.3,
+      "sharpe": 1.936,
+      "ann_pct": 16.6,
+      "gross_bps_day": 10.3,
       "cost_bps_day": 3.71,
-      "neg_months": 0,
+      "neg_months": 2,
       "months": 9,
-      "top5_share": 0.373,
+      "top5_share": 0.864,
       "days": 180
     },
     "S6_ridge_unitlot": {
-      "sharpe": 1.789,
-      "ann_pct": 63.46,
+      "sharpe": 0.979,
+      "ann_pct": 25.33,
       "days": 180
     }
   },
